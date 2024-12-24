@@ -1,2 +1,4 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<h1>Welcome to TypeAlong!</h1>
+<h2>A typing game for your epubs!</h2>
+
+<a href="/game">Start Game!</a>
