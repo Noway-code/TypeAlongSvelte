@@ -1,5 +1,5 @@
 <script>
-	import Letter from './Letter.svelte';
+	/* eslint-disable @typescript-eslint/no-unused-vars */
 	let words = "The quick brown fox jumps over the lazy dog".split(' ');
 
 	let typedLetter = ''
@@ -10,30 +10,33 @@
 	let letterEl
 	let inputEl
 
-	function startGame() {
-		isPlaying = true;
-	}
+	function handleKeyDown(event) {
 
-	function letters(word) {
-		return word.split('');
+	}
+	function updateGameState() {
+
 	}
 </script>
 
-<button onclick={startGame}>Start!</button>
-{#if isPlaying}
-	<button class:active={isPlaying} onclick={() => isPlaying = !isPlaying}>Hi!</button>
-{/if}
+<div class="game">
+	<input bind:this={inputEl}
+	bind:value={typedLetter}
+	on:input={updateGameState()}
+	on:keydown={handleKeyDown()}>
 
-{#each words as word}
-	<div class=wordClass>{#each letters(word) as letter}<Letter text={letter}></Letter>{/each}</div>
-{/each}
+	<div bind:this={wordsEL} class="words">
+		{#each words as word}
+			<span class="word">
+				{#each word as letter}
+					<span class="letter">{letter}</span>
+					{/each}
+			</span>
+		{/each}
+	</div>
+</div>
 
 <style>
-    * {
-        color: #eea5a5
-    }
-
-    .active {
-        color: red
-    }
+	input {
+			color: black;
+	}
 </style>
