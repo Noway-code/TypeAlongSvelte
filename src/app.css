@@ -18,3 +18,34 @@ h1 {
     margin-bottom: 1rem;
 }
 
+input {
+    color: black;
+}
+
+.word {
+    margin-right: .5rem;
+}
+
+.active {
+    background-color: #1e2336;
+}
+
+.typed {
+    background-color: #3a1414;
+}
+
+.letter {
+    color: #49f6df;
+}
+
+.incorrect {
+    color: red;
+}
+
+.correct {
+    color: #00ff00;
+}
+
+
+
+
