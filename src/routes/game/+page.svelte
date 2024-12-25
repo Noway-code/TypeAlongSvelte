@@ -63,11 +63,6 @@
 		game = state
 	}
 
-	// The game timer is a function that runs every second and decreases the seconds variable by one.
-	// When the game state is 'waiting for input' or the seconds variable is equal to zero, the interval is cleared.
-	// If the seconds variable is equal to zero, the game state is set to 'game over' and the getResults function is called.
-	// The getResults function calculates the words per minute and accuracy of the player.
-
 	function setGameTimer() {
 		function gameTimer() {
 			if (seconds > 0) {
@@ -101,9 +96,9 @@
 	}
 
 	function setLetter() {
-  // After a letter is typed we assign the letter element to the current letter in the words array.
-		// letterEl is used to check if the typed letter is correct or incorrect.
-		if ( letterIndex <= words[wordIndex].length - 1) {
+		const isWordCompleted = letterIndex > words[wordIndex].length - 1
+
+		if (!isWordCompleted) {
 			letterEl = wordsEl.children[wordIndex].children[letterIndex] as HTMLSpanElement
 		}
 	}
@@ -207,6 +202,7 @@
 
 		$wordsPerMinute = 0
 		$accuracy = 0
+		focusInput()
 	}
 
 	/*
