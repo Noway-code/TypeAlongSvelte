@@ -36,6 +36,25 @@
 		Listen for key press
 	*/
 
+/*How does monkeyType appear to work. Every word is a div built up of <letter> classes that contain the letter. As you type the classes change from word to word active to word typed and each letter starts empty but will get classes correct or incorrect.
+
+
+	Spacebar should move caret
+	implement backspace
+	kinda feels like accuracy is wrong? its based on all 100 words rather than what you've typed
+	global data?
+
+		backspace:
+		- Backspace will allow you to go back to a specific letter and retype from there.
+	- It'll undo added data classes
+	- It'll reverse correctLetters
+	- It'll be treated uniquely like space
+	- It'll need to handle going back words
+	- Caret must follow
+	- Time continues normald
+
+	Two backspaces stutters */
+
 	function handleKeydown(event: KeyboardEvent) {
 		if (event.code === 'Space') {
 			event.preventDefault();
