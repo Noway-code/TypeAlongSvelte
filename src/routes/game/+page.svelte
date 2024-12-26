@@ -4,18 +4,24 @@
 	import { tweened } from 'svelte/motion';
 
 	/*
-		Types
+	 Types
 	*/
 
 	type Game = 'waiting for input' | 'in progress' | 'game over'
 	type Word = string
 
 	/*
-		Game state
+	 Constants
+	*/
+
+	const INITIAL_SECONDS = 30;
+	const WORD_LENGTH = 5;
+	/*
+	 Game state
 	*/
 
 	let game: Game = 'waiting for input';
-	let seconds = 300;
+	let seconds = INITIAL_SECONDS;
 	let typedLetter = '';
 
 	let words: Word[] = [];
@@ -23,6 +29,8 @@
 	let letterIndex = 0;
 	let correctLetters = 0;
 	let toggleReset = false;
+	let totalLetters = 0;
+	let typedLetters = 0;
 
 	let wordsPerMinute = tweened(0, { delay: 300, duration: 1000 });
 	let accuracy = tweened(0, { delay: 1300, duration: 1000 });
@@ -33,27 +41,8 @@
 	let caretEl: HTMLDivElement;
 
 	/*
-		Listen for key press
+	 Listen for key press
 	*/
-
-	/*How does monkeyType appear to work. Every word is a div built up of <letter> classes that contain the letter. As you type the classes change from word to word active to word typed and each letter starts empty but will get classes correct or incorrect.
-
-
-		Spacebar should move caret
-		implement backspace
-		kinda feels like accuracy is wrong? its based on all 100 words rather than what you've typed
-		global data?
-
-			backspace:
-			- Backspace will allow you to go back to a specific letter and retype from there.
-		- It'll undo added data classes X
-		- It'll reverse correctLetters X
-		- It'll be treated uniquely like space X
-		- It'll need to handle going back words
-		- Caret must follow
-		- Time continues normal X
-
-		Two backspaces stutters */
 
 	function handleKeydown(event: KeyboardEvent) {
 		if (event.code === 'Space') {
@@ -103,14 +92,11 @@
 
 				// Reset the data-letter attribute
 				letterEl.dataset.letter = '';
-
-				// Optionally, you can also reset the letter's visual state here
-				// For example:
-				// letterEl.classList.remove('correct', 'incorrect');
 			}
 
 			// Move the caret to the updated position
 			moveCaret();
+			typedLetters -= 1;
 		}
 
 		if (game === 'waiting for input') {
@@ -121,6 +107,7 @@
 	function startGame() {
 		setGameState('in progress');
 		setGameTimer();
+		totalLetters = getTotalLetters(words);
 	}
 
 	function setGameState(state: Game) {
@@ -138,10 +125,8 @@
 			}
 
 			if (seconds === 0) {
-				setGameState('game over');
-				getResults();
+				gameOver();
 			}
-
 
 			focusInput();
 		}
@@ -150,7 +135,7 @@
 	}
 
 	/*
-		Evaluate user input
+	 Evaluate user input
 	*/
 
 	function updateGameState() {
@@ -160,7 +145,16 @@
 		updateLine();
 		resetLetter();
 		moveCaret();
-		//debug();
+		debug();
+
+		if (typedLetters === totalLetters) {
+			gameOver();
+		}
+	}
+
+	function gameOver() {
+		setGameState('game over');
+		getResults();
 	}
 
 	function setLetter() {
@@ -189,6 +183,7 @@
 		if (typedLetter !== currentLetter) {
 			letterEl.dataset.letter = 'incorrect';
 		}
+
 	}
 
 	function increaseScore() {
@@ -197,6 +192,7 @@
 
 	function nextLetter() {
 		letterIndex += 1;
+		typedLetters += 1;
 	}
 
 	function nextWord() {
@@ -206,7 +202,7 @@
 		if (isNotFirstLetter || isOneLetterWord) {
 			wordIndex += 1;
 			letterIndex = 0;
-			increaseScore();
+			// increaseScore();
 			moveCaret();
 		}
 	}
@@ -232,18 +228,14 @@
 	}
 
 	/*
-		Game over
+	 Game over
 	*/
 
-	// https://www.speedtypingonline.com/typing-equations
-	// words per minute = (correct / 5) / time
-	// accuracy = (correct / total) * 100%
-
 	function getWordsPerMinute() {
-		const word = 5;
-		const minutes = 0.5;
-		return Math.floor(correctLetters / word / minutes);
+		const wordsTyped = correctLetters / WORD_LENGTH;
+		return Math.floor(wordsTyped * (60 / (INITIAL_SECONDS - seconds || 1)));
 	}
+
 
 	function getResults() {
 		$wordsPerMinute = getWordsPerMinute();
@@ -261,7 +253,7 @@
 	}
 
 	/*
-		Game reset
+	 Game reset
 	*/
 
 	function resetGame() {
@@ -270,11 +262,13 @@
 		setGameState('waiting for input');
 		getWords(10);
 
-		seconds = 300;
+		seconds = INITIAL_SECONDS;
 		typedLetter = '';
 		wordIndex = 0;
 		letterIndex = 0;
 		correctLetters = 0;
+		totalLetters = getTotalLetters(words);
+		typedLetters = 0;
 
 		$wordsPerMinute = 0;
 		$accuracy = 0;
@@ -282,7 +276,7 @@
 	}
 
 	/*
-		Helpers
+	 Helpers
 	*/
 
 	async function getWords(limit: number) {
@@ -313,10 +307,12 @@
 		focusInput();
 	});
 </script>
-{correctLetters}
+correctLetters: {correctLetters}
+totalLetters: {totalLetters}
 {#if letterEl}
-	{letterEl.textContent}
+	text: {letterEl.textContent}
 {/if}
+typedTotal: {typedLetters}
 {#if game !== 'game over'}
 	<div class="game" data-game={game}>
 		<input
@@ -340,7 +336,7 @@
 					</span>
 				{/each}
 
-				<div bind:this={caretEl} class="caret" />
+				<div bind:this={caretEl} class="caret"></div>
 			</div>
 		{/key}
 
