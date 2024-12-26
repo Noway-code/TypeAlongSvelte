@@ -15,7 +15,7 @@
 	*/
 
 	let game: Game = 'waiting for input';
-	let seconds = 30;
+	let seconds = 300
 	let typedLetter = '';
 
 	let words: Word[] = [];
@@ -49,10 +49,23 @@
 			event.preventDefault();
 
 			if (game === 'in progress') {
+				if ( wordIndex === 0 && letterIndex === 0) {
+					return
+
+				}
 				//TODO: Implement backspace functionality
 				// LetterEl represents the current letter, so we should be able to remove the last letter from the input.
-				letterEl.dataset.letter = '';
 
+				if (letterEl.dataset.letter === 'correct')
+					correctLetters -= 1;
+
+				// Changes letter's to `dataset=''`, but by default letters don't have a dataset property.
+				// Unsure if this is problematic.
+				letterEl.dataset.letter = '';
+				if (letterIndex > 0) {
+					letterIndex -= 1;
+					reverseLetter();
+				}
 
 			}
 		}
@@ -115,11 +128,11 @@
 		}
 	}
 
-	// function reverseLetter() {
-	// 	if (letterIndex >= 0) {
-	// 		letterEl = wordsEl.children[wordIndex].children[letterIndex] as HTMLSpanElement;
-	// 	}
-	// }
+	function reverseLetter() {
+		if (letterIndex >= 0) {
+			letterEl = wordsEl.children[wordIndex].children[letterIndex] as HTMLSpanElement;
+		}
+	}
 	function checkLetter() {
 		const currentLetter = words[wordIndex][letterIndex];
 
@@ -253,7 +266,7 @@
 		focusInput();
 	});
 </script>
-
+{correctLetters}
 {#if game !== 'game over'}
 	<div class="game" data-game={game}>
 		<input
