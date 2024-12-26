@@ -15,7 +15,7 @@
 	*/
 
 	let game: Game = 'waiting for input';
-	let seconds = 300
+	let seconds = 300;
 	let typedLetter = '';
 
 	let words: Word[] = [];
@@ -36,29 +36,28 @@
 		Listen for key press
 	*/
 
-/*How does monkeyType appear to work. Every word is a div built up of <letter> classes that contain the letter. As you type the classes change from word to word active to word typed and each letter starts empty but will get classes correct or incorrect.
+	/*How does monkeyType appear to work. Every word is a div built up of <letter> classes that contain the letter. As you type the classes change from word to word active to word typed and each letter starts empty but will get classes correct or incorrect.
 
 
-	Spacebar should move caret
-	implement backspace
-	kinda feels like accuracy is wrong? its based on all 100 words rather than what you've typed
-	global data?
+		Spacebar should move caret
+		implement backspace
+		kinda feels like accuracy is wrong? its based on all 100 words rather than what you've typed
+		global data?
 
-		backspace:
-		- Backspace will allow you to go back to a specific letter and retype from there.
-	- It'll undo added data classes
-	- It'll reverse correctLetters
-	- It'll be treated uniquely like space
-	- It'll need to handle going back words
-	- Caret must follow
-	- Time continues normald
+			backspace:
+			- Backspace will allow you to go back to a specific letter and retype from there.
+		- It'll undo added data classes X
+		- It'll reverse correctLetters X
+		- It'll be treated uniquely like space X
+		- It'll need to handle going back words
+		- Caret must follow
+		- Time continues normal X
 
-	Two backspaces stutters */
+		Two backspaces stutters */
 
 	function handleKeydown(event: KeyboardEvent) {
 		if (event.code === 'Space') {
 			event.preventDefault();
-
 			if (game === 'in progress') {
 				nextWord();
 			}
@@ -67,36 +66,57 @@
 		if (event.code === 'Backspace') {
 			event.preventDefault();
 
-			if (game === 'in progress') {
-				if ( wordIndex === 0 && letterIndex === 0) {
-					return
-
-				}
-				//TODO: Implement backspace functionality
-				// LetterEl represents the current letter, so we should be able to remove the last letter from the input.
-
-				if (letterEl.dataset.letter === 'correct')
-					correctLetters -= 1;
-
-				// Changes letter's to `dataset=''`, but by default letters don't have a dataset property.
-				// Unsure if this is problematic.
-				letterEl.dataset.letter = '';
-				if (letterIndex > 0) {
-					letterIndex -= 1;
-					reverseLetter();
-				}
-
+			if (game !== 'in progress') {
+				return;
 			}
+
+			// If at the very beginning, do nothing
+			if (wordIndex === 0 && letterIndex === 0) {
+				return;
+			}
+
+			// Determine the previous position
+			let prevWordIndex = wordIndex;
+			let prevLetterIndex = letterIndex;
+
+			if (letterIndex > 0) {
+				prevLetterIndex -= 1;
+			} else if (wordIndex > 0) {
+				prevWordIndex -= 1;
+				prevLetterIndex = words[prevWordIndex].length - 1;
+			}
+
+			// Update indices
+			wordIndex = prevWordIndex;
+			letterIndex = prevLetterIndex;
+
+			// Set the current letter element
+			setLetter();
+
+			if (letterEl) {
+				const previousState = letterEl.dataset.letter;
+
+				// If the previous state was correct, decrement correctLetters
+				if (previousState === 'correct') {
+					correctLetters = Math.max(correctLetters - 1, 0);
+				}
+
+				// Reset the data-letter attribute
+				letterEl.dataset.letter = '';
+
+				// Optionally, you can also reset the letter's visual state here
+				// For example:
+				// letterEl.classList.remove('correct', 'incorrect');
+			}
+
+			// Move the caret to the updated position
+			moveCaret();
 		}
 
 		if (game === 'waiting for input') {
 			startGame();
 		}
 	}
-
-	/*
-		Start game
-	*/
 
 	function startGame() {
 		setGameState('in progress');
@@ -121,6 +141,8 @@
 				setGameState('game over');
 				getResults();
 			}
+
+
 			focusInput();
 		}
 
@@ -138,20 +160,24 @@
 		updateLine();
 		resetLetter();
 		moveCaret();
-		debug();
+		//debug();
 	}
 
 	function setLetter() {
-		if (letterIndex <= words[wordIndex].length - 1) {
-			letterEl = wordsEl.children[wordIndex].children[letterIndex] as HTMLSpanElement;
+		if (
+			wordIndex >= 0 &&
+			wordIndex < wordsEl.children.length &&
+			letterIndex >= 0 &&
+			letterIndex < words[wordIndex].length
+		) {
+			const currentWord = wordsEl.children[wordIndex] as HTMLElement;
+			letterEl = currentWord.children[letterIndex] as HTMLSpanElement;
+		} else {
+			letterEl = null;
 		}
 	}
 
-	function reverseLetter() {
-		if (letterIndex >= 0) {
-			letterEl = wordsEl.children[wordIndex].children[letterIndex] as HTMLSpanElement;
-		}
-	}
+
 	function checkLetter() {
 		const currentLetter = words[wordIndex][letterIndex];
 
@@ -242,9 +268,9 @@
 		toggleReset = !toggleReset;
 
 		setGameState('waiting for input');
-		getWords(100);
+		getWords(10);
 
-		seconds = 30;
+		seconds = 300;
 		typedLetter = '';
 		wordIndex = 0;
 		letterIndex = 0;
@@ -265,7 +291,9 @@
 	}
 
 	function focusInput() {
-		inputEl.focus();
+		if (inputEl) {
+			inputEl.focus();
+		}
 	}
 
 	function debug() {
@@ -281,11 +309,14 @@
 	/* Get words and focus input when you load the page */
 
 	onMount(() => {
-		getWords(100);
+		getWords(10);
 		focusInput();
 	});
 </script>
 {correctLetters}
+{#if letterEl}
+	{letterEl.textContent}
+{/if}
 {#if game !== 'game over'}
 	<div class="game" data-game={game}>
 		<input
