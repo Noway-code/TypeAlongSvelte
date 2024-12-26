@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { onMount } from 'svelte'
-	import { blur } from 'svelte/transition'
-	import { tweened } from 'svelte/motion'
+	import { onMount } from 'svelte';
+	import { blur } from 'svelte/transition';
+	import { tweened } from 'svelte/motion';
 
 	/*
 		Types
@@ -14,23 +14,23 @@
 		Game state
 	*/
 
-	let game: Game = 'waiting for input'
-	let seconds = 30
-	let typedLetter = ''
+	let game: Game = 'waiting for input';
+	let seconds = 30;
+	let typedLetter = '';
 
-	let words: Word[] = []
-	let wordIndex = 0
-	let letterIndex = 0
-	let correctLetters = 0
-	let toggleReset = false
+	let words: Word[] = [];
+	let wordIndex = 0;
+	let letterIndex = 0;
+	let correctLetters = 0;
+	let toggleReset = false;
 
-	let wordsPerMinute = tweened(0, { delay: 300, duration: 1000 })
-	let accuracy = tweened(0, { delay: 1300, duration: 1000 })
+	let wordsPerMinute = tweened(0, { delay: 300, duration: 1000 });
+	let accuracy = tweened(0, { delay: 1300, duration: 1000 });
 
-	let wordsEl: HTMLDivElement
-	let letterEl: HTMLSpanElement
-	let inputEl: HTMLInputElement
-	let caretEl: HTMLDivElement
+	let wordsEl: HTMLDivElement;
+	let letterEl: HTMLSpanElement;
+	let inputEl: HTMLInputElement;
+	let caretEl: HTMLDivElement;
 
 	/*
 		Listen for key press
@@ -38,15 +38,23 @@
 
 	function handleKeydown(event: KeyboardEvent) {
 		if (event.code === 'Space') {
-			event.preventDefault()
+			event.preventDefault();
 
 			if (game === 'in progress') {
-				nextWord()
+				nextWord();
+			}
+		}
+
+		if (event.code === 'Backspace') {
+			event.preventDefault();
+
+			if (game === 'in progress') {
+				//TODO: Implement backspace functionality
 			}
 		}
 
 		if (game === 'waiting for input') {
-			startGame()
+			startGame();
 		}
 	}
 
@@ -55,31 +63,32 @@
 	*/
 
 	function startGame() {
-		setGameState('in progress')
-		setGameTimer()
+		setGameState('in progress');
+		setGameTimer();
 	}
 
 	function setGameState(state: Game) {
-		game = state
+		game = state;
 	}
 
 	function setGameTimer() {
 		function gameTimer() {
 			if (seconds > 0) {
-				seconds -= 1
+				seconds -= 1;
 			}
 
 			if (game === 'waiting for input' || seconds === 0) {
-				clearInterval(interval)
+				clearInterval(interval);
 			}
 
 			if (seconds === 0) {
-				setGameState('game over')
-				getResults()
+				setGameState('game over');
+				getResults();
 			}
+			focusInput();
 		}
 
-		const interval = setInterval(gameTimer, 1000)
+		const interval = setInterval(gameTimer, 1000);
 	}
 
 	/*
@@ -87,73 +96,71 @@
 	*/
 
 	function updateGameState() {
-		setLetter()
-		checkLetter()
-		nextLetter()
-		updateLine()
-		resetLetter()
-		moveCaret()
+		setLetter();
+		checkLetter();
+		nextLetter();
+		updateLine();
+		resetLetter();
+		moveCaret();
 	}
 
 	function setLetter() {
-		const isWordCompleted = letterIndex > words[wordIndex].length - 1
-
-		if (!isWordCompleted) {
-			letterEl = wordsEl.children[wordIndex].children[letterIndex] as HTMLSpanElement
+		if (letterIndex <= words[wordIndex].length - 1) {
+			letterEl = wordsEl.children[wordIndex].children[letterIndex] as HTMLSpanElement;
 		}
 	}
 
 	function checkLetter() {
-		const currentLetter = words[wordIndex][letterIndex]
+		const currentLetter = words[wordIndex][letterIndex];
 
 		if (typedLetter === currentLetter) {
-			letterEl.dataset.letter = 'correct'
-			increaseScore()
+			letterEl.dataset.letter = 'correct';
+			increaseScore();
 		}
 
 		if (typedLetter !== currentLetter) {
-			letterEl.dataset.letter = 'incorrect'
+			letterEl.dataset.letter = 'incorrect';
 		}
 	}
 
 	function increaseScore() {
-		correctLetters += 1
+		correctLetters += 1;
 	}
 
 	function nextLetter() {
-		letterIndex += 1
+		letterIndex += 1;
 	}
 
 	function nextWord() {
-		const isNotFirstLetter = letterIndex !== 0
-		const isOneLetterWord = words[wordIndex].length === 1
+		const isNotFirstLetter = letterIndex !== 0;
+		const isOneLetterWord = words[wordIndex].length === 1;
 
 		if (isNotFirstLetter || isOneLetterWord) {
-			wordIndex += 1
-			letterIndex = 0
-			increaseScore()
-			moveCaret()
+			wordIndex += 1;
+			letterIndex = 0;
+			increaseScore();
+			moveCaret();
 		}
 	}
 
 	function updateLine() {
-		const wordEl = wordsEl.children[wordIndex]
-		const wordsY = wordsEl.getBoundingClientRect().y
-		const wordY = wordEl.getBoundingClientRect().y
+		const wordEl = wordsEl.children[wordIndex]; // Why are we reinitializing wordEl rather than maintaining the reference?
+		const wordsY = wordsEl.getBoundingClientRect().y;
+		const wordY = wordEl.getBoundingClientRect().y;
 
 		if (wordY > wordsY) {
-			wordEl.scrollIntoView({ block: 'center' })
+			wordEl.scrollIntoView({ block: 'center' });
 		}
 	}
 
 	function resetLetter() {
-		typedLetter = ''
+		typedLetter = '';
 	}
 
 	function moveCaret() {
-		const offset = 4
-		caretEl.style.top = `${letterEl.offsetTop + offset}px`
-		caretEl.style.left = `${letterEl.offsetLeft + letterEl.offsetWidth}px`
+		const offset = 4;
+		caretEl.style.top = `${letterEl.offsetTop + offset}px`;
+		caretEl.style.left = `${letterEl.offsetLeft + letterEl.offsetWidth}px`;
 	}
 
 	/*
@@ -165,23 +172,24 @@
 	// accuracy = (correct / total) * 100%
 
 	function getWordsPerMinute() {
-		const word = 5
-		const minutes = 0.5
-		return Math.floor(correctLetters / word / minutes)
+		const word = 5;
+		const minutes = 0.5;
+		return Math.floor(correctLetters / word / minutes);
 	}
 
 	function getResults() {
-		$wordsPerMinute = getWordsPerMinute()
-		$accuracy = getAccuracy()
+		$wordsPerMinute = getWordsPerMinute();
+		$accuracy = getAccuracy();
 	}
 
 	function getAccuracy() {
-		const totalLetters = getTotalLetters(words)
-		return Math.floor((correctLetters / totalLetters) * 100)
+		//TODO: Change to 'totalLetters' use total letters typed, not total letters in the words array
+		const totalLetters = getTotalLetters(words);
+		return Math.floor((correctLetters / totalLetters) * 100);
 	}
 
 	function getTotalLetters(words: Word[]) {
-		return words.reduce((count, word) => count + word.length, 0)
+		return words.reduce((count, word) => count + word.length, 0);
 	}
 
 	/*
@@ -189,20 +197,20 @@
 	*/
 
 	function resetGame() {
-		toggleReset = !toggleReset
+		toggleReset = !toggleReset;
 
-		setGameState('waiting for input')
-		getWords(100)
+		setGameState('waiting for input');
+		getWords(100);
 
-		seconds = 30
-		typedLetter = ''
-		wordIndex = 0
-		letterIndex = 0
-		correctLetters = 0
+		seconds = 30;
+		typedLetter = '';
+		wordIndex = 0;
+		letterIndex = 0;
+		correctLetters = 0;
 
-		$wordsPerMinute = 0
-		$accuracy = 0
-		focusInput()
+		$wordsPerMinute = 0;
+		$accuracy = 0;
+		focusInput();
 	}
 
 	/*
@@ -210,12 +218,12 @@
 	*/
 
 	async function getWords(limit: number) {
-		const response = await fetch(`/api/words?limit=${limit}`)
-		words = await response.json()
+		const response = await fetch(`/api/words?limit=${limit}`);
+		words = await response.json();
 	}
 
 	function focusInput() {
-		inputEl.focus()
+		inputEl.focus();
 	}
 
 	function debug() {
@@ -224,16 +232,16 @@
 			wordIndex,
 			letterEl,
 			letter: letterEl.innerText,
-			wordLength: words[wordIndex].length - 1,
-		})
+			wordLength: words[wordIndex].length - 1
+		});
 	}
 
 	/* Get words and focus input when you load the page */
 
 	onMount(() => {
-		getWords(100)
-		focusInput()
-	})
+		getWords(100);
+		focusInput();
+	});
 </script>
 
 {#if game !== 'game over'}
