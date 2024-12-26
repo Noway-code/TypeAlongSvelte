@@ -50,6 +50,10 @@
 
 			if (game === 'in progress') {
 				//TODO: Implement backspace functionality
+				// LetterEl represents the current letter, so we should be able to remove the last letter from the input.
+				letterEl.dataset.letter = '';
+
+
 			}
 		}
 
@@ -102,6 +106,7 @@
 		updateLine();
 		resetLetter();
 		moveCaret();
+		debug();
 	}
 
 	function setLetter() {
@@ -110,6 +115,11 @@
 		}
 	}
 
+	// function reverseLetter() {
+	// 	if (letterIndex >= 0) {
+	// 		letterEl = wordsEl.children[wordIndex].children[letterIndex] as HTMLSpanElement;
+	// 	}
+	// }
 	function checkLetter() {
 		const currentLetter = words[wordIndex][letterIndex];
 
