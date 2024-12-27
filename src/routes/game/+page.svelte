@@ -14,7 +14,7 @@
 	 Constants
 	*/
 
-	const INITIAL_SECONDS = 30;
+	const INITIAL_SECONDS = 100;
 	const WORD_LENGTH = 5;
 	/*
 	 Game state
@@ -45,6 +45,14 @@
 	*/
 
 	function handleKeydown(event: KeyboardEvent) {
+		const atEndOfWord = letterIndex >= words[wordIndex].length;
+
+		if (atEndOfWord) {
+			if (event.code !== 'Space' && event.code !== 'Backspace') {
+				event.preventDefault();
+				return;
+			}
+		}
 		if (event.code === 'Space') {
 			event.preventDefault();
 			if (game === 'in progress') {
@@ -96,16 +104,15 @@
 				// Temporarily decrement letterEl
 				letterEl = letterEl.previousElementSibling as HTMLSpanElement;
 
-				if(!letterEl && wordIndex > 0) {
-					letterEl = wordsEl.children[wordIndex-1].lastElementChild as HTMLSpanElement;
-				}
-				else if(!letterEl && wordIndex === 0) {
+				if (!letterEl && wordIndex > 0) {
+					letterEl = wordsEl.children[wordIndex - 1].lastElementChild as HTMLSpanElement;
+				} else if (!letterEl && wordIndex === 0) {
 					letterEl = wordsEl.children[wordIndex].firstElementChild as HTMLSpanElement;
 				}
 
 
 			}
-			console.log(letterEl)
+			console.log(letterEl);
 			moveCaret();
 
 			// Restore letterEl
@@ -189,7 +196,7 @@
 
 	function checkLetter() {
 		const currentLetter = words[wordIndex][letterIndex];
-
+		if (!letterEl) return;
 		if (typedLetter === currentLetter) {
 			letterEl.dataset.letter = 'correct';
 			increaseScore();
@@ -212,6 +219,7 @@
 
 	function nextWord() {
 		const isNotFirstLetter = letterIndex !== 0;
+
 
 		if (isNotFirstLetter) {
 			let wordRemaining = words[wordIndex].length - letterIndex;
@@ -277,7 +285,7 @@
 		toggleReset = !toggleReset;
 
 		setGameState('waiting for input');
-		getWords(10);
+		getWords(25);
 
 		seconds = INITIAL_SECONDS;
 		typedLetter = '';
@@ -320,7 +328,7 @@
 	/* Get words and focus input when you load the page */
 
 	onMount(() => {
-		getWords(10);
+		getWords(25);
 		focusInput();
 	});
 </script>
