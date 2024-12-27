@@ -200,6 +200,9 @@
 		const isOneLetterWord = words[wordIndex].length === 1;
 
 		if (isNotFirstLetter || isOneLetterWord) {
+			let wordRemaining = words[wordIndex].length - letterIndex;
+			typedLetters += wordRemaining;
+
 			wordIndex += 1;
 			letterIndex = 0;
 			// increaseScore();

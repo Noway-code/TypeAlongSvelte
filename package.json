@@ -33,7 +33,6 @@
 		"vite": "^5.4.11"
 	},
 	"dependencies": {
-		"@characters/a": "^2.1.0",
 		"sass-embedded": "^1.83.0"
 	}
 }
