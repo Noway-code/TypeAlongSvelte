@@ -92,10 +92,25 @@
 
 				// Reset the data-letter attribute
 				letterEl.dataset.letter = '';
-			}
 
-			// Move the caret to the updated position
+				// Temporarily decrement letterEl
+				letterEl = letterEl.previousElementSibling as HTMLSpanElement;
+
+				if(!letterEl && wordIndex > 0) {
+					letterEl = wordsEl.children[wordIndex-1].lastElementChild as HTMLSpanElement;
+				}
+				else if(!letterEl && wordIndex === 0) {
+					letterEl = wordsEl.children[wordIndex].firstElementChild as HTMLSpanElement;
+				}
+
+
+			}
+			console.log(letterEl)
 			moveCaret();
+
+			// Restore letterEl
+			letterEl = letterEl.nextElementSibling as HTMLSpanElement;
+
 			typedLetters -= 1;
 		}
 
@@ -197,9 +212,8 @@
 
 	function nextWord() {
 		const isNotFirstLetter = letterIndex !== 0;
-		const isOneLetterWord = words[wordIndex].length === 1;
 
-		if (isNotFirstLetter || isOneLetterWord) {
+		if (isNotFirstLetter) {
 			let wordRemaining = words[wordIndex].length - letterIndex;
 			typedLetters += wordRemaining;
 
