@@ -40,6 +40,7 @@
 	let inputEl: HTMLInputElement;
 	let caretEl: HTMLDivElement;
 
+	let titleBook = '';
 	/*
 	 Listen for key press
 	*/
@@ -316,7 +317,11 @@
 		words = data.words;
 		return words;
 	}
-
+async function bookDetails() {
+		const response = await fetch('http://localhost:8000/api/book');
+		const data = await response.json();
+		titleBook = data.title; // <-- store the fetched title here
+	}
 
 	function focusInput() {
 		if (inputEl) {
@@ -413,6 +418,8 @@ typedTotal: {typedLetters}
 {/if}
 
 <button on:click={getWordsBackend}>Get Words</button>
+<button on:click={bookDetails}>{titleBook || 'Get Book Title'}</button>
+
 <style lang="scss">
   .game {
     position: relative;

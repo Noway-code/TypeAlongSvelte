@@ -3,13 +3,15 @@
 </script>
 
 <svelte:head>
-	<title>Sveltype</title>
+	<title>TypeAlong</title>
 </svelte:head>
 
 <div class="layout">
 	<nav>
-		<h1>🔥 sveltype</h1>
+		<h1>🔥 TypeAlong</h1>
+
 	</nav>
+
 
 	<main>
 		<slot />

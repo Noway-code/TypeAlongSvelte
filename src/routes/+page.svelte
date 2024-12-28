@@ -2,3 +2,4 @@
 <h2>A typing game for your epubs!</h2>
 
 <a href="/game">Start Game!</a>
+<a href="/book">Book</a>
