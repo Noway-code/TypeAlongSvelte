@@ -4,7 +4,7 @@ router = APIRouter()
 
 @router.get("/status")
 async def get_status():
-    return {"status": "TypeAlong is running"}
+    return {"words": ["Hello", "World", "TypeAlong", "FastAPI", "Python", "Backend", "Frontend"]}
 
 @router.post("/upload")
 async def upload_file(file_name: str):

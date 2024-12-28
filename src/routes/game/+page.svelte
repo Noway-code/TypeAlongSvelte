@@ -286,7 +286,6 @@
 
 		setGameState('waiting for input');
 		getWords(25);
-
 		seconds = INITIAL_SECONDS;
 		typedLetter = '';
 		wordIndex = 0;
@@ -308,6 +307,16 @@
 		const response = await fetch(`/api/words?limit=${limit}`);
 		words = await response.json();
 	}
+
+	async function getWordsBackend(): Promise<Word[]> {
+		const response = await fetch('http://localhost:8000/api/status');
+		const data = await response.json();
+
+		// data should be { words: ["Hello", "World", "TypeAlong"] } now
+		words = data.words;
+		return words;
+	}
+
 
 	function focusInput() {
 		if (inputEl) {
@@ -403,6 +412,7 @@ typedTotal: {typedLetters}
 	</div>
 {/if}
 
+<button on:click={getWordsBackend}>Get Words</button>
 <style lang="scss">
   .game {
     position: relative;
