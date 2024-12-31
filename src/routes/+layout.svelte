@@ -1,5 +1,5 @@
 <script lang="ts">
-	import '../styles/app.scss'
+	import '../styles/app.scss';
 </script>
 
 <svelte:head>
@@ -9,7 +9,9 @@
 <div class="layout">
 	<nav>
 		<h1>🔥 TypeAlong</h1>
-
+		<a href="/">Home</a>
+		<a href="/game">Game</a>
+		<a href="/book">Book</a>
 	</nav>
 
 
@@ -32,5 +34,18 @@
     grid-template-rows: auto 1fr;
     align-items: center;
     padding: 2rem;
+  }
+
+  nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  nav a {
+    text-decoration: none;
+    color: var(--fg-200);
+		font-size: 1.2rem;
+
   }
 </style>

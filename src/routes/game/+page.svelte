@@ -1,3 +1,4 @@
+
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { blur } from 'svelte/transition';
@@ -17,9 +18,9 @@
 	const INITIAL_SECONDS = 100;
 	const WORD_LENGTH = 5;
 	/*
+
 	 Game state
 	*/
-
 	let game: Game = 'waiting for input';
 	let seconds = INITIAL_SECONDS;
 	let typedLetter = '';
@@ -41,6 +42,7 @@
 	let caretEl: HTMLDivElement;
 
 	let titleBook = '';
+  let avatar: FileList | null = null;
 	/*
 	 Listen for key press
 	*/
@@ -317,7 +319,8 @@
 		words = data.words;
 		return words;
 	}
-async function bookDetails() {
+
+	async function bookDetails() {
 		const response = await fetch('http://localhost:8000/api/book');
 		const data = await response.json();
 		titleBook = data.title; // <-- store the fetched title here
@@ -420,6 +423,20 @@ typedTotal: {typedLetters}
 <button on:click={getWordsBackend}>Get Words</button>
 <button on:click={bookDetails}>{titleBook || 'Get Book Title'}</button>
 
+<label for="avatar">Upload a picture:</label>
+<input
+  accept=".epub"
+  bind:files={avatar}
+  id="avatar"
+  name="avatar"
+  type="file"
+/>
+{#if avatar}
+	<img src={URL.createObjectURL(avatar[0])} alt="Avatar preview" />
+	<div>
+		File Size: {avatar[0].size} bytes
+	</div>
+{/if}
 <style lang="scss">
   .game {
     position: relative;
