@@ -4,12 +4,17 @@
 	import { blur } from 'svelte/transition';
 	import { tweened } from 'svelte/motion';
 
+
 	/*
 	 Types
 	*/
 
 	type Game = 'waiting for input' | 'in progress' | 'game over'
 	type Word = string
+	/*
+		 Props
+		*/
+	export let words: Word[] = [];
 
 	/*
 	 Constants
@@ -25,7 +30,6 @@
 	let seconds = INITIAL_SECONDS;
 	let typedLetter = '';
 
-	let words: Word[] = [];
 	let wordIndex = 0;
 	let letterIndex = 0;
 	let correctLetters = 0;
@@ -349,12 +353,12 @@
 		focusInput();
 	});
 </script>
-correctLetters: {correctLetters}
+<!--correctLetters: {correctLetters}
 totalLetters: {totalLetters}
 {#if letterEl}
 	text: {letterEl.textContent}
 {/if}
-typedTotal: {typedLetters}
+typedTotal: {typedLetters}-->
 {#if game !== 'game over'}
 	<div class="game" data-game={game}>
 		<input
@@ -420,23 +424,6 @@ typedTotal: {typedLetters}
 	</div>
 {/if}
 
-<button on:click={getWordsBackend}>Get Words</button>
-<button on:click={bookDetails}>{titleBook || 'Get Book Title'}</button>
-
-<label for="avatar">Upload a picture:</label>
-<input
-  accept=".epub"
-  bind:files={avatar}
-  id="avatar"
-  name="avatar"
-  type="file"
-/>
-{#if avatar}
-	<img src={URL.createObjectURL(avatar[0])} alt="Avatar preview" />
-	<div>
-		File Size: {avatar[0].size} bytes
-	</div>
-{/if}
 <style lang="scss">
   .game {
     position: relative;

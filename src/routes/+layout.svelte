@@ -10,7 +10,7 @@
 	<nav>
 		<h1>🔥 TypeAlong</h1>
 		<a href="/">Home</a>
-		<a href="/game">Game</a>
+		<a href="/random-type">Random</a>
 		<a href="/book">Book</a>
 	</nav>
 

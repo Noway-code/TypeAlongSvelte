@@ -29,7 +29,7 @@
 				// Initialize the rendition
 				rendition = book.renderTo(viewer, {
 					width: '100%',
-					height: '600px',
+					height: '900px',
 					spread: 'always'
 				});
 
@@ -51,7 +51,47 @@
 		rendition?.destroy();
 		book?.destroy();
 	});
+
+	// Start random-type from here
+	function startGame() {
+		console.log('Game started!');
+	}
 </script>
+
+
+<div class="container">
+	<h1>Upload Your Book and Preview It</h1>
+
+	<label for="uploadedFile">Upload a book:</label>
+	<input
+		type="file"
+		id="uploadedFile"
+		accept=".epub"
+		on:change={(event: Event) => {
+      const target = event.target as HTMLInputElement;
+      if (target.files) {
+        uploadedFile.set(target.files[0]);
+      }
+    }}
+	/>
+
+	{#if $uploadedFile}
+		<h2>Uploaded File:</h2>
+		<p>{$uploadedFile.name}</p>
+
+		<div class="controls">
+			<button on:click={() => rendition?.prev()}>Previous</button>
+			<button on:click={() => rendition?.next()}>Next</button>
+			<button on:click={() => rendition?.display()}>Go to Start</button>
+		</div>
+
+		<button id="start" on:click={() => {startGame()}}>Start game from here!</button>
+
+		<div bind:this={viewer} class="viewer"></div>
+
+
+	{/if}
+</div>
 
 <style>
     .container {
@@ -66,7 +106,7 @@
         margin-top: 20px;
         width: 100%;
         max-width: 800px;
-        height: 600px;
+        height: 1000px;
         background: #ffffff;
         box-sizing: border-box;
         margin-left: auto;
@@ -94,6 +134,8 @@
     .controls button:hover {
         background-color: #0056b3;
     }
+
+
 
     @media (max-width: 768px) {
         .viewer {
@@ -123,33 +165,3 @@
         }
     }
 </style>
-
-<div class="container">
-	<h1>Upload Your Book and Preview It</h1>
-
-	<label for="uploadedFile">Upload a book:</label>
-	<input
-		type="file"
-		id="uploadedFile"
-		accept=".epub"
-		on:change={(event: Event) => {
-      const target = event.target as HTMLInputElement;
-      if (target.files) {
-        uploadedFile.set(target.files[0]);
-      }
-    }}
-	/>
-
-	{#if $uploadedFile}
-		<h2>Uploaded File:</h2>
-		<p>{$uploadedFile.name}</p>
-
-		<div class="controls">
-			<button on:click={() => rendition?.prev()}>Previous</button>
-			<button on:click={() => rendition?.next()}>Next</button>
-			<button on:click={() => rendition?.display()}>Go to Start</button>
-		</div>
-
-		<div bind:this={viewer} class="viewer"></div>
-	{/if}
-</div>
