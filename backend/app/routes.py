@@ -29,7 +29,7 @@ async def get_status():
     # Take the first 100 words
     first_100 = all_words[:100]
     return {"words": first_100}
-2
+
 @router.post("/upload")
 async def upload_file(file_name: str):
     # Placeholder logic for handling uploaded files
