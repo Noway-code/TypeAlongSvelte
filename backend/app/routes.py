@@ -8,7 +8,6 @@ import uuid
 router = APIRouter()
 UPLOAD_DIR = "uploaded_epubs"
 
-
 async def get_words_from_specific_page(book, page: int):
     all_docs = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))
     if page < 1 or page > len(all_docs):
@@ -22,9 +21,14 @@ async def get_words_from_specific_page(book, page: int):
     text = soup.get_text(separator=' ', strip=True)
     words = text.split()
 
+    debug_write_words(words)
     # Return the words from the specific page
     return {"words": words}
 
+def debug_write_words(words):
+    with open("words.txt", "w") as txt_file:
+        for line in words:
+            txt_file.write("".join(line) + "\n")
 
 async def get_file_path(file_id):
     return os.path.join(UPLOAD_DIR, f"{file_id}.epub")

@@ -22,7 +22,6 @@
 		// Clean up previous instances
 		rendition?.destroy();
 		book?.destroy();
-		localStorage.removeItem('file_id');
 
 		try {
 			// Initialize the book directly with the File object
@@ -72,6 +71,7 @@
 				console.log('EPUB uploaded successfully:', data);
 				uploadedFile.set(selectedFile[0]);
 				localStorage.setItem('file_id', data.file_id);
+
 			} else {
 				console.error('Error:', data.detail || data.message);
 			}
