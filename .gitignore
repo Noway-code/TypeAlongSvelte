@@ -24,3 +24,4 @@ vite.config.ts.timestamp-*
 /backend/.idea/
 /backend/app/static/
 /src/lib/
+/backend/uploaded_epubs/

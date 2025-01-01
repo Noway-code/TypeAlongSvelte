@@ -5,12 +5,10 @@ from bs4 import BeautifulSoup
 import os
 import uuid
 router = APIRouter()
-book = epub.read_epub("app/static/Digital_Minimalism.epub")
 UPLOAD_DIR = "uploaded_epubs"
 
 
-@router.get("/status")
-async def get_status():
+async def get_words(book):
     all_words = []
     # Iterate over every item in the ePub
     for item in book.get_items():
@@ -44,8 +42,10 @@ async def upload_epub(file: UploadFile = File(...)):
         content = await file.read()
         f.write(content)
 
+    book = epub.read_epub(file_path)
+    words = await get_words(book)
 
-    return {"file_id": unique_id}
+    return {"words": words}
 
 @router.get("/book")
 async def get_book():
