@@ -7,6 +7,7 @@
 	let selectedFile;
 	const uploadedFile = writable<File | null>(null);
 
+	let page = 1;
 	// References to the Book and Rendition instances
 	let book: Book | null = null;
 	let rendition: Rendition | null = null;
@@ -15,37 +16,36 @@
 	let viewer: HTMLDivElement;
 
 	// React to changes in uploadedFile
-	$: if (uploadedFile) {
-		uploadedFile.subscribe(async (file) => {
-			if (!file) return;
+	$: uploadedFile.subscribe(async (file) => {
+		if (!file) return;
 
-			// Clean up previous instances
-			rendition?.destroy();
-			book?.destroy();
+		// Clean up previous instances
+		rendition?.destroy();
+		book?.destroy();
+		localStorage.removeItem('file_id');
 
-			try {
-				// Initialize the book directly with the File object
-				book = ePub(file);
+		try {
+			// Initialize the book directly with the File object
+			book = ePub(file);
 
-				// Initialize the rendition
-				rendition = book.renderTo(viewer, {
-					width: '100%',
-					height: '900px',
-					spread: 'always'
-				});
+			// Initialize the rendition
+			rendition = book.renderTo(viewer, {
+				width: '100%',
+				height: '900px',
+				spread: 'always'
+			});
 
-				// Display the book
-				await rendition.display();
+			// Display the book
+			await rendition.display();
 
-				// Handle location changes
-				rendition.on('relocated', (location) => {
-					console.log('Current location:', location);
-				});
-			} catch (error) {
-				console.error('Failed to load EPUB:', error);
-			}
-		});
-	}
+			// Handle location changes
+			rendition.on('relocated', (location) => {
+				console.log('Current location:', location);
+			});
+		} catch (error) {
+			console.error('Failed to load EPUB:', error);
+		}
+	});
 
 	// Clean up on component destroy
 	onDestroy(() => {
@@ -53,17 +53,13 @@
 		book?.destroy();
 	});
 
-	// Start random-type from here
-	function startGame() {
-		console.log('Game started!');
-	}
 
+	// Upload EPUB file
 	async function uploadEpub() {
 		if (!selectedFile) return;
 
-		// Create FormData and append the selected file
 		const formData = new FormData();
-		formData.append('file', selectedFile[0]); // Use the first file in the FileList
+		formData.append('file', selectedFile[0]);
 
 		try {
 			const response = await fetch('/api/upload', {
@@ -74,6 +70,8 @@
 			const data = await response.json();
 			if (response.ok) {
 				console.log('EPUB uploaded successfully:', data);
+				uploadedFile.set(selectedFile[0]);
+				localStorage.setItem('file_id', data.file_id);
 			} else {
 				console.error('Error:', data.detail || data.message);
 			}
@@ -82,9 +80,15 @@
 		}
 	}
 
+	async function fetchPageWords() {
+		let file_id = localStorage.getItem('file_id');
+		const response = await fetch(`/api/words/${file_id}/${page}`);
+		const data = await response.json();
+		console.log('Words from selected page:', data.words);
+	}
+
 
 </script>
-
 
 <div class="container">
 	<h1>Upload Your Book and Preview It</h1>
@@ -94,31 +98,43 @@
 		type="file"
 		id="uploadedFile"
 		accept=".epub"
-		on:change={(event: Event) => {
-    const target = event.target as HTMLInputElement;
-    if (target.files) {
-      selectedFile = target.files;
-    }
-  }}
+		on:change={(event) => {
+			const target = event.target as HTMLInputElement;
+			if (target.files) selectedFile = target.files;
+		}}
 	/>
 
-	<button on:click={() => uploadEpub()}>Upload EPUB</button>
+	<button on:click={uploadEpub}>Upload EPUB</button>
 
 	{#if $uploadedFile}
 		<h2>Uploaded File:</h2>
 		<p>{$uploadedFile.name}</p>
 
 		<div class="controls">
-			<button on:click={() => rendition?.prev()}>Previous</button>
-			<button on:click={() => rendition?.next()}>Next</button>
-			<button on:click={() => rendition?.display()}>Go to Start</button>
+			<button on:click={() => {
+				rendition?.prev()
+				page === 1 ? page = 1 :	page--;
+
+			}}>Previous
+			</button>
+			<button on:click={() => {
+				rendition?.next()
+				page++;
+			}}>Next
+			</button>
+			<button on:click={() => {
+				rendition?.display()
+				page = 1;
+			}}>Go to Start
+			</button>
+			<input  bind:value={page} min="1" on:focusout={() => {
+				rendition?.display(page)
+			}} />
 		</div>
 
-		<button id="start" on:click={() => {startGame()}}>Start game from here!</button>
+		<button id="start" on:click={() => fetchPageWords()}>Start game from here!</button>
 
 		<div bind:this={viewer} class="viewer"></div>
-
-
 	{/if}
 </div>
 
@@ -136,7 +152,7 @@
         width: 100%;
         max-width: 800px;
         height: 1000px;
-        background: #ffffff;
+        background: #fff;
         box-sizing: border-box;
         margin-left: auto;
         margin-right: auto;
@@ -163,7 +179,6 @@
     .controls button:hover {
         background-color: #0056b3;
     }
-
 
     @media (max-width: 768px) {
         .viewer {

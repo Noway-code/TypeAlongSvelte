@@ -1,35 +1,34 @@
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, HTTPException
 import ebooklib
 from ebooklib import epub
 from bs4 import BeautifulSoup
 import os
 import uuid
+
 router = APIRouter()
 UPLOAD_DIR = "uploaded_epubs"
 
 
-async def get_words(book):
-    all_words = []
-    # Iterate over every item in the ePub
-    for item in book.get_items():
-        # Only process document (HTML/XHTML) items
-        if item.get_type() == ebooklib.ITEM_DOCUMENT:
-            content = item.get_body_content().decode('utf-8', errors='ignore')
-            # Use BeautifulSoup to strip HTML tags
-            soup = BeautifulSoup(content, 'html.parser')
-            text = soup.get_text(separator=' ', strip=True)
-            # Split into words
-            words_in_doc = text.split()
-            # Collect them in all_words
-            all_words.extend(words_in_doc)
+async def get_words_from_specific_page(book, page: int):
+    all_docs = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))
+    if page < 1 or page > len(all_docs):
+        raise HTTPException(status_code=400, detail="Page out of range")
 
-            # If we've reached at least 100, stop
-            if len(all_words) >= 100:
-                break
+    # Get the specific document for the page
+    selected_item = all_docs[page - 1]  # Page 1 corresponds to index 0
+    content = selected_item.get_body_content().decode('utf-8', errors='ignore')
+    # Parse the HTML and extract text
+    soup = BeautifulSoup(content, 'html.parser')
+    text = soup.get_text(separator=' ', strip=True)
+    words = text.split()
 
-    # Take the first 100 words
-    first_100 = all_words[:100]
-    return {"words": first_100}
+    # Return the words from the specific page
+    return {"words": words}
+
+
+async def get_file_path(file_id):
+    return os.path.join(UPLOAD_DIR, f"{file_id}.epub")
+
 
 @router.post("/upload")
 async def upload_epub(file: UploadFile = File(...)):
@@ -42,11 +41,15 @@ async def upload_epub(file: UploadFile = File(...)):
         content = await file.read()
         f.write(content)
 
+    return {"file_id": unique_id}
+
+
+@router.get("/words/{file_id}/{page}")
+async def get_words_from_epub(file_id: str, page: int):
+    file_path = await get_file_path(file_id)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    # Open the ePub file
     book = epub.read_epub(file_path)
-    words = await get_words(book)
-
-    return {"words": words}
-
-@router.get("/book")
-async def get_book():
-    return {"title": book.get_metadata("DC", "title")}
+    return await get_words_from_specific_page(book, page)
