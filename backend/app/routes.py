@@ -1,9 +1,12 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, UploadFile, File
 import ebooklib
 from ebooklib import epub
 from bs4 import BeautifulSoup
+import os
+import uuid
 router = APIRouter()
 book = epub.read_epub("app/static/Digital_Minimalism.epub")
+UPLOAD_DIR = "uploaded_epubs"
 
 
 @router.get("/status")
@@ -31,9 +34,18 @@ async def get_status():
     return {"words": first_100}
 
 @router.post("/upload")
-async def upload_file(file_name: str):
-    # Placeholder logic for handling uploaded files
-    return {"message": f"File '{file_name}' uploaded successfully"}
+async def upload_epub(file: UploadFile = File(...)):
+    if not os.path.exists(UPLOAD_DIR):
+        os.makedirs(UPLOAD_DIR)
+
+    unique_id = str(uuid.uuid4())
+    file_path = os.path.join(UPLOAD_DIR, f"{unique_id}.epub")
+    with open(file_path, "wb") as f:
+        content = await file.read()
+        f.write(content)
+
+
+    return {"file_id": unique_id}
 
 @router.get("/book")
 async def get_book():

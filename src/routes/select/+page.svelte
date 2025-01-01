@@ -4,6 +4,7 @@
 	import ePub, { Book, Rendition } from 'epubjs';
 
 	// Store to hold the uploaded file
+	let selectedFile;
 	const uploadedFile = writable<File | null>(null);
 
 	// References to the Book and Rendition instances
@@ -56,6 +57,32 @@
 	function startGame() {
 		console.log('Game started!');
 	}
+
+	async function uploadEpub() {
+		if (!selectedFile) return;
+
+		// Create FormData and append the selected file
+		const formData = new FormData();
+		formData.append('file', selectedFile[0]); // Use the first file in the FileList
+
+		try {
+			const response = await fetch('/api/upload', {
+				method: 'POST',
+				body: formData
+			});
+
+			const data = await response.json();
+			if (response.ok) {
+				console.log('EPUB uploaded successfully:', data);
+			} else {
+				console.error('Error:', data.detail || data.message);
+			}
+		} catch (error) {
+			console.error('Upload failed:', error);
+		}
+	}
+
+
 </script>
 
 
@@ -68,12 +95,14 @@
 		id="uploadedFile"
 		accept=".epub"
 		on:change={(event: Event) => {
-      const target = event.target as HTMLInputElement;
-      if (target.files) {
-        uploadedFile.set(target.files[0]);
-      }
-    }}
+    const target = event.target as HTMLInputElement;
+    if (target.files) {
+      selectedFile = target.files;
+    }
+  }}
 	/>
+
+	<button on:click={() => uploadEpub()}>Upload EPUB</button>
 
 	{#if $uploadedFile}
 		<h2>Uploaded File:</h2>
@@ -134,7 +163,6 @@
     .controls button:hover {
         background-color: #0056b3;
     }
-
 
 
     @media (max-width: 768px) {

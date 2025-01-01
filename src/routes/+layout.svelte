@@ -10,8 +10,9 @@
 	<nav>
 		<h1>🔥 TypeAlong</h1>
 		<a href="/">Home</a>
-		<a href="/random-type">Random</a>
-		<a href="/book">Book</a>
+		<a href="/random-type">Random-Type</a>
+		<a href="/book-type">Book-Type</a>
+		<a href="/select">Select</a>
 	</nav>
 
 
