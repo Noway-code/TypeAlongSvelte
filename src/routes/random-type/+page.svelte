@@ -505,7 +505,7 @@ typedTotal: {typedLetters}
 
     .score {
       font-size: 4rem;
-      color: var(--primary);
+      color: var(--info);
     }
 
     .play {
