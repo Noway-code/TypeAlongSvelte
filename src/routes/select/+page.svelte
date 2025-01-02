@@ -2,11 +2,12 @@
 	import { onDestroy } from 'svelte';
 	import { writable } from 'svelte/store';
 	import ePub, { Book, Rendition } from 'epubjs';
+	import { typingWords } from '../../stores/typingStore';
 
 	// Store to hold the uploaded file
 	let selectedFile;
 	const uploadedFile = writable<File | null>(null);
-
+	let text;
 	let page = 1;
 	// References to the Book and Rendition instances
 	let book: Book | null = null;
@@ -80,11 +81,38 @@
 		}
 	}
 
-	async function fetchPageWords() {
-		let file_id = localStorage.getItem('file_id');
-		const response = await fetch(`/api/words/${file_id}/${page}`);
-		const data = await response.json();
-		console.log('Words from selected page:', data.words);
+	function fetchPageWords() {
+		const wordsPage = extractWordsFromCurrentPage();
+		typingWords.set(wordsPage);
+		return wordsPage;
+	}
+
+	function extractWordsFromCurrentPage(): string[] {
+		if (!rendition) return [];
+
+		// Retrieve all active Contents objects
+		const contents = rendition.getContents();
+		if (!contents || contents.length === 0) {
+			console.error('No contents available');
+			return [];
+		}
+
+		let allText = '';
+
+		// Iterate through each Contents object
+		contents.forEach(content => {
+			const doc = content.document;
+			if (doc) {
+				// Extract text from the body of the document
+				allText += doc.body.innerText + ' ';
+			}
+		});
+		console.log('Bitch', allText);
+
+		// Split the concatenated text into words using whitespace as the delimiter
+		let wordsP = allText.split(/\s+/).filter(word => word.length > 0);
+		console.log(wordsP);
+		return wordsP;
 	}
 
 
@@ -127,12 +155,13 @@
 				page = 1;
 			}}>Go to Start
 			</button>
-			<input  bind:value={page} min="1" on:focusout={() => {
+			<input bind:value={page} min="1" on:focusout={() => {
 				rendition?.display(page)
 			}} />
 		</div>
 
 		<button id="start" on:click={() => fetchPageWords()}>Start game from here!</button>
+		<a href="../book-type">Game!</a>
 
 		<div bind:this={viewer} class="viewer"></div>
 	{/if}

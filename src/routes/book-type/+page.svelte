@@ -1,9 +1,8 @@
-
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { blur } from 'svelte/transition';
 	import { tweened } from 'svelte/motion';
-
+	import { typingWords } from '../../stores/typingStore';
 
 	/*
 	 Types
@@ -15,7 +14,9 @@
 		 Props
 		*/
 	export let words: Word[] = [];
-
+	const unsubscribe = typingWords.subscribe(value => {
+		words = value;
+	});
 	/*
 	 Constants
 	*/
@@ -46,7 +47,8 @@
 	let caretEl: HTMLDivElement;
 
 	let titleBook = '';
-  let avatar: FileList | null = null;
+	let avatar: FileList | null = null;
+
 	/*
 	 Listen for key press
 	*/
@@ -309,10 +311,7 @@
 	 Helpers
 	*/
 
-	async function getWords(limit: number) {
-		const response = await fetch(`/api/words?limit=${limit}`);
-		words = await response.json();
-	}
+
 
 	async function bookDetails() {
 		const response = await fetch('/api/book');
@@ -339,8 +338,11 @@
 	/* Get words and focus input when you load the page */
 
 	onMount(() => {
-		getWords(25);
 		focusInput();
+	});
+
+	onDestroy(() => {
+		unsubscribe();
 	});
 </script>
 correctLetters: {correctLetters}
