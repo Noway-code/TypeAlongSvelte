@@ -310,15 +310,6 @@
 	/*
 	 Helpers
 	*/
-
-
-
-	async function bookDetails() {
-		const response = await fetch('/api/book');
-		const data = await response.json();
-		titleBook = data.title;
-	}
-
 	function focusInput() {
 		if (inputEl) {
 			inputEl.focus();

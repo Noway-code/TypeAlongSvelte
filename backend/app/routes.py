@@ -4,9 +4,12 @@ from ebooklib import epub
 from bs4 import BeautifulSoup
 import os
 import uuid
+import random
+import json
 
 router = APIRouter()
 UPLOAD_DIR = "uploaded_epubs"
+
 
 async def get_words_from_specific_page(book, page: int):
     all_docs = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))
@@ -25,10 +28,12 @@ async def get_words_from_specific_page(book, page: int):
     # Return the words from the specific page
     return {"words": words}
 
+
 def debug_write_words(words):
     with open("words.txt", "w") as txt_file:
         for line in words:
             txt_file.write("".join(line) + "\n")
+
 
 async def get_file_path(file_id):
     return os.path.join(UPLOAD_DIR, f"{file_id}.epub")
@@ -52,8 +57,16 @@ async def upload_epub(file: UploadFile = File(...)):
 async def get_words_from_epub(file_id: str, page: int):
     file_path = await get_file_path(file_id)
     if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="File not found")
+        raise HTTPException(status_code=404, detail="File not found!!")
 
     # Open the ePub file
     book = epub.read_epub(file_path)
     return await get_words_from_specific_page(book, page)
+
+@router.get("/random/{limit}")
+async def get_random_words(limit: int):
+    with open("app/static/english.json", "r") as f:
+        data = json.load(f)
+        words = data["words"]
+    random_words = random.sample(words, limit)
+    return {"words": random_words}

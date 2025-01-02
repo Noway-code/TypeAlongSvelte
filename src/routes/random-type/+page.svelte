@@ -4,17 +4,12 @@
 	import { blur } from 'svelte/transition';
 	import { tweened } from 'svelte/motion';
 
-
 	/*
 	 Types
 	*/
 
 	type Game = 'waiting for input' | 'in progress' | 'game over'
 	type Word = string
-	/*
-		 Props
-		*/
-	export let words: Word[] = [];
 
 	/*
 	 Constants
@@ -30,6 +25,7 @@
 	let seconds = INITIAL_SECONDS;
 	let typedLetter = '';
 
+	let words: Word[] = [];
 	let wordIndex = 0;
 	let letterIndex = 0;
 	let correctLetters = 0;
@@ -310,25 +306,20 @@
 	 Helpers
 	*/
 
-	async function getWords(limit: number) {
-		const response = await fetch(`/api/words?limit=${limit}`);
-		words = await response.json();
-	}
-
-	async function getWordsBackend(): Promise<Word[]> {
-		const response = await fetch('http://localhost:8000/api/status');
-		const data = await response.json();
-
-		// data should be { words: ["Hello", "World", "TypeAlong"] } now
-		words = data.words;
-		return words;
-	}
-
-	async function bookDetails() {
-		const response = await fetch('http://localhost:8000/api/book');
-		const data = await response.json();
-		titleBook = data.title; // <-- store the fetched title here
-	}
+	async function getWords(limit: number ) {
+    try {
+        const response = await fetch(`/api/random/${limit}`); // Fixed URL structure
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+				console.log(data);
+				words = data.words;
+    } catch (error) {
+        console.error("Error fetching words:", error);
+    }
+		return words
+}
 
 	function focusInput() {
 		if (inputEl) {
@@ -353,12 +344,12 @@
 		focusInput();
 	});
 </script>
-<!--correctLetters: {correctLetters}
+correctLetters: {correctLetters}
 totalLetters: {totalLetters}
 {#if letterEl}
 	text: {letterEl.textContent}
 {/if}
-typedTotal: {typedLetters}-->
+typedTotal: {typedLetters}
 {#if game !== 'game over'}
 	<div class="game" data-game={game}>
 		<input

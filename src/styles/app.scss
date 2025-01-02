@@ -10,10 +10,12 @@
 }
 
 :root {
-  --primary: tomato;
-  --fg-100: hsl(220 20% 98%);
-  --fg-200: hsl(220 20% 80%);
-  --bg-100: hsl(220 20% 14%);
+  --primary: #88C0D0; /* Nord Frost */
+  --fg-100: #ECEFF4; /* Nord Snow Storm */
+  --fg-200: #D8DEE9; /* Slightly dimmer Snow Storm */
+  --bg-100: #2E3440; /* Nord Polar Night */
+  --bg-200: #3B4252; /* Polar Night accent */
+  --accent: #81A1C1; /* Nord Frost */
 }
 
 html,
