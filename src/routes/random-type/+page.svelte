@@ -1,9 +1,8 @@
-
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { blur } from 'svelte/transition';
-	import { tweened } from 'svelte/motion';
-
+	import { tweened } from 'svelte/motion'
+	import '../../styles/type.scss'
 	/*
 	 Types
 	*/
@@ -473,7 +472,7 @@ typedTotal: {typedLetters}
       }
 
       &:global([data-letter='incorrect']) {
-        color: var(--primary);
+        color: var(--error);
         opacity: 1;
       }
     }
