@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import { writable } from 'svelte/store';
-	import ePub, { Book, Rendition } from 'epubjs';
+	import ePub, { Book, Rendition, Contents } from 'epubjs';
 	import { typingWords } from '../../stores/typingStore';
+	import pkg from 'epubjs';
 
+	const { CFI } = pkg;
 	// Store to hold the uploaded file
-	let selectedFile;
+	let selectedFile: FileList | null = null;
 	const uploadedFile = writable<File | null>(null);
-	let text;
+	let text: string = '';
 	let page = 1;
 	// References to the Book and Rendition instances
 	let book: Book | null = null;
@@ -15,6 +17,52 @@
 
 	// Reference to the container where the EPUB will be rendered
 	let viewer: HTMLDivElement;
+
+	/**
+	 * Generates a CFI range string from two CFI locations.
+	 * @param a - Starting CFI string.
+	 * @param b - Ending CFI string.
+	 * @returns A range CFI string.
+	 */
+	const makeRangeCfi = (a: string, b: string): string => {
+		const CFIInstance = new CFI();
+		const start = CFIInstance.parse(a);
+		const end = CFIInstance.parse(b);
+
+		const cfi = {
+			range: true,
+			base: start.base,
+			path: {
+				steps: [],
+				terminal: null
+			},
+			start: start.path,
+			end: end.path
+		};
+
+		const len = cfi.start.steps.length;
+		for (let i = 0; i < len; i++) {
+			if (CFIInstance.equalStep(cfi.start.steps[i], cfi.end.steps[i])) {
+				if (i === len - 1) {
+					// Last step is equal, check terminals
+					if (cfi.start.terminal === cfi.end.terminal) {
+						// CFIs are equal
+						cfi.path.steps.push(cfi.start.steps[i]);
+						// Not a range
+						cfi.range = false;
+					}
+				} else {
+					cfi.path.steps.push(cfi.start.steps[i]);
+				}
+			} else {
+				break;
+			}
+		}
+		cfi.start.steps = cfi.start.steps.slice(cfi.path.steps.length);
+		cfi.end.steps = cfi.end.steps.slice(cfi.path.steps.length);
+
+		return `epubcfi(${CFIInstance.segmentString(cfi.base)}!${CFIInstance.segmentString(cfi.path)},${CFIInstance.segmentString(cfi.start)},${CFIInstance.segmentString(cfi.end)})`;
+	};
 
 	// React to changes in uploadedFile
 	$: uploadedFile.subscribe(async (file) => {
@@ -53,7 +101,9 @@
 		book?.destroy();
 	});
 
-	// Upload EPUB file
+	/**
+	 * Uploads the selected EPUB file to the server.
+	 */
 	async function uploadEpub() {
 		if (!selectedFile) return;
 
@@ -79,38 +129,33 @@
 		}
 	}
 
-	function fetchPageWords() {
-		const wordsPage = extractWordsFromCurrentPage();
-		typingWords.set(wordsPage);
-		return wordsPage;
-	}
+	/**
+	 * Fetches words from the current page using CFI-based range extraction.
+	 */
+	async function fetchPageWords() {
+		if (!rendition || !book) return;
 
-	function extractWordsFromCurrentPage(): string[] {
-		if (!rendition) return [];
-
-		// Retrieve all active Contents objects
-		const contents = rendition.getContents();
-		if (!contents || contents.length === 0) {
-			console.error('No contents available');
-			return [];
+		const currentLocation = rendition.currentLocation();
+		if (!currentLocation) {
+			console.error('No current location available');
+			return;
 		}
 
-		let allText = '';
+		const a = currentLocation.start.cfi;
+		const b = currentLocation.end.cfi;
 
-		// Iterate through each Contents object
-		contents.forEach(content => {
-			const doc = content.document;
-			if (doc) {
-				// Extract text from the body of the document
-				allText += doc.body.innerText + ' ';
-			}
-		});
-		console.log('Extracted Text:', allText);
-
-		// Split the concatenated text into words using whitespace as the delimiter
-		let wordsP = allText.split(/\s+/).filter(word => word.length > 0);
-		console.log(wordsP);
-		return wordsP;
+		try {
+			const rangeCfi = makeRangeCfi(a, b);
+			const range = await book.getRange(rangeCfi);
+			const extractedText = range.toString();
+			const wordsPage = extractedText.split(/\s+/).filter(word => word.length > 0);
+			console.log('Extracted Words:', wordsPage);
+			typingWords.set(wordsPage);
+			return wordsPage;
+		} catch (error) {
+			console.error('Failed to extract words using CFI range:', error);
+			return [];
+		}
 	}
 </script>
 
@@ -140,25 +185,12 @@
 
 		<div class="viewer-controls-wrapper">
 			<div class="controls">
-				<button class="control-button" on:click={() => {
-					rendition?.prev();
-				}}>Previous
-				</button>
-
-				<button class="control-button" on:click={() => {
-					rendition?.next();
-				}}>Next
-				</button>
-
-				<button class="control-button" on:click={() => {
-					rendition?.display();
-				}}>Go to Start
-				</button>
-
+				<button class="control-button" on:click={() => rendition?.prev()}>Previous</button>
+				<button class="control-button" on:click={() => rendition?.next()}>Next</button>
+				<button class="control-button" on:click={() => rendition?.display()}>Go to Start</button>
 			</div>
 			<div>
-
-				<button class="start-game-button" on:click={() => fetchPageWords()}>Start game from here!</button>
+				<button class="start-game-button" on:click={fetchPageWords}>Start game from here!</button>
 				<a href="../book-type" class="game-link">Game!</a>
 			</div>
 
@@ -215,9 +247,9 @@
     display: flex;
     flex-direction: column;
     max-width: 1200px;
-    width: 90%;
-    height: 90vh;
-    margin: 0 auto;
+    width: 100%;
+    height: 1200px;
+    margin: 1rem auto;
     padding: 2rem;
     background-color: var(--nord-polar-night-accent);
     border-radius: 12px;
@@ -292,12 +324,6 @@
     text-align: center;
     margin-bottom: 1rem;
 
-    h2 {
-      font-size: 1.8rem;
-      color: var(--nord-frost);
-      margin-bottom: 0.5rem;
-    }
-
     p {
       font-size: 1.2rem;
       color: var(--nord-snow-storm-dim);
@@ -348,24 +374,6 @@
     }
   }
 
-  .page-input {
-    width: 60px;
-    padding: 0.5rem;
-    font-size: 1rem;
-    text-align: center;
-    border: 2px solid var(--nord-snow-storm-dim);
-    border-radius: 6px;
-    background-color: var(--nord-polar-night);
-    color: var(--nord-snow-storm);
-    transition: border-color 0.3s ease;
-    flex: 1 1 60px;
-
-    &:focus {
-      outline: none;
-      border-color: var(--nord-frost);
-    }
-  }
-
   .start-game-button {
     align-self: center;
     padding: 0.75rem 1rem;
@@ -412,12 +420,12 @@
 
   .viewer {
     flex-grow: 1;
-    width: 100%;
+    width: 60%;
     background-color: var(--nord-snow-storm);
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-top: .5rem;
+    margin-top: 0.5rem;
     max-height: 100%; /* Ensure viewer doesn't exceed container */
   }
 
@@ -442,10 +450,6 @@
     .control-button {
       width: 100%;
       max-width: none;
-    }
-
-    .page-input {
-      width: 50px;
     }
 
     .start-game-button,
