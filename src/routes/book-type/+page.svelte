@@ -339,7 +339,24 @@
 <div class="page-content">
 	<!-- Back Button -->
 	<div class="back-container">
-		<a aria-label="Go back to selection page" class="back" href="/select">Go back</a>
+		<a aria-label="Go back to selection page" class="back" href="/select">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				viewBox="0 0 24 17"
+				width="24"
+				height="24"
+				stroke-width="3"
+				stroke="currentColor"
+				fill="none"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d="M15 19l-7-7 7-7"
+				/>
+			</svg>
+			Back
+		</a>
 	</div>
 
 	<!-- Game Content -->

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import { writable } from 'svelte/store';
-	import ePub, { Book, Rendition, Contents } from 'epubjs';
+	import ePub, { Book, Rendition } from 'epubjs';
 	import { typingWords } from '../../stores/typingStore';
 	import pkg from 'epubjs';
 
@@ -246,7 +246,7 @@
   .container {
     display: flex;
     flex-direction: column;
-    max-width: 1200px;
+    max-width: 90%;
     width: 100%;
     height: 1200px;
     margin: 1rem auto;

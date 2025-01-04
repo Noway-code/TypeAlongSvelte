@@ -21,18 +21,24 @@
 .back-container {
   align-self: flex-start; /* Align to the left */
   margin-bottom: 2rem; /* Space between Back button and Game */
+  justify-content: center;
+  align-items: center;
+  align-content: center;
   width: 100%;
+  margin-top: 3rem;
 }
 
 .back {
   color: var(--fg-200);
-  font-size: 20pt;
+  font-size: 18pt;
   text-decoration: none; /* Remove underline */
   font-weight: bold;
-  transition: color 0.3s ease;
+  transition: background 0.3s ease;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
 
   &:hover {
-    color: var(--accent-hover); /* Nord Frost hover color */
+    background: var(--bg-200);
   }
 }
 
@@ -98,7 +104,6 @@
   overflow: hidden;
   user-select: none;
   padding-bottom: 6px;
-
 
 
   .caret {
