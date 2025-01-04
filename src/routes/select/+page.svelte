@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import { get, writable } from 'svelte/store';
-	import ePub, { Book} from 'epubjs';
-	import { typingWords, rendition } from '../../stores/typingStore';
+	import { typingWords, rendition, makeRangeCfi } from '../../stores/typingStore';
+	import ePub, { Book } from 'epubjs';
 	import pkg from 'epubjs';
+
 
 	const { CFI } = pkg;
 	// Store to hold the uploaded file
@@ -15,51 +16,6 @@
 	let book: Book | null = null;
 	let viewer: HTMLDivElement;
 
-	/**
-	 * Generates a CFI range string from two CFI locations.
-	 * @param a - Starting CFI string.
-	 * @param b - Ending CFI string.
-	 * @returns A range CFI string.
-	 */
-	const makeRangeCfi = (a: string, b: string): string => {
-		const CFIInstance = new CFI();
-		const start = CFIInstance.parse(a);
-		const end = CFIInstance.parse(b);
-
-		const cfi = {
-			range: true,
-			base: start.base,
-			path: {
-				steps: [],
-				terminal: null
-			},
-			start: start.path,
-			end: end.path
-		};
-
-		const len = cfi.start.steps.length;
-		for (let i = 0; i < len; i++) {
-			if (CFIInstance.equalStep(cfi.start.steps[i], cfi.end.steps[i])) {
-				if (i === len - 1) {
-					// Last step is equal, check terminals
-					if (cfi.start.terminal === cfi.end.terminal) {
-						// CFIs are equal
-						cfi.path.steps.push(cfi.start.steps[i]);
-						// Not a range
-						cfi.range = false;
-					}
-				} else {
-					cfi.path.steps.push(cfi.start.steps[i]);
-				}
-			} else {
-				break;
-			}
-		}
-		cfi.start.steps = cfi.start.steps.slice(cfi.path.steps.length);
-		cfi.end.steps = cfi.end.steps.slice(cfi.path.steps.length);
-
-		return `epubcfi(${CFIInstance.segmentString(cfi.base)}!${CFIInstance.segmentString(cfi.path)},${CFIInstance.segmentString(cfi.start)},${CFIInstance.segmentString(cfi.end)})`;
-	};
 
 	// React to changes in uploadedFile
 	$: uploadedFile.subscribe(async (file) => {
@@ -74,7 +30,7 @@
 
 			const newRendition = book.renderTo(viewer, {
 				width: '100%',
-				height: '100%',
+				height: '100%'
 			});
 
 
@@ -105,30 +61,37 @@
 	/**
 	 * Uploads the selected EPUB file to the server.
 	 */
+	// async function uploadEpub() {
+	// 	if (!selectedFile) return;
+	//
+	// 	const formData = new FormData();
+	// 	formData.append('file', selectedFile[0]);
+	//
+	// 	try {
+	// 		const response = await fetch('/api/upload', {
+	// 			method: 'POST',
+	// 			body: formData
+	// 		});
+	//
+	// 		const data = await response.json();
+	// 		if (response.ok) {
+	// 			console.log('EPUB uploaded successfully:', data);
+	// 			uploadedFile.set(selectedFile[0]);
+	// 			localStorage.setItem('file_id', data.file_id);
+	// 		} else {
+	// 			console.error('Error:', data.detail || data.message);
+	// 		}
+	// 	} catch (error) {
+	// 		console.error('Upload failed:', error);
+	// 	}
+	// }
 	async function uploadEpub() {
 		if (!selectedFile) return;
-
 		const formData = new FormData();
 		formData.append('file', selectedFile[0]);
-
-		try {
-			const response = await fetch('/api/upload', {
-				method: 'POST',
-				body: formData
-			});
-
-			const data = await response.json();
-			if (response.ok) {
-				console.log('EPUB uploaded successfully:', data);
-				uploadedFile.set(selectedFile[0]);
-				localStorage.setItem('file_id', data.file_id);
-			} else {
-				console.error('Error:', data.detail || data.message);
-			}
-		} catch (error) {
-			console.error('Upload failed:', error);
-		}
+		uploadedFile.set(selectedFile[0]);
 	}
+
 
 	/**
 	 * Fetches words from the current page using CFI-based range extraction.
