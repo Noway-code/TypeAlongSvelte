@@ -1,42 +1,28 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
 	import { get, writable } from 'svelte/store';
-	import { typingWords, rendition, makeRangeCfi } from '../../stores/typingStore';
+	import { rendition, fetchPageWords } from '../../stores/typingStore';
 	import ePub, { Book } from 'epubjs';
-	import pkg from 'epubjs';
 
-
-	const { CFI } = pkg;
-	// Store to hold the uploaded file
 	let selectedFile: FileList | null = null;
 	const uploadedFile = writable<File | null>(null);
-	let text: string = '';
-	let page = 1;
-	// References to the Book and Rendition instances
 	let book: Book | null = null;
 	let viewer: HTMLDivElement;
 
-
-	// React to changes in uploadedFile
 	$: uploadedFile.subscribe(async (file) => {
 		if (!file) return;
 
-		// If there's already a rendition, destroy it
 		get(rendition)?.destroy();
 		book?.destroy();
 
 		try {
 			book = ePub(file);
-
 			const newRendition = book.renderTo(viewer, {
 				width: '100%',
 				height: '100%'
 			});
 
-
 			await newRendition.display();
 
-			// set a default theme for background
 			newRendition.themes.default({
 				body: {
 					background: 'white',
@@ -45,10 +31,8 @@
 				}
 			});
 
-			// store it in our writable
 			rendition.set(newRendition);
 
-			// handle location changes
 			newRendition.on('relocated', (location) => {
 				console.log('Current location:', location);
 			});
@@ -57,64 +41,11 @@
 		}
 	});
 
-
-	/**
-	 * Uploads the selected EPUB file to the server.
-	 */
-	// async function uploadEpub() {
-	// 	if (!selectedFile) return;
-	//
-	// 	const formData = new FormData();
-	// 	formData.append('file', selectedFile[0]);
-	//
-	// 	try {
-	// 		const response = await fetch('/api/upload', {
-	// 			method: 'POST',
-	// 			body: formData
-	// 		});
-	//
-	// 		const data = await response.json();
-	// 		if (response.ok) {
-	// 			console.log('EPUB uploaded successfully:', data);
-	// 			uploadedFile.set(selectedFile[0]);
-	// 			localStorage.setItem('file_id', data.file_id);
-	// 		} else {
-	// 			console.error('Error:', data.detail || data.message);
-	// 		}
-	// 	} catch (error) {
-	// 		console.error('Upload failed:', error);
-	// 	}
-	// }
 	async function uploadEpub() {
 		if (!selectedFile) return;
 		const formData = new FormData();
 		formData.append('file', selectedFile[0]);
 		uploadedFile.set(selectedFile[0]);
-	}
-
-
-	/**
-	 * Fetches words from the current page using CFI-based range extraction.
-	 */
-	async function fetchPageWords() {
-		const r = get(rendition);
-		if (!r || !book) return;
-
-		const currentLocation = r.currentLocation();
-		if (!currentLocation) return;
-
-		try {
-			const rangeCfi = makeRangeCfi(currentLocation.start.cfi, currentLocation.end.cfi);
-			const range = await book.getRange(rangeCfi);
-			const extractedText = range.toString();
-			const wordsPage = extractedText.split(/\s+/).filter(word => word.length > 0);
-			console.log('Extracted Words:', wordsPage);
-			typingWords.set(wordsPage);
-			return wordsPage;
-		} catch (error) {
-			console.error('Failed to extract words using CFI range:', error);
-			return [];
-		}
 	}
 </script>
 
@@ -149,7 +80,8 @@
 				<button class="control-button" on:click={() => $rendition?.display()}>Go to Start</button>
 			</div>
 			<div>
-				<button class="start-game-button" on:click={fetchPageWords}>Start game from here!</button>
+				<!-- Pass 'book' to fetchPageWords -->
+				<button class="start-game-button" on:click={() => fetchPageWords(book)}>Start game from here!</button>
 				<a href="../book-type" class="game-link">Game!</a>
 			</div>
 

@@ -1,12 +1,11 @@
 // src/stores/typingStore.ts
-import { writable } from 'svelte/store';
-import type { Rendition } from 'epubjs';
+import { writable, get } from 'svelte/store';
+import type { Rendition, Book } from 'epubjs';
 import pkg from 'epubjs';
 
 const { CFI } = pkg;
 
 export const typingWords = writable<string[]>([]);
-
 export const rendition = writable<Rendition | null>(null);
 
 /**
@@ -35,11 +34,8 @@ export const makeRangeCfi = (a: string, b: string): string => {
 	for (let i = 0; i < len; i++) {
 		if (CFIInstance.equalStep(cfi.start.steps[i], cfi.end.steps[i])) {
 			if (i === len - 1) {
-				// Last step is equal, check terminals
 				if (cfi.start.terminal === cfi.end.terminal) {
-					// CFIs are equal
 					cfi.path.steps.push(cfi.start.steps[i]);
-					// Not a range
 					cfi.range = false;
 				}
 			} else {
@@ -54,3 +50,29 @@ export const makeRangeCfi = (a: string, b: string): string => {
 
 	return `epubcfi(${CFIInstance.segmentString(cfi.base)}!${CFIInstance.segmentString(cfi.path)},${CFIInstance.segmentString(cfi.start)},${CFIInstance.segmentString(cfi.end)})`;
 };
+
+/**
+ * Fetches words from the current page using CFI-based range extraction.
+ * @param book - The epubjs Book instance
+ * @returns An array of words from the current page
+ */
+export async function fetchPageWords(book: Book) {
+	const r = get(rendition);
+	if (!r || !book) return [];
+
+	const currentLocation = r.currentLocation();
+	if (!currentLocation) return [];
+
+	try {
+		const rangeCfi = makeRangeCfi(currentLocation.start.cfi, currentLocation.end.cfi);
+		const range = await book.getRange(rangeCfi);
+		const extractedText = range.toString();
+		const wordsPage = extractedText.split(/\s+/).filter((word) => word.length > 0);
+		console.log('Extracted Words:', wordsPage);
+		typingWords.set(wordsPage);
+		return wordsPage;
+	} catch (error) {
+		console.error('Failed to extract words using CFI range:', error);
+		return [];
+	}
+}
