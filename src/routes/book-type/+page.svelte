@@ -4,6 +4,7 @@
 	import { blur } from 'svelte/transition';
 	import { tweened } from 'svelte/motion';
 	import { typingWords } from '../../stores/typingStore';
+	import '../../styles/type.scss';
 
 	/*
 	 Types
@@ -132,6 +133,8 @@
 		if (game === 'waiting for input') {
 			startGame();
 		}
+
+		focusInput();
 	}
 
 	function startGame() {
@@ -180,6 +183,8 @@
 		if (typedLetters === totalLetters) {
 			gameOver();
 		}
+
+		focusInput();
 	}
 
 	function gameOver() {
@@ -253,8 +258,8 @@
 
 	function moveCaret() {
 		const offset = 4;
-			caretEl.style.top = `${letterEl.offsetTop + offset}px`;
-			caretEl.style.left = `${letterEl.offsetLeft + letterEl.offsetWidth}px`;
+		caretEl.style.top = `${letterEl.offsetTop + offset}px`;
+		caretEl.style.left = `${letterEl.offsetLeft + letterEl.offsetWidth}px`;
 	}
 
 	/*
@@ -296,7 +301,6 @@
 		correctLetters = 0;
 		totalLetters = getTotalLetters(words);
 		typedLetters = 0;
-
 		$wordsPerMinute = 0;
 		$accuracy = 0;
 		focusInput();
@@ -391,16 +395,17 @@
 
 		{#if game === 'game over'}
 			<div in:blur class="results">
-				<div>
-					<p class="title">wpm</p>
-					<p class="score">{Math.trunc($wordsPerMinute)}</p>
-				</div>
+				<div class="numbers">
+					<div>
+						<p class="title">wpm</p>
+						<p class="score">{Math.trunc($wordsPerMinute)}</p>
+					</div>
 
-				<div>
-					<p class="title">accuracy</p>
-					<p class="score">{Math.trunc($accuracy)}%</p>
+					<div>
+						<p class="title">accuracy</p>
+						<p class="score">{Math.trunc($accuracy)}%</p>
+					</div>
 				</div>
-
 				<button on:click={resetGame} class="play">play again</button>
 			</div>
 		{/if}
@@ -408,168 +413,17 @@
 </div>
 
 <style lang="scss">
-  /* Container for Back button and Game */
-  .page-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Center horizontally */
-    width: 100%;
-    height: 100%;
-    max-width: 800px; /* Optional: limit width for better readability */
-    margin: 0 auto; /* Center the container */
-    padding: 1rem;
-  }
+  .letter {
+    opacity: 0.4;
+    transition: all 0.3s ease;
 
-  /* Back Button Styling */
-  .back-container {
-    align-self: flex-start; /* Align to the left */
-    margin-bottom: 2rem; /* Space between Back button and Game */
-    width: 100%;
-  }
-
-  .back {
-    color: var(--fg-200);
-    font-size: 20pt;
-    text-decoration: none; /* Remove underline */
-    font-weight: bold;
-    transition: color 0.3s ease;
-
-    &:hover {
-      color: var(--accent-hover); /* Nord Frost hover color */
-    }
-  }
-
-  /* Game Container to Center the Game */
-  .game-container {
-    flex: 1; /* Take up remaining space */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-  }
-
-  /* Centering the Game */
-  .game {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    /* Additional styles as per your existing code */
-    position: relative;
-    width: 100%;
-    max-width: 600px; /* Adjust as needed */
-
-    .input {
-      position: absolute;
-      opacity: 0;
+    &:global([data-letter='correct']) {
+      opacity: 0.8;
     }
 
-    .time {
-      position: absolute;
-      top: -48px;
-      font-size: 1.5rem;
-      color: var(--primary);
-      opacity: 0;
-      transition: all 0.3s ease;
-    }
-
-    &[data-game='in progress'] .time {
+    &:global([data-letter='incorrect']) {
+      color: var(--error);
       opacity: 1;
-    }
-
-    &[data-game='in progress'] .caret {
-      animation: none;
-    }
-
-    .reset {
-      width: 100%;
-      display: grid;
-      justify-content: center;
-      margin-top: 2rem;
-    }
-  }
-
-  .words {
-    --line-height: 1em;
-    --lines: 3;
-
-    width: 100%;
-    max-height: calc(var(--line-height) * var(--lines) * 1.42);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6em;
-    position: relative;
-    font-size: 1.5rem;
-    line-height: var(--line-height);
-    overflow: hidden;
-    user-select: none;
-
-    .letter {
-      opacity: 0.4;
-      transition: all 0.3s ease;
-
-      &:global([data-letter='correct']) {
-        opacity: 0.8;
-      }
-
-      &:global([data-letter='incorrect']) {
-        color: var(--primary);
-        opacity: 1;
-      }
-    }
-
-    .caret {
-      position: absolute;
-      height: 1.8rem;
-      top: 0;
-      border-right: 1px solid var(--primary);
-      animation: caret 1s infinite;
-      transition: all 0.2s ease;
-    }
-  }
-
-  .results {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    .title {
-      font-size: 2rem;
-      color: var(--fg-200);
-    }
-
-    .score {
-      font-size: 4rem;
-      color: var(--primary);
-    }
-
-    .play {
-      margin-top: 1rem;
-    }
-  }
-
-  /* Keyframes for caret animation */
-  @keyframes caret {
-    0%,
-    to {
-      opacity: 0;
-    }
-    50% {
-      opacity: 1;
-    }
-  }
-
-  /* Responsive Design */
-  @media (max-width: 600px) {
-    .back {
-      font-size: 16pt;
-    }
-
-    .game {
-      max-width: 100%;
-    }
-
-    .back-container {
-      margin-bottom: 1rem;
     }
   }
 </style>

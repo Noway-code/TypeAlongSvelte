@@ -6,3 +6,179 @@
   --info-hover: #5E81AC; /* Nord Frost */
 
 }
+
+.page-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center horizontally */
+  width: 100%;
+  height: 100%;
+  margin: 0 auto; /* Center the container */
+  padding: 1rem;
+}
+
+/* Back Button Styling */
+.back-container {
+  align-self: flex-start; /* Align to the left */
+  margin-bottom: 2rem; /* Space between Back button and Game */
+  width: 100%;
+}
+
+.back {
+  color: var(--fg-200);
+  font-size: 20pt;
+  text-decoration: none; /* Remove underline */
+  font-weight: bold;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: var(--accent-hover); /* Nord Frost hover color */
+  }
+}
+
+/* Game Container to Center the Game */
+.game-container {
+  flex: 1; /* Take up remaining space */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Centering the Game */
+.game {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+  max-width: 800px; /* Adjust as needed */
+
+  .input {
+    position: absolute;
+    opacity: 0;
+  }
+
+  .time {
+    position: absolute;
+    top: -48px;
+    font-size: 1.5rem;
+    color: var(--primary);
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+
+  &[data-game='in progress'] .time {
+    opacity: 1;
+  }
+
+  &[data-game='in progress'] .caret {
+    animation: none;
+  }
+
+  .reset {
+    width: 100%;
+    display: grid;
+    justify-content: center;
+    margin-top: 2rem;
+  }
+}
+
+.words {
+  --line-height: 1em;
+  --lines: 3;
+
+  width: 100%;
+  max-height: calc(var(--line-height) * var(--lines) * 1.42);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6em;
+  position: relative;
+  font-size: 1.5rem;
+  line-height: var(--line-height);
+  overflow: hidden;
+  user-select: none;
+  padding-bottom: 6px;
+
+
+
+  .caret {
+    position: absolute;
+    height: 1.8rem;
+    top: 0;
+    border-right: 1px solid var(--primary);
+    animation: caret 1s infinite;
+    transition: all 0.2s ease;
+  }
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  padding: 8rem;
+  border-radius: 2rem;
+  background: var(--bg-200);
+  animation: combinedScale 8s ease-in-out infinite;
+
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  .title {
+    font-size: 3rem;
+    color: var(--fg-200);
+  }
+
+  .score {
+    font-size: 6rem;
+    color: var(--info);
+  }
+
+  .play {
+    margin-top: 1rem;
+    font-size: 2rem;
+  }
+
+  .numbers {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+
+    align-items: center;
+  }
+}
+
+@keyframes combinedScale {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Keyframes for caret animation */
+@keyframes caret {
+  0%,
+  to {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .back {
+    font-size: 16pt;
+  }
+
+  .game {
+    max-width: 100%;
+  }
+
+  .back-container {
+    margin-bottom: 1rem;
+  }
+}
