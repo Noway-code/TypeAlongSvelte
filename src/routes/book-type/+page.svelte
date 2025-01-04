@@ -10,7 +10,8 @@
 		typingWords,
 		book,
 		rendition,
-		fetchPageWords
+		fetchPageWords,
+		currentLocationCFI
 	} from '../../stores/typingStore';
 
 	import type { Rendition } from 'epubjs';
@@ -66,6 +67,13 @@
 	/*
 	  Render (or re-render) the Book into this page’s viewer
 	*/
+
+	async function fetchNextPage() {
+		await get(rendition)?.next();
+		const newWords = await fetchPageWords();
+		typingWords.update((existing) => [...existing, ...newWords]);
+	}
+
 	async function displayBook() {
 		// Destroy any existing rendition
 		get(rendition)?.destroy();
@@ -77,22 +85,27 @@
 		}
 
 		try {
-			// Create a new rendition
-			const newRendition = currentBook.renderTo(viewer, {
+			const newRendition =currentBook.renderTo(viewer, {
 				width: '100%',
-				height: '100%'
+				height: '100%',
+				spread: 'none',
+				minSpreadWidth: 999999,
+				flow: 'paginated'
 			});
 
-			await newRendition.display();
+			await newRendition.display($currentLocationCFI);
 
-			// Optional: set a default theme
-			newRendition.themes.default({
+			newRendition.themes.register('largeText', {
 				body: {
-					background: 'white',
-					color: 'black',
-					padding: '1rem'
+					'font-size': '1.2rem',
+					'line-height': '1.6',
+					'background': 'white',
+					'color': 'black',
+					'padding': '1rem'
 				}
 			});
+			newRendition.themes.select('largeText');
+
 
 			rendition.set(newRendition);
 
@@ -215,16 +228,8 @@
 
 	function setGameTimer() {
 		function gameTimer() {
-			if (seconds > 0) {
-				seconds -= 1;
-			}
-
-			if (game === 'waiting for input' || seconds === 0) {
+			if (game === 'waiting for input' ) {
 				clearInterval(interval);
-			}
-
-			if (seconds === 0) {
-				gameOver();
 			}
 
 			focusInput();
@@ -242,16 +247,7 @@
 		moveCaret();
 		debug();
 
-		if (typedLetters === totalLetters) {
-			gameOver();
-		}
-
-		focusInput();
-	}
-
-	function gameOver() {
-		setGameState('game over');
-		getResults();
+				focusInput();
 	}
 
 	function setLetter() {
@@ -296,6 +292,9 @@
 			wordIndex += 1;
 			letterIndex = 0;
 			moveCaret();
+		}
+		if (wordIndex >= words.length) {
+			fetchNextPage();
 		}
 	}
 
@@ -491,13 +490,13 @@
   }
 
   .viewer {
-    flex-grow: 1;
-    width: 60%;
-    background-color: var(--nord-snow-storm);
-    border-radius: 8px;
+    flex: 1;
+    width: 100%;
+    background-color: var(--bg-200);
     overflow: hidden;
+    position: relative;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-top: 0.5rem;
-    max-height: 100%;
+
+    max-width: 1300px;
   }
 </style>

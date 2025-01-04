@@ -138,11 +138,13 @@
 
 			<div class="game-buttons">
 				<button class="start-game-button" on:click={fetchPageWords}>
-					Start game from here!
+					Fetch Text
 				</button>
-				<button class="start-game-button">
-					<a class="game-link" href="../book-type">Game!</a>
-				</button>
+				<a class="game-link" href="../book-type">
+					<button class="start-game-button">
+						Start Game
+					</button>
+				</a>
 			</div>
 		</div>
 	{/if}
@@ -445,6 +447,7 @@
     overflow: hidden;
     position: relative;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 1300px;
   }
 
   @media (max-width: 768px) {

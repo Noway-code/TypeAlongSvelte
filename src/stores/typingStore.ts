@@ -1,13 +1,14 @@
 // src/stores/typingStore.ts
-import { writable, get } from 'svelte/store';
-import type { Rendition, Book } from 'epubjs';
-import pkg from 'epubjs';
+import { get, writable } from 'svelte/store';
+import pkg, { type Book, EpubCFI, type Rendition } from 'epubjs';
 
 // @ts-ignore
 const { CFI } = pkg;
 
 export const typingWords = writable<string[]>([]);
 export const rendition = writable<Rendition | null>(null);
+export const currentLocationCFI = writable<string | null>(null);
+
 /**
  * This store will hold the Book instance.
  */
@@ -81,9 +82,29 @@ export async function fetchPageWords() {
 		const wordsPage = extractedText.split(/\s+/).filter((word) => word.length > 0);
 		console.log('Extracted Words:', wordsPage);
 		typingWords.set(wordsPage);
+		await storeCurrentLocation()
 		return wordsPage;
 	} catch (error) {
 		console.error('Failed to extract words using CFI range:', error);
 		return [];
 	}
 }
+
+export async function storeCurrentLocation() {
+	const r = get(rendition);
+	const b = get(book);
+	if (!r || !b) return;
+	const currentLocation = r.currentLocation();
+	if (!currentLocation) return [];
+
+	try {
+		const rangeCfi = makeRangeCfi(currentLocation.start.cfi, currentLocation.end.cfi);
+		currentLocationCFI.set(rangeCfi); // Store as string
+		console.log('Stored current location:', rangeCfi);
+	}
+	catch (error) {
+		console.error('Failed to store current location:', error);
+	}
+}
+
+
