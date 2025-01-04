@@ -83,6 +83,7 @@
 				height: '100%'
 			});
 
+			await newRendition.display();
 
 			// Optional: set a default theme
 			newRendition.themes.default({

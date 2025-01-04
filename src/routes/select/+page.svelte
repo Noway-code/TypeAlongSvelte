@@ -374,7 +374,7 @@
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
-		max-width: 400px;
+    max-width: 400px;
 
 
     &:hover,
