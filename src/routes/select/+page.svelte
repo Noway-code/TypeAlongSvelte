@@ -13,6 +13,18 @@
 	let showToc = false;
 	let tocItems: Array<{ label: string; href: string }> = [];
 
+	document.addEventListener('keydown', (event) => {
+		if (event.key === 'ArrowRight') {
+			$rendition?.next();
+		} else if (event.key === 'ArrowLeft') {
+			$rendition?.prev();
+		} else if (event.key === 'Escape') {
+			showToc = false;
+		} else if (event.key === 't') {
+			toggleToc();
+		}
+
+	});
 	// React to changes in uploadedFile
 	$: uploadedFile.subscribe(async (file) => {
 		if (!file) return;
@@ -95,22 +107,13 @@
 	</section>
 
 	{#if $uploadedFile}
-		<section class="uploaded-file">
-			<p>{$uploadedFile.name}</p>
-		</section>
-
 		<div class="viewer-controls-wrapper">
 			<div class="controls">
 				<button class="control-button" on:click={() => $rendition?.prev()}>Previous</button>
 				<button class="control-button" on:click={() => $rendition?.next()}>Next</button>
 				<button class="control-button" on:click={() => $rendition?.display()}>Go to Start</button>
 			</div>
-			<div class="game-buttons">
-				<button class="start-game-button" on:click={fetchPageWords}>
-					Start game from here!
-				</button>
-				<a href="../book-type" class="game-link">Game!</a>
-			</div>
+
 
 			<div bind:this={viewer} class="viewer">
 
@@ -131,6 +134,15 @@
 
 				<!-- TOC Tab Button -->
 				<button class="toc-tab-button" class:open={showToc} on:click={toggleToc}>ToC</button>
+			</div>
+
+			<div class="game-buttons">
+				<button class="start-game-button" on:click={fetchPageWords}>
+					Start game from here!
+				</button>
+				<button class="start-game-button">
+					<a class="game-link" href="../book-type">Game!</a>
+				</button>
 			</div>
 		</div>
 	{/if}
@@ -156,7 +168,7 @@
     min-height: 100vh;
     font-family: 'Roboto Mono', monospace;
     background-color: #2E3440; /* var(--nord-polar-night) */
-    color: #ECEFF4;           /* var(--nord-snow-storm) */
+    color: #ECEFF4; /* var(--nord-snow-storm) */
   }
 
   :root {
@@ -178,29 +190,29 @@
     display: flex;
     flex-direction: column;
     flex: 1;
-    max-width: 1200px;
+    max-width: 2200px;
     width: 90%;
-    background-color: var(--nord-polar-night-accent);
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
     padding: 2rem;
+    border-radius: 20px;
+    background-color: var(--nord-polar-night-accent);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     position: relative; /* so the ToC drawer can overlap */
   }
 
-  /* TOC Drawer styles */
   .toc-drawer {
     position: absolute;
     top: 0;
-    width: 250px;
+    width: 350px;
     height: 100%;
-    background-color: #4C566A; /* a bit lighter than main accent */
+    background-color: #4C566A;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
-		padding: 1px;
     z-index: 10;
     display: flex;
     flex-direction: column;
   }
+
 
   .toc-drawer.open {
     transform: translateX(0);
@@ -218,10 +230,10 @@
   .toc-close-button {
     background: transparent;
     border: none;
-    font-size: 1.5rem;
+    font-size: 4rem;
     color: #D8DEE9;
     cursor: pointer;
-    padding: 0;
+    margin: 3px;
     line-height: 1;
   }
 
@@ -255,7 +267,7 @@
     height: 2.5rem;
     font-weight: bold;
     z-index: 11;
-    transition: background-color 0.3s ease, transform 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.3s ease, opacity .2s ease-in-out;
 
     &:hover {
       background-color: var(--nord-accent-hover);
@@ -263,10 +275,10 @@
   }
 
   .toc-tab-button.open {
-    transform: translateX(-100%);
-    /* or display: none; if you really want it hidden */
-  }
+    opacity: 0;
+    pointer-events: none;
 
+  }
 
   header {
     text-align: center;
@@ -282,9 +294,10 @@
   .upload-section {
     display: flex;
     align-items: center;
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: center;
     gap: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
 
     input[type="file"] {
       padding: 0.5rem;
@@ -349,20 +362,20 @@
     gap: 1rem;
     flex-wrap: wrap;
     margin: 0 auto;
-    max-width: 600px;
+    max-width: 800px;
   }
 
   .control-button {
     padding: 0.6rem 1.2rem;
-    font-size: 1rem;
+    font-size: 1.5rem;
     color: var(--nord-snow-storm);
     background-color: var(--nord-polar-night-accent);
     border: 2px solid var(--nord-frost);
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
-    flex: 1 1 100px;
-    max-width: 150px;
+		max-width: 400px;
+
 
     &:hover,
     &:focus {
@@ -380,8 +393,9 @@
 
   .game-buttons {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
   }
 
@@ -411,7 +425,7 @@
   .game-link {
     display: inline-block;
     font-size: 1rem;
-    color: var(--nord-info);
+    color: var(--nord-snow-storm);
     text-decoration: none;
     transition: color 0.3s ease;
     text-align: center;
@@ -427,11 +441,10 @@
   .viewer {
     flex: 1;
     width: 100%;
-    background-color: var(--nord-snow-storm);
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: var(--bg-200);
     overflow: hidden;
     position: relative;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
 
   @media (max-width: 768px) {
