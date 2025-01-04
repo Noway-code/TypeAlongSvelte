@@ -8,6 +8,10 @@ const { CFI } = pkg;
 
 export const typingWords = writable<string[]>([]);
 export const rendition = writable<Rendition | null>(null);
+/**
+ * This store will hold the Book instance.
+ */
+export const book = writable<Book | null>(null);
 
 /**
  * Generates a CFI range string from two CFI locations.
@@ -35,9 +39,12 @@ export const makeRangeCfi = (a: string, b: string): string => {
 	for (let i = 0; i < len; i++) {
 		if (CFIInstance.equalStep(cfi.start.steps[i], cfi.end.steps[i])) {
 			if (i === len - 1) {
+				// Last step is equal, check terminals
 				if (cfi.start.terminal === cfi.end.terminal) {
+					// CFIs are equal
 					// @ts-ignore
 					cfi.path.steps.push(cfi.start.steps[i]);
+					// Not a range
 					cfi.range = false;
 				}
 			} else {
@@ -56,12 +63,12 @@ export const makeRangeCfi = (a: string, b: string): string => {
 
 /**
  * Fetches words from the current page using CFI-based range extraction.
- * @param book - The epubjs Book instance
- * @returns An array of words from the current page
+ * This function now reads both `rendition` and `book` directly from the stores.
  */
-export async function fetchPageWords(book: Book) {
+export async function fetchPageWords() {
 	const r = get(rendition);
-	if (!r || !book) return [];
+	const b = get(book);
+	if (!r || !b) return [];
 
 	const currentLocation = r.currentLocation();
 	if (!currentLocation) return [];
@@ -69,7 +76,7 @@ export async function fetchPageWords(book: Book) {
 	try {
 		// @ts-ignore
 		const rangeCfi = makeRangeCfi(currentLocation.start.cfi, currentLocation.end.cfi);
-		const range = await book.getRange(rangeCfi);
+		const range = await b.getRange(rangeCfi);
 		const extractedText = range.toString();
 		const wordsPage = extractedText.split(/\s+/).filter((word) => word.length > 0);
 		console.log('Extracted Words:', wordsPage);

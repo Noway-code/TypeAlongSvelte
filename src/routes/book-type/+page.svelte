@@ -427,7 +427,9 @@
 			</div>
 		{/if}
 	</div>
+	<div bind:this={viewer} class="viewer"></div>
 </div>
+
 
 <style lang="scss">
   .letter {
@@ -442,5 +444,16 @@
       color: var(--error);
       opacity: 1;
     }
+  }
+
+  .viewer {
+    flex-grow: 1;
+    width: 60%;
+    background-color: var(--nord-snow-storm);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 0.5rem;
+    max-height: 100%;
   }
 </style>

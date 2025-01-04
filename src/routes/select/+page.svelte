@@ -1,28 +1,39 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
 	import { get, writable } from 'svelte/store';
-	import { rendition, fetchPageWords } from '../../stores/typingStore';
-	import ePub, { Book } from 'epubjs';
+	import {
+		rendition,
+		fetchPageWords,
+		book
+	} from '../../stores/typingStore';
+	import ePub from 'epubjs';
 
 	let selectedFile: FileList | null = null;
 	const uploadedFile = writable<File | null>(null);
-	let book: Book | null = null;
 	let viewer: HTMLDivElement;
 
+	// React to changes in uploadedFile
 	$: uploadedFile.subscribe(async (file) => {
 		if (!file) return;
 
+		// Destroy the previous rendition and book if they exist
 		get(rendition)?.destroy();
-		book?.destroy();
+		get(book)?.destroy();
 
 		try {
-			book = ePub(file);
-			const newRendition = book.renderTo(viewer, {
+			// Create new Book instance and store it
+			const newBook = ePub(file);
+			book.set(newBook);
+
+			// Render it
+			const newRendition = newBook.renderTo(viewer, {
 				width: '100%',
 				height: '100%'
 			});
 
 			await newRendition.display();
 
+			// Set a default theme
 			newRendition.themes.default({
 				body: {
 					background: 'white',
@@ -80,8 +91,8 @@
 				<button class="control-button" on:click={() => $rendition?.display()}>Go to Start</button>
 			</div>
 			<div>
-				<!-- Pass 'book' to fetchPageWords -->
-				<button class="start-game-button" on:click={() => fetchPageWords(book)}>Start game from here!</button>
+				<!-- fetchPageWords no longer needs to be passed the book; it reads from the store -->
+				<button class="start-game-button" on:click={fetchPageWords}>Start game from here!</button>
 				<a href="../book-type" class="game-link">Game!</a>
 			</div>
 
@@ -93,46 +104,6 @@
 <style lang="scss">
   @import url('https://fonts.googleapis.com/css2?family=Lexend+Deca&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
-
-  /* Reset and Global Styles */
-  *,
-  *::before,
-  *::after {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  :root {
-    --nord-frost: #88C0D0;
-    --nord-snow-storm: #ECEFF4;
-    --nord-snow-storm-dim: #D8DEE9;
-    --nord-polar-night: #2E3440;
-    --nord-polar-night-accent: #3B4252;
-    --nord-accent: #81A1C1;
-    --nord-accent-hover: #5E81AC;
-    --nord-aurora-red: #BF616A;
-    --nord-aurora-green: #A3BE8C;
-    --nord-aurora-yellow: #EBCB8B;
-    --nord-info: #88C0D0;
-    --nord-info-hover: #5E81AC;
-  }
-
-  html,
-  body,
-  #app {
-    height: 100%;
-    overflow-x: hidden; /* Prevent horizontal overflow */
-  }
-
-  body {
-    font-family: 'Roboto Mono', monospace;
-    color: var(--nord-snow-storm);
-    background-color: var(--nord-polar-night);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
 
   .container {
     display: flex;
@@ -317,7 +288,7 @@
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-top: 0.5rem;
-    max-height: 100%; /* Ensure viewer doesn't exceed container */
+    max-height: 100%;
   }
 
   /* Responsive Styles */
