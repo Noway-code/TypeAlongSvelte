@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
-	import { writable } from 'svelte/store';
-	import ePub, { Book, Rendition } from 'epubjs';
-	import { typingWords } from '../../stores/typingStore';
+	import { get, writable } from 'svelte/store';
+	import ePub, { Book} from 'epubjs';
+	import { typingWords, rendition } from '../../stores/typingStore';
 	import pkg from 'epubjs';
 
 	const { CFI } = pkg;
@@ -13,9 +13,6 @@
 	let page = 1;
 	// References to the Book and Rendition instances
 	let book: Book | null = null;
-	let rendition: Rendition | null = null;
-
-	// Reference to the container where the EPUB will be rendered
 	let viewer: HTMLDivElement;
 
 	/**
@@ -68,26 +65,35 @@
 	$: uploadedFile.subscribe(async (file) => {
 		if (!file) return;
 
-		// Clean up previous instances
-		rendition?.destroy();
+		// If there's already a rendition, destroy it
+		get(rendition)?.destroy();
 		book?.destroy();
 
 		try {
-			// Initialize the book directly with the File object
 			book = ePub(file);
 
-			// Initialize the rendition with responsive options
-			rendition = book.renderTo(viewer, {
+			const newRendition = book.renderTo(viewer, {
 				width: '100%',
-				height: '750px',
-				spread: 'always'
+				height: '100%',
 			});
 
-			// Display the book
-			await rendition.display();
 
-			// Handle location changes
-			rendition.on('relocated', (location) => {
+			await newRendition.display();
+
+			// set a default theme for background
+			newRendition.themes.default({
+				body: {
+					background: 'white',
+					color: 'black',
+					padding: '1rem'
+				}
+			});
+
+			// store it in our writable
+			rendition.set(newRendition);
+
+			// handle location changes
+			newRendition.on('relocated', (location) => {
 				console.log('Current location:', location);
 			});
 		} catch (error) {
@@ -95,11 +101,6 @@
 		}
 	});
 
-	// Clean up on component destroy
-	onDestroy(() => {
-		rendition?.destroy();
-		book?.destroy();
-	});
 
 	/**
 	 * Uploads the selected EPUB file to the server.
@@ -133,19 +134,14 @@
 	 * Fetches words from the current page using CFI-based range extraction.
 	 */
 	async function fetchPageWords() {
-		if (!rendition || !book) return;
+		const r = get(rendition);
+		if (!r || !book) return;
 
-		const currentLocation = rendition.currentLocation();
-		if (!currentLocation) {
-			console.error('No current location available');
-			return;
-		}
-
-		const a = currentLocation.start.cfi;
-		const b = currentLocation.end.cfi;
+		const currentLocation = r.currentLocation();
+		if (!currentLocation) return;
 
 		try {
-			const rangeCfi = makeRangeCfi(a, b);
+			const rangeCfi = makeRangeCfi(currentLocation.start.cfi, currentLocation.end.cfi);
 			const range = await book.getRange(rangeCfi);
 			const extractedText = range.toString();
 			const wordsPage = extractedText.split(/\s+/).filter(word => word.length > 0);
@@ -185,9 +181,9 @@
 
 		<div class="viewer-controls-wrapper">
 			<div class="controls">
-				<button class="control-button" on:click={() => rendition?.prev()}>Previous</button>
-				<button class="control-button" on:click={() => rendition?.next()}>Next</button>
-				<button class="control-button" on:click={() => rendition?.display()}>Go to Start</button>
+				<button class="control-button" on:click={() => $rendition?.prev()}>Previous</button>
+				<button class="control-button" on:click={() => $rendition?.next()}>Next</button>
+				<button class="control-button" on:click={() => $rendition?.display()}>Go to Start</button>
 			</div>
 			<div>
 				<button class="start-game-button" on:click={fetchPageWords}>Start game from here!</button>
