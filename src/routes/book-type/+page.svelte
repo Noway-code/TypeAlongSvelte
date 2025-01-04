@@ -1,32 +1,42 @@
 <!-- src/routes/book-type/+page.svelte -->
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { blur } from 'svelte/transition';
 	import { tweened } from 'svelte/motion';
-	import { typingWords } from '../../stores/typingStore';
+	import { get } from 'svelte/store';
+
+	// Import your stores and any helper functions
+	import {
+		typingWords,
+		book,
+		rendition,
+		fetchPageWords
+	} from '../../stores/typingStore';
+
+	import type { Rendition } from 'epubjs';
 	import '../../styles/type.scss';
 
 	/*
-	 Types
+	 Game-specific Types
 	*/
+	type Game = 'waiting for input' | 'in progress' | 'game over';
+	type Word = string;
 
-	type Game = 'waiting for input' | 'in progress' | 'game over'
-	type Word = string
 	/*
-			 Props
-		*/
+	 Subscribe to typingWords
+	*/
 	export let words: Word[] = [];
-	const unsubscribe = typingWords.subscribe(value => {
+	const unsubscribe = typingWords.subscribe((value) => {
 		words = value;
 	});
+
 	/*
 	 Constants
 	*/
-
 	const INITIAL_SECONDS = 100;
 	const WORD_LENGTH = 5;
-	/*
 
+	/*
 	 Game state
 	*/
 	let game: Game = 'waiting for input';
@@ -48,15 +58,72 @@
 	let inputEl: HTMLInputElement;
 	let caretEl: HTMLDivElement;
 
-	let titleBook = '';
-	let avatar: FileList | null = null;
+	/*
+	 The HTML container for the EPUB viewer
+	*/
+	let viewer: HTMLDivElement;
 
 	/*
-	 Listen for key press
+	  Render (or re-render) the Book into this page’s viewer
 	*/
+	async function displayBook() {
+		// Destroy any existing rendition
+		get(rendition)?.destroy();
 
+		const currentBook = get(book);
+		if (!currentBook) {
+			console.log('No Book in store. Please upload or set the book before coming here.');
+			return;
+		}
+
+		try {
+			// Create a new rendition
+			const newRendition = currentBook.renderTo(viewer, {
+				width: '100%',
+				height: '100%'
+			});
+
+			await newRendition.display();
+
+			// Optional: set a default theme
+			newRendition.themes.default({
+				body: {
+					background: 'white',
+					color: 'black',
+					padding: '1rem'
+				}
+			});
+
+			rendition.set(newRendition);
+
+			newRendition.on('relocated', (location) => {
+				console.log('Current location:', location);
+			});
+		} catch (error) {
+			console.error('Failed to load EPUB in book-type page:', error);
+		}
+	}
+
+	/*
+	  onMount: set up the Book/Rendition if it’s in the store
+	*/
+	onMount(() => {
+		displayBook();
+		focusInput();
+	});
+
+	/*
+	  onDestroy: unsubscribe from store & clean up
+	*/
+	onDestroy(() => {
+		unsubscribe();
+	});
+
+	/*
+	 Handle keydown logic
+	*/
 	function handleKeydown(event: KeyboardEvent) {
-		const atEndOfWord = letterIndex >= words[wordIndex].length;
+		const atEndOfWord = letterIndex >= words[wordIndex]?.length;
 
 		if (atEndOfWord) {
 			if (event.code !== 'Space' && event.code !== 'Backspace') {
@@ -64,6 +131,7 @@
 				return;
 			}
 		}
+
 		if (event.code === 'Space') {
 			event.preventDefault();
 			if (game === 'in progress') {
@@ -73,61 +141,10 @@
 
 		if (event.code === 'Backspace') {
 			event.preventDefault();
-
 			if (game !== 'in progress') {
 				return;
 			}
-
-			// If at the very beginning, do nothing
-			if (wordIndex === 0 && letterIndex === 0) {
-				return;
-			}
-
-			// Determine the previous position
-			let prevWordIndex = wordIndex;
-			let prevLetterIndex = letterIndex;
-
-			if (letterIndex > 0) {
-				prevLetterIndex -= 1;
-			} else if (wordIndex > 0) {
-				prevWordIndex -= 1;
-				prevLetterIndex = words[prevWordIndex].length - 1;
-			}
-
-			// Update indices
-			wordIndex = prevWordIndex;
-			letterIndex = prevLetterIndex;
-
-			// Set the current letter element
-			setLetter();
-
-			if (letterEl) {
-				const previousState = letterEl.dataset.letter;
-
-				// If the previous state was correct, decrement correctLetters
-				if (previousState === 'correct') {
-					correctLetters = Math.max(correctLetters - 1, 0);
-				}
-
-				// Reset the data-letter attribute
-				letterEl.dataset.letter = '';
-
-				// Temporarily decrement letterEl
-				letterEl = letterEl.previousElementSibling as HTMLSpanElement;
-
-				if (!letterEl && wordIndex > 0) {
-					letterEl = wordsEl.children[wordIndex - 1].lastElementChild as HTMLSpanElement;
-				} else if (!letterEl && wordIndex === 0) {
-					letterEl = wordsEl.children[wordIndex].firstElementChild as HTMLSpanElement;
-				}
-			}
-			console.log(letterEl);
-			moveCaret();
-
-			// Restore letterEl
-			letterEl = letterEl.nextElementSibling as HTMLSpanElement;
-
-			typedLetters -= 1;
+			handleBackspace();
 		}
 
 		if (game === 'waiting for input') {
@@ -135,6 +152,55 @@
 		}
 
 		focusInput();
+	}
+
+	function handleBackspace() {
+		// If at the very beginning, do nothing
+		if (wordIndex === 0 && letterIndex === 0) {
+			return;
+		}
+
+		let prevWordIndex = wordIndex;
+		let prevLetterIndex = letterIndex;
+
+		if (letterIndex > 0) {
+			prevLetterIndex -= 1;
+		} else if (wordIndex > 0) {
+			prevWordIndex -= 1;
+			prevLetterIndex = words[prevWordIndex].length - 1;
+		}
+
+		wordIndex = prevWordIndex;
+		letterIndex = prevLetterIndex;
+
+		setLetter();
+
+		if (letterEl) {
+			const previousState = letterEl.dataset.letter;
+
+			// If the previous state was correct, decrement correctLetters
+			if (previousState === 'correct') {
+				correctLetters = Math.max(correctLetters - 1, 0);
+			}
+
+			// Reset the data-letter attribute
+			letterEl.dataset.letter = '';
+
+			// Temporarily go backwards
+			letterEl = letterEl.previousElementSibling as HTMLSpanElement;
+			if (!letterEl && wordIndex > 0) {
+				letterEl = wordsEl.children[wordIndex - 1].lastElementChild as HTMLSpanElement;
+			} else if (!letterEl && wordIndex === 0) {
+				letterEl = wordsEl.children[wordIndex].firstElementChild as HTMLSpanElement;
+			}
+		}
+
+		moveCaret();
+
+		// Move forward again so the next typed letter overwrites the “empty” space
+		letterEl = letterEl.nextElementSibling as HTMLSpanElement;
+
+		typedLetters -= 1;
 	}
 
 	function startGame() {
@@ -167,10 +233,6 @@
 		const interval = setInterval(gameTimer, 1000);
 	}
 
-	/*
-	 Evaluate user input
-	*/
-
 	function updateGameState() {
 		setLetter();
 		checkLetter();
@@ -197,7 +259,7 @@
 			wordIndex >= 0 &&
 			wordIndex < wordsEl.children.length &&
 			letterIndex >= 0 &&
-			letterIndex < words[wordIndex].length
+			letterIndex < words[wordIndex]?.length
 		) {
 			const currentWord = wordsEl.children[wordIndex] as HTMLElement;
 			letterEl = currentWord.children[letterIndex] as HTMLSpanElement;
@@ -207,14 +269,13 @@
 	}
 
 	function checkLetter() {
-		const currentLetter = words[wordIndex][letterIndex];
+		const currentLetter = words[wordIndex]?.[letterIndex];
 		if (!letterEl) return;
+
 		if (typedLetter === currentLetter) {
 			letterEl.dataset.letter = 'correct';
 			increaseScore();
-		}
-
-		if (typedLetter !== currentLetter) {
+		} else {
 			letterEl.dataset.letter = 'incorrect';
 		}
 	}
@@ -229,15 +290,11 @@
 	}
 
 	function nextWord() {
-		const isNotFirstLetter = letterIndex !== 0;
-
-		if (isNotFirstLetter) {
-			let wordRemaining = words[wordIndex].length - letterIndex;
+		if (letterIndex !== 0) {
+			const wordRemaining = words[wordIndex].length - letterIndex;
 			typedLetters += wordRemaining;
-
 			wordIndex += 1;
 			letterIndex = 0;
-			// increaseScore();
 			moveCaret();
 		}
 	}
@@ -257,14 +314,12 @@
 	}
 
 	function moveCaret() {
+		// Slight offset to position the caret visually
 		const offset = 4;
+		if (!letterEl) return;
 		caretEl.style.top = `${letterEl.offsetTop + offset}px`;
 		caretEl.style.left = `${letterEl.offsetLeft + letterEl.offsetWidth}px`;
 	}
-
-	/*
-	 Game over
-	*/
 
 	function getWordsPerMinute() {
 		const wordsTyped = correctLetters / WORD_LENGTH;
@@ -277,23 +332,21 @@
 	}
 
 	function getAccuracy() {
-		const totalLetters = getTotalLetters(words);
-		return Math.floor((correctLetters / totalLetters) * 100);
+		const total = getTotalLetters(words);
+		return Math.floor((correctLetters / total) * 100);
 	}
 
-	function getTotalLetters(words: Word[]) {
-		return words.reduce((count, word) => count + word.length, 0);
+	function getTotalLetters(arr: Word[]) {
+		return arr.reduce((count, w) => count + w.length, 0);
 	}
-
-	/*
-	 Game reset
-	*/
 
 	function resetGame() {
 		toggleReset = !toggleReset;
 
 		setGameState('waiting for input');
-		getWords(25);
+		// When resetting, you might want to re-fetch or re-scrape words from the current page:
+		// await fetchPageWords()  // optionally fetch fresh text from the ebook page
+
 		seconds = INITIAL_SECONDS;
 		typedLetter = '';
 		wordIndex = 0;
@@ -306,9 +359,6 @@
 		focusInput();
 	}
 
-	/*
-	 Helpers
-	*/
 	function focusInput() {
 		if (inputEl) {
 			inputEl.focus();
@@ -320,22 +370,13 @@
 			letterIndex,
 			wordIndex,
 			letterEl,
-			letter: letterEl.innerText,
-			wordLength: words[wordIndex].length - 1
+			letter: letterEl?.innerText,
+			wordLength: words[wordIndex]?.length
 		});
 	}
-
-	/* Get words and focus input when you load the page */
-
-	onMount(() => {
-		focusInput();
-	});
-
-	onDestroy(() => {
-		unsubscribe();
-	});
 </script>
 
+<!-- PAGE CONTENT -->
 <div class="page-content">
 	<!-- Back Button -->
 	<div class="back-container">
@@ -374,14 +415,15 @@
 
 				<div class="time">{seconds}</div>
 
+				<!-- This key block helps re-render the words on reset -->
 				{#key toggleReset}
 					<div in:blur|local bind:this={wordsEl} class="words">
 						{#each words as word}
-              <span class="word">
-                {#each word as letter}
-                  <span class="letter">{letter}</span>
-                {/each}
-              </span>
+							<span class="word">
+								{#each word as letter}
+									<span class="letter">{letter}</span>
+								{/each}
+							</span>
 						{/each}
 
 						<div bind:this={caretEl} class="caret"></div>
@@ -417,7 +459,6 @@
 						<p class="title">wpm</p>
 						<p class="score">{Math.trunc($wordsPerMinute)}</p>
 					</div>
-
 					<div>
 						<p class="title">accuracy</p>
 						<p class="score">{Math.trunc($accuracy)}%</p>
@@ -427,10 +468,13 @@
 			</div>
 		{/if}
 	</div>
+
+	<!-- EPUB Viewer -->
+	<!-- This is where the Book will render -->
 	<div bind:this={viewer} class="viewer"></div>
 </div>
 
-
+<!-- SCSS styling -->
 <style lang="scss">
   .letter {
     opacity: 0.4;

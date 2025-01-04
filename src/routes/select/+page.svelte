@@ -1,48 +1,55 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { get, writable } from 'svelte/store';
-	import {
-		rendition,
-		fetchPageWords,
-		book
-	} from '../../stores/typingStore';
+	import { rendition, fetchPageWords, book } from '../../stores/typingStore';
 	import ePub from 'epubjs';
 
 	let selectedFile: FileList | null = null;
 	const uploadedFile = writable<File | null>(null);
+	let text = '';
+	let page = 1;
 	let viewer: HTMLDivElement;
+
+	let showToc = false;
+	let tocItems: Array<{ label: string; href: string }> = [];
 
 	// React to changes in uploadedFile
 	$: uploadedFile.subscribe(async (file) => {
 		if (!file) return;
 
-		// Destroy the previous rendition and book if they exist
 		get(rendition)?.destroy();
 		get(book)?.destroy();
 
 		try {
-			// Create new Book instance and store it
 			const newBook = ePub(file);
 			book.set(newBook);
 
-			// Render it
 			const newRendition = newBook.renderTo(viewer, {
 				width: '100%',
-				height: '100%'
+				height: '100%',
+				spread: 'none',
+				minSpreadWidth: 999999,
+				flow: 'paginated'
 			});
 
 			await newRendition.display();
 
-			// Set a default theme
-			newRendition.themes.default({
+			newRendition.themes.register('largeText', {
 				body: {
-					background: 'white',
-					color: 'black',
-					padding: '1rem'
+					'font-size': '1.2rem',
+					'line-height': '1.6',
+					'background': 'white',
+					'color': 'black',
+					'padding': '1rem'
 				}
 			});
+			newRendition.themes.select('largeText');
 
 			rendition.set(newRendition);
+
+			// Load navigation to get the table of contents
+			const nav = await newBook.loaded.navigation;
+			tocItems = nav.toc || [];
 
 			newRendition.on('relocated', (location) => {
 				console.log('Current location:', location);
@@ -58,9 +65,18 @@
 		formData.append('file', selectedFile[0]);
 		uploadedFile.set(selectedFile[0]);
 	}
+
+	function goToSection(href: string) {
+		get(rendition)?.display(href);
+	}
+
+	function toggleToc() {
+		showToc = !showToc;
+	}
 </script>
 
 <main class="container">
+
 	<header>
 		<h1>Upload Your Book and Preview It</h1>
 	</header>
@@ -75,7 +91,6 @@
 				if (target.files) selectedFile = target.files;
 			}}
 		/>
-
 		<button class="upload-button" on:click={uploadEpub}>Upload EPUB</button>
 	</section>
 
@@ -90,13 +105,33 @@
 				<button class="control-button" on:click={() => $rendition?.next()}>Next</button>
 				<button class="control-button" on:click={() => $rendition?.display()}>Go to Start</button>
 			</div>
-			<div>
-				<!-- fetchPageWords no longer needs to be passed the book; it reads from the store -->
-				<button class="start-game-button" on:click={fetchPageWords}>Start game from here!</button>
+			<div class="game-buttons">
+				<button class="start-game-button" on:click={fetchPageWords}>
+					Start game from here!
+				</button>
 				<a href="../book-type" class="game-link">Game!</a>
 			</div>
 
-			<div bind:this={viewer} class="viewer"></div>
+			<div bind:this={viewer} class="viewer">
+
+				<!-- TOC Drawer -->
+				<div class="toc-drawer" class:open={showToc}>
+					<div class="toc-header">
+						<h2>Table of Contents</h2>
+						<button class="toc-close-button" on:click={toggleToc}>×</button>
+					</div>
+					<div class="toc-items">
+						{#each tocItems as item}
+							<div class="toc-item" on:click={() => goToSection(item.href)}>
+								{item.label}
+							</div>
+						{/each}
+					</div>
+				</div>
+
+				<!-- TOC Tab Button -->
+				<button class="toc-tab-button" class:open={showToc} on:click={toggleToc}>ToC</button>
+			</div>
 		</div>
 	{/if}
 </main>
@@ -105,51 +140,159 @@
   @import url('https://fonts.googleapis.com/css2?family=Lexend+Deca&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
 
+  html, body, #app, main {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Roboto Mono', monospace;
+    background-color: #2E3440; /* var(--nord-polar-night) */
+    color: #ECEFF4;           /* var(--nord-snow-storm) */
+  }
+
+  :root {
+    --nord-frost: #88C0D0;
+    --nord-snow-storm: #ECEFF4;
+    --nord-snow-storm-dim: #D8DEE9;
+    --nord-polar-night: #2E3440;
+    --nord-polar-night-accent: #3B4252;
+    --nord-accent: #81A1C1;
+    --nord-accent-hover: #5E81AC;
+    --nord-aurora-red: #BF616A;
+    --nord-aurora-green: #A3BE8C;
+    --nord-aurora-yellow: #EBCB8B;
+    --nord-info: #88C0D0;
+    --nord-info-hover: #5E81AC;
+  }
+
   .container {
     display: flex;
     flex-direction: column;
-    max-width: 90%;
-    width: 100%;
-    height: 1200px;
-    margin: 1rem auto;
-    padding: 2rem;
+    flex: 1;
+    max-width: 1200px;
+    width: 90%;
     background-color: var(--nord-polar-night-accent);
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    padding: 2rem;
+    position: relative; /* so the ToC drawer can overlap */
   }
+
+  /* TOC Drawer styles */
+  .toc-drawer {
+    position: absolute;
+    top: 0;
+    width: 250px;
+    height: 100%;
+    background-color: #4C566A; /* a bit lighter than main accent */
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+		padding: 1px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .toc-drawer.open {
+    transform: translateX(0);
+  }
+
+  .toc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background-color: #3B4252;
+    color: #D8DEE9;
+  }
+
+  .toc-close-button {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: #D8DEE9;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .toc-items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem;
+  }
+
+  .toc-item {
+    padding: 0.75rem;
+    color: #ECEFF4;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #434C5E;
+    }
+  }
+
+  .toc-tab-button {
+    position: absolute;
+    top: 1rem;
+    left: 0;
+    transform: translateX(25%);
+    background-color: var(--nord-accent);
+    border: none;
+    color: var(--nord-snow-storm);
+    cursor: pointer;
+    border-radius: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+    font-weight: bold;
+    z-index: 11;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+
+    &:hover {
+      background-color: var(--nord-accent-hover);
+    }
+  }
+
+  .toc-tab-button.open {
+    transform: translateX(-100%);
+    /* or display: none; if you really want it hidden */
+  }
+
 
   header {
     text-align: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
 
     h1 {
       font-family: 'Lexend Deca', sans-serif;
-      font-size: 2.5rem;
+      font-size: 2rem;
       color: var(--nord-frost);
     }
   }
 
   .upload-section {
     display: flex;
-    flex-direction: column;
     align-items: center;
+    flex-direction: column;
     gap: 1rem;
-    margin-bottom: 1.5rem;
-
-    label {
-      font-size: 1.2rem;
-      color: var(--nord-snow-storm-dim);
-    }
+    margin-bottom: 2rem;
 
     input[type="file"] {
       padding: 0.5rem;
       border: 1px solid var(--nord-snow-storm-dim);
       border-radius: 4px;
-      background-color: var(--nord-polar-night);
-      color: var(--nord-snow-storm);
+      background-color: var(--nord-polar-night-accent);
+      color: var(--nord-snow-storm-dim);
       transition: border-color 0.3s ease;
-      width: 100%;
       max-width: 300px;
 
       &:focus {
@@ -167,8 +310,8 @@
       border-radius: 8px;
       cursor: pointer;
       transition: background-color 0.3s ease, transform 0.2s ease;
-      width: 100%;
       max-width: 200px;
+      width: 100%;
 
       &:hover {
         background-color: var(--nord-accent-hover);
@@ -187,27 +330,26 @@
     margin-bottom: 1rem;
 
     p {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       color: var(--nord-snow-storm-dim);
-      word-wrap: break-word; /* Prevent long filenames from overflowing */
+      word-wrap: break-word;
     }
   }
 
   .viewer-controls-wrapper {
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
-    overflow: hidden;
+    gap: 1.5rem;
+    flex: 1;
   }
 
   .controls {
     display: flex;
     justify-content: center;
-    flex-wrap: wrap;
     gap: 1rem;
-    width: 100%;
+    flex-wrap: wrap;
+    margin: 0 auto;
     max-width: 600px;
-    margin: 5px auto 1rem;
   }
 
   .control-button {
@@ -236,17 +378,22 @@
     }
   }
 
+  .game-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
   .start-game-button {
-    align-self: center;
     padding: 0.75rem 1rem;
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: var(--nord-snow-storm);
     background-color: var(--nord-accent);
     border: none;
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
-    margin-bottom: 1rem;
     width: 100%;
     max-width: 250px;
 
@@ -262,14 +409,11 @@
   }
 
   .game-link {
-    align-self: center;
-    font-size: 1.1rem;
+    display: inline-block;
+    font-size: 1rem;
     color: var(--nord-info);
     text-decoration: none;
-    margin-bottom: 1.5rem;
     transition: color 0.3s ease;
-    width: 100%;
-    max-width: 250px;
     text-align: center;
 
     &:hover,
@@ -281,69 +425,58 @@
   }
 
   .viewer {
-    flex-grow: 1;
-    width: 60%;
+    flex: 1;
+    width: 100%;
     background-color: var(--nord-snow-storm);
     border-radius: 8px;
-    overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-top: 0.5rem;
-    max-height: 100%;
-  }
-
-  /* Responsive Styles */
-  @media (max-width: 1024px) {
-    .viewer {
-      height: auto;
-    }
+    overflow: hidden;
+    position: relative;
   }
 
   @media (max-width: 768px) {
     .container {
-      padding: 1.5rem;
+      padding: 1rem;
     }
 
     .controls {
       flex-direction: column;
       gap: 0.5rem;
-      max-width: 100%;
     }
 
     .control-button {
-      width: 100%;
       max-width: none;
+      width: 100%;
     }
 
     .start-game-button,
     .upload-button {
-      width: 100%;
       max-width: none;
+    }
+
+    .toc-drawer {
+      width: 200px;
     }
   }
 
   @media (max-width: 480px) {
-    .container {
-      padding: 1rem;
-      height: 100vh;
-    }
-
     header h1 {
-      font-size: 2rem;
+      font-size: 1.5rem;
     }
 
-    .upload-button,
     .control-button,
-    .start-game-button {
+    .start-game-button,
+    .upload-button {
       font-size: 0.9rem;
       padding: 0.5rem 1rem;
     }
 
-    .game-link {
-      font-size: 1rem;
+    .toc-drawer {
+      width: 170px;
     }
 
-    .viewer {
-      height: 300px;
+    .toc-close-button {
+      font-size: 1.3rem;
     }
   }
 </style>
