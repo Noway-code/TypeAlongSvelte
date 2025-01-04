@@ -238,7 +238,7 @@
 	}
 
 	function updateLine() {
-		const wordEl = wordsEl.children[wordIndex]; // Why are we reinitializing wordEl rather than maintaining the reference?
+		const wordEl = wordsEl.children[wordIndex];
 		const wordsY = wordsEl.getBoundingClientRect().y;
 		const wordY = wordEl.getBoundingClientRect().y;
 
