@@ -3,6 +3,7 @@ import { writable, get } from 'svelte/store';
 import type { Rendition, Book } from 'epubjs';
 import pkg from 'epubjs';
 
+// @ts-ignore
 const { CFI } = pkg;
 
 export const typingWords = writable<string[]>([]);
@@ -35,10 +36,12 @@ export const makeRangeCfi = (a: string, b: string): string => {
 		if (CFIInstance.equalStep(cfi.start.steps[i], cfi.end.steps[i])) {
 			if (i === len - 1) {
 				if (cfi.start.terminal === cfi.end.terminal) {
+					// @ts-ignore
 					cfi.path.steps.push(cfi.start.steps[i]);
 					cfi.range = false;
 				}
 			} else {
+				// @ts-ignore
 				cfi.path.steps.push(cfi.start.steps[i]);
 			}
 		} else {
@@ -64,6 +67,7 @@ export async function fetchPageWords(book: Book) {
 	if (!currentLocation) return [];
 
 	try {
+		// @ts-ignore
 		const rangeCfi = makeRangeCfi(currentLocation.start.cfi, currentLocation.end.cfi);
 		const range = await book.getRange(rangeCfi);
 		const extractedText = range.toString();
