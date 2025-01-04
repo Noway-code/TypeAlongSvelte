@@ -1,3 +1,4 @@
+<!-- src/routes/book-type/+page.svelte -->
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 	import { blur } from 'svelte/transition';
@@ -11,7 +12,7 @@
 	type Game = 'waiting for input' | 'in progress' | 'game over'
 	type Word = string
 	/*
-		 Props
+			 Props
 		*/
 	export let words: Word[] = [];
 	const unsubscribe = typingWords.subscribe(value => {
@@ -118,8 +119,6 @@
 				} else if (!letterEl && wordIndex === 0) {
 					letterEl = wordsEl.children[wordIndex].firstElementChild as HTMLSpanElement;
 				}
-
-
 			}
 			console.log(letterEl);
 			moveCaret();
@@ -202,7 +201,6 @@
 		}
 	}
 
-
 	function checkLetter() {
 		const currentLetter = words[wordIndex][letterIndex];
 		if (!letterEl) return;
@@ -214,7 +212,6 @@
 		if (typedLetter !== currentLetter) {
 			letterEl.dataset.letter = 'incorrect';
 		}
-
 	}
 
 	function increaseScore() {
@@ -228,7 +225,6 @@
 
 	function nextWord() {
 		const isNotFirstLetter = letterIndex !== 0;
-
 
 		if (isNotFirstLetter) {
 			let wordRemaining = words[wordIndex].length - letterIndex;
@@ -257,8 +253,8 @@
 
 	function moveCaret() {
 		const offset = 4;
-		caretEl.style.top = `${letterEl.offsetTop + offset}px`;
-		caretEl.style.left = `${letterEl.offsetLeft + letterEl.offsetWidth}px`;
+			caretEl.style.top = `${letterEl.offsetTop + offset}px`;
+			caretEl.style.left = `${letterEl.offsetLeft + letterEl.offsetWidth}px`;
 	}
 
 	/*
@@ -269,7 +265,6 @@
 		const wordsTyped = correctLetters / WORD_LENGTH;
 		return Math.floor(wordsTyped * (60 / (INITIAL_SECONDS - seconds || 1)));
 	}
-
 
 	function getResults() {
 		$wordsPerMinute = getWordsPerMinute();
@@ -336,80 +331,132 @@
 		unsubscribe();
 	});
 </script>
-correctLetters: {correctLetters}
-totalLetters: {totalLetters}
-{#if letterEl}
-	text: {letterEl.textContent}
-{/if}
-typedTotal: {typedLetters}
-{#if game !== 'game over'}
-	<div class="game" data-game={game}>
-		<input
-			bind:this={inputEl}
-			bind:value={typedLetter}
-			on:input={updateGameState}
-			on:keydown={handleKeydown}
-			class="input"
-			type="text"
-		/>
 
-		<div class="time">{seconds}</div>
+<div class="page-content">
+	<!-- Back Button -->
+	<div class="back-container">
+		<a aria-label="Go back to selection page" class="back" href="/select">Go back</a>
+	</div>
 
-		{#key toggleReset}
-			<div in:blur|local bind:this={wordsEl} class="words">
-				{#each words as word}
-					<span class="word">
-						{#each word as letter}
-							<span class="letter">{letter}</span>
+	<!-- Game Content -->
+	<div class="game-container">
+		{#if game !== 'game over'}
+			<div class="game" data-game={game}>
+				<input
+					bind:this={inputEl}
+					bind:value={typedLetter}
+					on:input={updateGameState}
+					on:keydown={handleKeydown}
+					class="input"
+					type="text"
+				/>
+
+				<div class="time">{seconds}</div>
+
+				{#key toggleReset}
+					<div in:blur|local bind:this={wordsEl} class="words">
+						{#each words as word}
+              <span class="word">
+                {#each word as letter}
+                  <span class="letter">{letter}</span>
+                {/each}
+              </span>
 						{/each}
-					</span>
-				{/each}
 
-				<div bind:this={caretEl} class="caret"></div>
+						<div bind:this={caretEl} class="caret"></div>
+					</div>
+				{/key}
+
+				<div class="reset">
+					<button on:click={resetGame} aria-label="reset">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							width="24"
+							height="24"
+							stroke-width="1.5"
+							stroke="currentColor"
+							fill="none"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M15 15l6-6m0 0l-6-6m6 6H9a6 6 0 000 12h3"
+							/>
+						</svg>
+					</button>
+				</div>
 			</div>
-		{/key}
+		{/if}
 
-		<div class="reset">
-			<button on:click={resetGame} aria-label="reset">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					viewBox="0 0 24 24"
-					width="24"
-					height="24"
-					stroke-width="1.5"
-					stroke="currentColor"
-					fill="none"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						d="M15 15l6-6m0 0l-6-6m6 6H9a6 6 0 000 12h3"
-					/>
-				</svg>
-			</button>
-		</div>
+		{#if game === 'game over'}
+			<div in:blur class="results">
+				<div>
+					<p class="title">wpm</p>
+					<p class="score">{Math.trunc($wordsPerMinute)}</p>
+				</div>
+
+				<div>
+					<p class="title">accuracy</p>
+					<p class="score">{Math.trunc($accuracy)}%</p>
+				</div>
+
+				<button on:click={resetGame} class="play">play again</button>
+			</div>
+		{/if}
 	</div>
-{/if}
-
-{#if game === 'game over'}
-	<div in:blur class="results">
-		<div>
-			<p class="title">wpm</p>
-			<p class="score">{Math.trunc($wordsPerMinute)}</p>
-		</div>
-
-		<div>
-			<p class="title">accuracy</p>
-			<p class="score">{Math.trunc($accuracy)}%</p>
-		</div>
-
-		<button on:click={resetGame} class="play">play again</button>
-	</div>
-{/if}
+</div>
 
 <style lang="scss">
+  /* Container for Back button and Game */
+  .page-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center horizontally */
+    width: 100%;
+    height: 100%;
+    max-width: 800px; /* Optional: limit width for better readability */
+    margin: 0 auto; /* Center the container */
+    padding: 1rem;
+  }
+
+  /* Back Button Styling */
+  .back-container {
+    align-self: flex-start; /* Align to the left */
+    margin-bottom: 2rem; /* Space between Back button and Game */
+    width: 100%;
+  }
+
+  .back {
+    color: var(--fg-200);
+    font-size: 20pt;
+    text-decoration: none; /* Remove underline */
+    font-weight: bold;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: var(--accent-hover); /* Nord Frost hover color */
+    }
+  }
+
+  /* Game Container to Center the Game */
+  .game-container {
+    flex: 1; /* Take up remaining space */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* Centering the Game */
   .game {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Additional styles as per your existing code */
     position: relative;
+    width: 100%;
+    max-width: 600px; /* Adjust as needed */
 
     .input {
       position: absolute;
@@ -477,20 +524,14 @@ typedTotal: {typedLetters}
       border-right: 1px solid var(--primary);
       animation: caret 1s infinite;
       transition: all 0.2s ease;
-
-      @keyframes caret {
-        0%,
-        to {
-          opacity: 0;
-        }
-        50% {
-          opacity: 1;
-        }
-      }
     }
   }
 
   .results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
     .title {
       font-size: 2rem;
       color: var(--fg-200);
@@ -503,6 +544,32 @@ typedTotal: {typedLetters}
 
     .play {
       margin-top: 1rem;
+    }
+  }
+
+  /* Keyframes for caret animation */
+  @keyframes caret {
+    0%,
+    to {
+      opacity: 0;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  /* Responsive Design */
+  @media (max-width: 600px) {
+    .back {
+      font-size: 16pt;
+    }
+
+    .game {
+      max-width: 100%;
+    }
+
+    .back-container {
+      margin-bottom: 1rem;
     }
   }
 </style>
