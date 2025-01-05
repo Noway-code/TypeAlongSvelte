@@ -81,7 +81,7 @@ export async function fetchPageWords() {
 		const wordsPage = extractedText.split(/\s+/).filter((word) => word.length > 0);
 		console.log('Extracted Words:', wordsPage);
 		typingWords.set(wordsPage);
-		await storeCurrentLocation()
+
 		return wordsPage;
 	} catch (error) {
 		console.error('Failed to extract words using CFI range:', error);

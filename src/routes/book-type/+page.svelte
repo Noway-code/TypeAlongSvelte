@@ -124,7 +124,7 @@
 				flow: 'paginated'
 			});
 
-			await newRendition.display(get(currentLocationCFI));
+			await newRendition.display($currentLocationCFI);
 
 			newRendition.themes.register('largeText', {
 				body: {

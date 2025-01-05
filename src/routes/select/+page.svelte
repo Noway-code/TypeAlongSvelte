@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 	import { get, writable } from 'svelte/store';
-	import { rendition, fetchPageWords, book } from '../../stores/typingStore';
+	import { rendition, fetchPageWords, book, storeCurrentLocation } from '../../stores/typingStore';
 	import ePub from 'epubjs';
 
 	let selectedFile: FileList | null = null;
@@ -12,6 +12,11 @@
 
 	let showToc = false;
 	let tocItems: Array<{ label: string; href: string }> = [];
+
+	async function getPageWordsHandler() {
+		await fetchPageWords();
+		await storeCurrentLocation();
+	}
 
 	document.addEventListener('keydown', (event) => {
 		if (event.key === 'ArrowRight') {
@@ -137,7 +142,7 @@
 			</div>
 
 			<div class="game-buttons">
-				<button class="start-game-button" on:click={fetchPageWords}>
+				<button class="start-game-button" on:click={() => getPageWordsHandler()}>
 					Fetch Text
 				</button>
 				<a class="game-link" href="../book-type">
