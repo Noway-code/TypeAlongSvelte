@@ -1,11 +1,9 @@
-<!-- src/routes/book-type/+page.svelte -->
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { blur } from 'svelte/transition';
 	import { tweened } from 'svelte/motion';
 	import { get } from 'svelte/store';
 
-	// Import your stores and any helper functions
 	import {
 		typingWords,
 		book,
@@ -64,30 +62,13 @@
 	*/
 	let viewer: HTMLDivElement;
 
-	/*
-	  Render (or re-render) the Book into this page’s viewer
-	*/
-
 	async function greedyGetWords(){
-		// Retrieve all active Contents objects
-		const contents = newRendition?.getContents();
-		if (!contents || contents.length === 0) {
-			console.error('No contents available');
-			return [];
-		}
-		let allText = '';
-		// Iterate through each Contents object
-		contents.forEach(content => {
-			const doc = content.document;
-			if (doc) {
-				// Extract text from the body of the document
-				allText += doc.body.innerText + ' ';
-			}
-		});
-		// Split the concatenated text into words using whitespace as the delimiter
-		let wordsFullChapter = allText.split(/\s+/).filter(word => word.length > 0);
-		console.log(wordsFullChapter);
-		return wordsFullChapter;
+		// Function Description: We're going to attempt to rendition.next() and store the page words til
+		// the section changes. This is a pretty rough work around to something I've been fiddling with.
+		// I cannot for the life of me figure out a cleaner way to get the words from a page to end of chapter.
+		// And im sure I'll figure it out eventually and it'll be so embarrassing but for now this is what I've got.
+		// At least this way we are gathering data on the page that the words come from and section data for rendering nicely.
+		// Godspeed.
 	}
 
 	async function fetchNextPage() {

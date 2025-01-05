@@ -1,4 +1,3 @@
-<!-- src/routes/another-game-mode/+page.svelte -->
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { blur } from 'svelte/transition';

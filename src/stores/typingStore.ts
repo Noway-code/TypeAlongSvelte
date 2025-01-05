@@ -1,4 +1,3 @@
-// src/stores/typingStore.ts
 import { get, writable } from 'svelte/store';
 import pkg, { type Book, EpubCFI, type Rendition } from 'epubjs';
 
