@@ -58,7 +58,7 @@
 	let letterEl: HTMLSpanElement;
 	let inputEl: HTMLInputElement;
 	let caretEl: HTMLDivElement;
-
+	let newRendition: Rendition | null;
 	/*
 	 The HTML container for the EPUB viewer
 	*/
@@ -68,8 +68,30 @@
 	  Render (or re-render) the Book into this page’s viewer
 	*/
 
+	async function greedyGetWords(){
+		// Retrieve all active Contents objects
+		const contents = newRendition?.getContents();
+		if (!contents || contents.length === 0) {
+			console.error('No contents available');
+			return [];
+		}
+		let allText = '';
+		// Iterate through each Contents object
+		contents.forEach(content => {
+			const doc = content.document;
+			if (doc) {
+				// Extract text from the body of the document
+				allText += doc.body.innerText + ' ';
+			}
+		});
+		// Split the concatenated text into words using whitespace as the delimiter
+		let wordsFullChapter = allText.split(/\s+/).filter(word => word.length > 0);
+		console.log(wordsFullChapter);
+		return wordsFullChapter;
+	}
+
 	async function fetchNextPage() {
-		await get(rendition)?.next();
+		await newRendition?.next();
 		const newWords = await fetchPageWords();
 		typingWords.update((existing) => [...existing, ...newWords]);
 	}
@@ -85,7 +107,7 @@
 		}
 
 		try {
-			const newRendition =currentBook.renderTo(viewer, {
+			 newRendition =currentBook.renderTo(viewer, {
 				width: '100%',
 				height: '100%',
 				spread: 'none',
@@ -398,6 +420,8 @@
 			Back
 		</a>
 	</div>
+
+	<button on:click={greedyGetWords}>Get Words</button>
 
 	<!-- Game Content -->
 	<div class="game-container">
