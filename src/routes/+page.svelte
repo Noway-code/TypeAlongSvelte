@@ -2,6 +2,14 @@
 	import '../styles/app.scss';
 </script>
 
+<!-- Glassmorphism Background Wrapper -->
+<div class="glass-bg">
+	<!-- A few background shapes -->
+	<div class="shape shape1"></div>
+	<div class="shape shape2"></div>
+	<div class="shape shape3"></div>
+</div>
+
 <main class="container">
 	<header>
 		<h1>Welcome to TypeAlong!</h1>
@@ -42,6 +50,50 @@
         --nord-info-hover: #5E81AC;
     }
 
+    /***** Glassmorphism Background *****/
+    .glass-bg {
+        position: fixed;
+        inset: 0; /* top:0; left:0; right:0; bottom:0; */
+        z-index: -1;
+        overflow: hidden;
+        background: linear-gradient(115deg, var(--nord-polar-night) 0%, #2f3e4c 100%);
+    }
+
+    .shape {
+        position: absolute;
+        border-radius: 50%;
+        backdrop-filter: blur(30px);
+        /* fallback for browsers that don’t support backdrop-filter */
+        background-color: var(--nord-polar-night);
+        border: 1px solid rgba(47, 90, 115, 0.3);
+        box-shadow: 0 4px 30px var(--nord-frost);
+    }
+
+    .shape1 {
+        width: 300px;
+        height: 300px;
+        top: 10%;
+        left: -100px;
+				filter : blur(29px);
+    }
+
+    .shape2 {
+        width: 400px;
+        height: 400px;
+        bottom: -150px;
+        right: -100px;
+				filter: blur(7px);
+    }
+
+    .shape3 {
+        width: 200px;
+        height: 200px;
+        top: 40%;
+        left: 70%;
+				filter: blur(4px);
+    }
+
+    /***** Main Container & Navigation *****/
     .container {
         text-align: center;
         padding: 2rem;
@@ -93,5 +145,4 @@
             }
         }
     }
-
 </style>
