@@ -12,7 +12,7 @@
 		currentLocationCFI
 	} from '../../stores/typingStore';
 
-	import type { Rendition } from 'epubjs';
+	import type { Book, Rendition } from 'epubjs';
 	import '../../styles/type.scss';
 
 	/*
@@ -57,31 +57,59 @@
 	let inputEl: HTMLInputElement;
 	let caretEl: HTMLDivElement;
 	let newRendition: Rendition | null;
+	let currentBook: Book | null;
 	/*
 	 The HTML container for the EPUB viewer
 	*/
 	let viewer: HTMLDivElement;
 
-	async function greedyGetWords(){
-		// Function Description: We're going to attempt to rendition.next() and store the page words til
-		// the section changes. This is a pretty rough work around to something I've been fiddling with.
-		// I cannot for the life of me figure out a cleaner way to get the words from a page to end of chapter.
-		// And im sure I'll figure it out eventually and it'll be so embarrassing but for now this is what I've got.
-		// At least this way we are gathering data on the page that the words come from and section data for rendering nicely.
-		// Godspeed.
+	async function greedyGetWords() {
+		type Page = {
+			page: number;
+			section: number;
+			words: Word[];
+		};
+
+		let pages: Page[] = [];
+
+		const sectionIndex = newRendition?.currentLocation()?.start?.index;
+		if (sectionIndex == null || currentBook == null) return;
+
+		const lastSection = currentBook.spine.last().index ?? 0;
+
+		let currentIndex = sectionIndex;
+
+		do {
+			const newWords = await fetchPageWords();
+			const page = {
+				page: currentIndex,
+				section: currentIndex,
+				words: newWords
+			};
+			pages.push(page);
+
+			if (currentIndex === lastSection) {
+				break;
+			}
+
+			await newRendition?.next();
+
+			currentIndex = newRendition?.currentLocation()?.start?.index ?? -1;
+		} while (currentIndex === sectionIndex);
+
+		console.log(pages);
 	}
 
 	async function fetchNextPage() {
 		await newRendition?.next();
 		const newWords = await fetchPageWords();
-		typingWords.update((existing) => [...existing, ...newWords]);
 	}
 
 	async function displayBook() {
 		// Destroy any existing rendition
 		get(rendition)?.destroy();
 
-		const currentBook = get(book);
+		currentBook = get(book);
 		if (!currentBook) {
 			console.log('No Book in store. Please upload or set the book before coming here.');
 			return;
@@ -96,7 +124,7 @@
 				flow: 'paginated'
 			});
 
-			await newRendition.display($currentLocationCFI);
+			await newRendition.display(get(currentLocationCFI));
 
 			newRendition.themes.register('largeText', {
 				body: {
@@ -501,7 +529,7 @@
     overflow: hidden;
     position: relative;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-
     max-width: 1300px;
+		opacity: 25%;
   }
 </style>
