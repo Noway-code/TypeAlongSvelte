@@ -56,7 +56,7 @@
         inset: 0; /* top:0; left:0; right:0; bottom:0; */
         z-index: -1;
         overflow: hidden;
-        background: linear-gradient(115deg, var(--nord-polar-night) 0%, #2f3e4c 100%);
+        background: linear-gradient(115deg, var(--nord-polar-night) 0%, #28333d 100%);
     }
 
     .shape {
@@ -78,10 +78,10 @@
     }
 
     .shape2 {
-        width: 400px;
-        height: 400px;
-        bottom: -150px;
-        right: -100px;
+        width: 800px;
+        height: 800px;
+        bottom: 50px;
+				right: 20%;
 				filter: blur(7px);
     }
 
@@ -89,7 +89,7 @@
         width: 200px;
         height: 200px;
         top: 40%;
-        left: 70%;
+        right: -100px;
 				filter: blur(4px);
     }
 
