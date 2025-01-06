@@ -8,7 +8,7 @@
 	type Game = 'waiting for input' | 'in progress' | 'game over';
 	type Word = string;
 
-	const INITIAL_SECONDS = 100;
+	const INITIAL_SECONDS = 30;
 	const WORD_LENGTH = 5;
 
 	let game: Game = 'waiting for input';
@@ -266,7 +266,7 @@
 		try {
 			const response = await fetch(`/api/random/${limit}`);
 			if (!response.ok) {
-				throw new Error(`HTTP error! Status: ${response.status}`);
+				return Promise.reject(Error(`HTTP error! Status: ${response.status}`));
 			}
 			const data = await response.json();
 			words = data.words;
@@ -304,7 +304,7 @@
 
 <div class="page-content">
 	<div class="back-container">
-		<a aria-label="Go back to selection page" class="back" href="/select">
+		<a aria-label="Go back to selection page" class="back" href="/">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				viewBox="0 0 24 17"

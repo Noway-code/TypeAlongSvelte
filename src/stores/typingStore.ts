@@ -93,8 +93,9 @@ export async function storeCurrentLocation() {
 	if (!currentLocation) return [];
 
 	try {
+		// @ts-ignore
 		const rangeCfi = makeRangeCfi(currentLocation.start.cfi, currentLocation.end.cfi);
-		currentLocationCFI.set(rangeCfi); // Store as string
+		currentLocationCFI.set(rangeCfi);
 		console.log('Stored current location:', rangeCfi);
 	} catch (error) {
 		console.error('Failed to store current location:', error);

@@ -1,6 +1,14 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { get, writable } from 'svelte/store';
-	import { rendition, fetchPageWords, book, storeCurrentLocation, typingWords } from '../../stores/typingStore';
+	import {
+		rendition,
+		fetchPageWords,
+		book,
+		storeCurrentLocation,
+		typingWords,
+		currentLocationCFI
+	} from '../../stores/typingStore';
 	import ePub, { type Book, type Rendition } from 'epubjs';
 
 	let selectedFile: FileList | null = null;
@@ -15,6 +23,17 @@
 	let showToc = false;
 	let tocItems: Array<{ label: string; href: string }> = [];
 
+	/**
+	 * Greedily fetches words by iterating through multiple “sections/pages” of the book.
+	 */
+
+	function handleChange(event: Event) {
+		const target = event.target as HTMLInputElement;
+		if (target.files) {
+			selectedFile = target.files;
+			console.log('Selected files:', selectedFile);
+		}
+	}
 	async function greedyGetWords() {
 		type Page = {
 			page: number;
@@ -27,7 +46,6 @@
 		if (sectionIndex == null || newBook == null) return;
 
 		const lastSection = newBook.spine.last().index ?? 0;
-
 		let currentIndex = sectionIndex;
 
 		do {
@@ -51,17 +69,20 @@
 		return pages.flatMap((page) => page.words);
 	}
 
+	/**
+	 * Fetches chapter words using greedyGetWords
+	 */
 	async function fetchChapterWords() {
 		const newWords = await greedyGetWords();
 		console.log("newWords", newWords);
 		typingWords.set(newWords);
-	}
-
-	async function getPageWordsHandler() {
-		await fetchPageWords();
 		await storeCurrentLocation();
 	}
 
+
+	/**
+	 * Handle keyboard events
+	 */
 	document.addEventListener('keydown', (event) => {
 		if (event.key === 'ArrowRight') {
 			$rendition?.next();
@@ -72,12 +93,19 @@
 		} else if (event.key === 't') {
 			toggleToc();
 		}
-
 	});
-	// React to changes in uploadedFile
+
+	/**
+	 * Subscribe to changes in uploadedFile.
+	 * We only re-initialize the book if there's actually a new file.
+	 */
 	$: uploadedFile.subscribe(async (file) => {
+		// If no file is provided, do nothing —
+		// keep showing whatever was previously loaded.
 		if (!file) return;
 
+		// If a file is provided, destroy the old book/rendition
+		// and load the new one:
 		get(rendition)?.destroy();
 		get(book)?.destroy();
 
@@ -120,13 +148,69 @@
 		}
 	});
 
+	/**
+	 * If the user returns to this page (and there's a previously stored book),
+	 * we re-initialize the book from the store and render it.
+	 */
+	onMount(async () => {
+		const existingBook = get(book);
+		if (existingBook) {
+			try {
+				newBook = existingBook;
+				newRendition = newBook.renderTo(viewer, {
+					width: '100%',
+					height: '100%',
+					spread: 'none',
+					minSpreadWidth: 999999,
+					flow: 'paginated'
+				});
+
+				// Here, if you have previously saved the user's location,
+				// you can pass it to display, e.g.: await newRendition.display(savedCfi)
+				let locationCFI = get(currentLocationCFI);
+				if (locationCFI) {
+					await newRendition.display(locationCFI);
+				} else {
+					await newRendition.display();
+				}
+
+				newRendition.themes.register('largeText', {
+					body: {
+						'font-size': '1.2rem',
+						'line-height': '1.6',
+						'background': 'white',
+						'color': 'black',
+						'padding': '1rem'
+					}
+				});
+				newRendition.themes.select('largeText');
+
+				rendition.set(newRendition);
+
+				// Table of contents
+				const nav = await newBook.loaded.navigation;
+				tocItems = nav.toc || [];
+
+				newRendition.on('relocated', (location) => {
+					console.log('Current location:', location);
+				});
+			} catch (error) {
+				console.error('Failed to (re)load existing EPUB:', error);
+			}
+		}
+	});
+
+	/**
+	 * Called by the upload button
+	 */
 	async function uploadEpub() {
 		if (!selectedFile) return;
-		const formData = new FormData();
-		formData.append('file', selectedFile[0]);
 		uploadedFile.set(selectedFile[0]);
 	}
 
+	/**
+	 * Jump to a certain section in the book
+	 */
 	function goToSection(href: string) {
 		get(rendition)?.display(href);
 	}
@@ -137,7 +221,6 @@
 </script>
 
 <main class="container">
-
 	<header>
 		<h1>Upload Your Book and Preview It</h1>
 	</header>
@@ -147,15 +230,13 @@
 			type="file"
 			id="uploadedFile"
 			accept=".epub"
-			on:change={(event) => {
-				const target = event.target as HTMLInputElement;
-				if (target.files) selectedFile = target.files;
-			}}
+			on:change={handleChange}
 		/>
 		<button class="upload-button" on:click={uploadEpub}>Upload EPUB</button>
 	</section>
 
-	{#if $uploadedFile}
+	{#if $book}
+		<!-- If there is a book in the store, show the viewer controls -->
 		<div class="viewer-controls-wrapper">
 			<div class="controls">
 				<button class="control-button" on:click={() => $rendition?.prev()}>Previous</button>
@@ -163,9 +244,7 @@
 				<button class="control-button" on:click={() => $rendition?.display()}>Go to Start</button>
 			</div>
 
-
 			<div bind:this={viewer} class="viewer">
-
 				<!-- TOC Drawer -->
 				<div class="toc-drawer" class:open={showToc}>
 					<div class="toc-header">
@@ -182,17 +261,16 @@
 				</div>
 
 				<!-- TOC Tab Button -->
-				<button class="toc-tab-button" class:open={showToc} on:click={toggleToc}>ToC</button>
+				<button class="toc-tab-button" class:open={showToc} on:click={toggleToc}>
+					ToC
+				</button>
 			</div>
 
 			<div class="game-buttons">
-				<button class="start-game-button" on:click={() => getPageWordsHandler()}>
-					Fetch Text
-				</button>
-				<button class="start-game-button" on:click={() => fetchChapterWords()}>
+				<button class="start-game-button" on:click={fetchChapterWords}>
 					Fetch chapter
 				</button>
-				<a class="game-link" href="../book-type" on:click={() => fetchChapterWords()}>
+				<a class="game-link" href="../book-type" on:click={fetchChapterWords}>
 					<button class="start-game-button">
 						Start Game
 					</button>
@@ -267,7 +345,6 @@
     flex-direction: column;
   }
 
-
   .toc-drawer.open {
     transform: translateX(0);
   }
@@ -331,7 +408,6 @@
   .toc-tab-button.open {
     opacity: 0;
     pointer-events: none;
-
   }
 
   header {
@@ -429,7 +505,6 @@
     cursor: pointer;
     transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
     max-width: 400px;
-
 
     &:hover,
     &:focus {
