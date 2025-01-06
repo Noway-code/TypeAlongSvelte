@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { blur } from 'svelte/transition';
-	import { tweened } from 'svelte/motion';
 	import '../../styles/type.scss';
-	import { typingWords} from '../../stores/typingStore';
+	import { typingWords } from '../../stores/typingStore';
+	import { onMount } from 'svelte';
 	/*
 	 Game-specific Types
 	*/
@@ -18,7 +18,6 @@
 	 Constants
 	*/
 	const INITIAL_SECONDS = 100;
-	const WORD_LENGTH = 5;
 
 	/*
 	 Game state
@@ -31,21 +30,16 @@
 	let letterIndex = 0;
 	let correctLetters = 0;
 	let toggleReset = false;
-	let totalLetters = 0;
 	let typedLetters = 0;
 
   $: typingWords.subscribe(value => {
 		words = value;
 	});
 
-	let wordsPerMinute = tweened(0, { delay: 300, duration: 1000 });
-	let accuracy = tweened(0, { delay: 1300, duration: 1000 });
-
 	let wordsEl: HTMLDivElement;
-	let letterEl: HTMLSpanElement;
+	let letterEl: HTMLSpanElement | null;
 	let inputEl: HTMLInputElement;
 	let caretEl: HTMLDivElement;
-
 
 
 	function handleKeydown(event: KeyboardEvent) {
@@ -124,7 +118,7 @@
 		moveCaret();
 
 		// Move forward again so the next typed letter overwrites the “empty” space
-		letterEl = letterEl.nextElementSibling as HTMLSpanElement;
+		letterEl = letterEl?.nextElementSibling as HTMLSpanElement;
 
 		typedLetters -= 1;
 	}
@@ -132,7 +126,6 @@
 	function startGame() {
 		setGameState('in progress');
 		setGameTimer();
-		totalLetters = getTotalLetters(words);
 	}
 
 	function setGameState(state: Game) {
@@ -141,7 +134,7 @@
 
 	function setGameTimer() {
 		function gameTimer() {
-			if (game === 'waiting for input' ) {
+			if (game === 'waiting for input') {
 				clearInterval(interval);
 			}
 
@@ -152,6 +145,10 @@
 	}
 
 	function updateGameState() {
+		if (!wordsEl) {
+			console.warn('wordsEl is not available yet.');
+			return;
+		}
 		setLetter();
 		checkLetter();
 		nextLetter();
@@ -159,12 +156,12 @@
 		resetLetter();
 		moveCaret();
 		debug();
-
-				focusInput();
+		focusInput();
 	}
 
 	function setLetter() {
 		if (
+			wordsEl &&
 			wordIndex >= 0 &&
 			wordIndex < wordsEl.children.length &&
 			letterIndex >= 0 &&
@@ -176,6 +173,7 @@
 			letterEl = null;
 		}
 	}
+
 
 	function checkLetter() {
 		const currentLetter = words[wordIndex]?.[letterIndex];
@@ -206,9 +204,6 @@
 			letterIndex = 0;
 			moveCaret();
 		}
-		if (wordIndex >= words.length) {
-			fetchNextPage();
-		}
 	}
 
 	function updateLine() {
@@ -226,30 +221,10 @@
 	}
 
 	function moveCaret() {
-		// Slight offset to position the caret visually
 		const offset = 4;
-		if (!letterEl) return;
+		if (!letterEl || !caretEl) return;
 		caretEl.style.top = `${letterEl.offsetTop + offset}px`;
 		caretEl.style.left = `${letterEl.offsetLeft + letterEl.offsetWidth}px`;
-	}
-
-	function getWordsPerMinute() {
-		const wordsTyped = correctLetters / WORD_LENGTH;
-		return Math.floor(wordsTyped * (60 / (INITIAL_SECONDS - seconds || 1)));
-	}
-
-	function getResults() {
-		$wordsPerMinute = getWordsPerMinute();
-		$accuracy = getAccuracy();
-	}
-
-	function getAccuracy() {
-		const total = getTotalLetters(words);
-		return Math.floor((correctLetters / total) * 100);
-	}
-
-	function getTotalLetters(arr: Word[]) {
-		return arr.reduce((count, w) => count + w.length, 0);
 	}
 
 	function resetGame() {
@@ -264,10 +239,7 @@
 		wordIndex = 0;
 		letterIndex = 0;
 		correctLetters = 0;
-		totalLetters = getTotalLetters(words);
 		typedLetters = 0;
-		$wordsPerMinute = 0;
-		$accuracy = 0;
 		focusInput();
 	}
 
@@ -286,6 +258,10 @@
 			wordLength: words[wordIndex]?.length
 		});
 	}
+
+	onMount(() => {
+		focusInput();
+	});
 </script>
 
 <!-- PAGE CONTENT -->
@@ -364,21 +340,6 @@
 			</div>
 		{/if}
 
-		{#if game === 'game over'}
-			<div in:blur class="results">
-				<div class="numbers">
-					<div>
-						<p class="title">wpm</p>
-						<p class="score">{Math.trunc($wordsPerMinute)}</p>
-					</div>
-					<div>
-						<p class="title">accuracy</p>
-						<p class="score">{Math.trunc($accuracy)}%</p>
-					</div>
-				</div>
-				<button on:click={resetGame} class="play">play again</button>
-			</div>
-		{/if}
 	</div>
 
 </div>
