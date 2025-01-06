@@ -34,6 +34,7 @@
 			console.log('Selected files:', selectedFile);
 		}
 	}
+
 	async function greedyGetWords() {
 		type Page = {
 			page: number;
@@ -74,10 +75,12 @@
 	 */
 	async function fetchChapterWords() {
 		const newWords = await greedyGetWords();
-		console.log("newWords", newWords);
+		console.log('newWords', newWords);
 		typingWords.set(newWords);
 		await storeCurrentLocation();
 	}
+
+	// TOC Handling
 
 
 	/**

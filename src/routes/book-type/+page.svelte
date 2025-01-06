@@ -32,7 +32,7 @@
 	let toggleReset = false;
 	let typedLetters = 0;
 
-  $: typingWords.subscribe(value => {
+	$: typingWords.subscribe(value => {
 		words = value;
 	});
 

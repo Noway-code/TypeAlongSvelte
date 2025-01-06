@@ -74,15 +74,15 @@
         height: 300px;
         top: 10%;
         left: -100px;
-				filter : blur(29px);
+        filter: blur(29px);
     }
 
     .shape2 {
         width: 800px;
         height: 800px;
         bottom: 50px;
-				right: 20%;
-				filter: blur(7px);
+        right: 20%;
+        filter: blur(7px);
     }
 
     .shape3 {
@@ -90,7 +90,7 @@
         height: 200px;
         top: 40%;
         right: -100px;
-				filter: blur(4px);
+        filter: blur(4px);
     }
 
     /***** Main Container & Navigation *****/
