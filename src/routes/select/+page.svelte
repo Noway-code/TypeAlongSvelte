@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
 	import { get, writable } from 'svelte/store';
-	import { rendition, fetchPageWords, book, storeCurrentLocation } from '../../stores/typingStore';
-	import ePub from 'epubjs';
+	import { rendition, fetchPageWords, book, storeCurrentLocation, typingWords } from '../../stores/typingStore';
+	import ePub, { type Book, type Rendition } from 'epubjs';
 
 	let selectedFile: FileList | null = null;
 	const uploadedFile = writable<File | null>(null);
@@ -10,8 +9,53 @@
 	let page = 1;
 	let viewer: HTMLDivElement;
 
+	let newRendition: Rendition | null = null;
+	type Word = string;
+	let newBook: Book | null = null;
 	let showToc = false;
 	let tocItems: Array<{ label: string; href: string }> = [];
+
+	async function greedyGetWords() {
+		type Page = {
+			page: number;
+			section: number;
+			words: Word[];
+		};
+
+		let pages: Page[] = [];
+		const sectionIndex = newRendition?.currentLocation()?.start?.index;
+		if (sectionIndex == null || newBook == null) return;
+
+		const lastSection = newBook.spine.last().index ?? 0;
+
+		let currentIndex = sectionIndex;
+
+		do {
+			const newWords = await fetchPageWords();
+			const page = {
+				page: currentIndex,
+				section: currentIndex,
+				words: newWords
+			};
+			pages.push(page);
+
+			if (currentIndex === lastSection) {
+				break;
+			}
+
+			await newRendition?.next();
+
+			currentIndex = newRendition?.currentLocation()?.start?.index ?? -1;
+		} while (currentIndex === sectionIndex);
+
+		return pages.flatMap((page) => page.words);
+	}
+
+	async function fetchChapterWords() {
+		const newWords = await greedyGetWords();
+		console.log("newWords", newWords);
+		typingWords.set(newWords);
+	}
 
 	async function getPageWordsHandler() {
 		await fetchPageWords();
@@ -38,10 +82,10 @@
 		get(book)?.destroy();
 
 		try {
-			const newBook = ePub(file);
+			newBook = ePub(file);
 			book.set(newBook);
 
-			const newRendition = newBook.renderTo(viewer, {
+			newRendition = newBook.renderTo(viewer, {
 				width: '100%',
 				height: '100%',
 				spread: 'none',
@@ -145,7 +189,10 @@
 				<button class="start-game-button" on:click={() => getPageWordsHandler()}>
 					Fetch Text
 				</button>
-				<a class="game-link" href="../book-type">
+				<button class="start-game-button" on:click={() => fetchChapterWords()}>
+					Fetch chapter
+				</button>
+				<a class="game-link" href="../book-type" on:click={() => fetchChapterWords()}>
 					<button class="start-game-button">
 						Start Game
 					</button>

@@ -1,5 +1,5 @@
 import { get, writable } from 'svelte/store';
-import pkg, { type Book, EpubCFI, type Rendition } from 'epubjs';
+import pkg, { type Book, type Rendition } from 'epubjs';
 
 // @ts-ignore
 const { CFI } = pkg;
@@ -78,11 +78,7 @@ export async function fetchPageWords() {
 		const rangeCfi = makeRangeCfi(currentLocation.start.cfi, currentLocation.end.cfi);
 		const range = await b.getRange(rangeCfi);
 		const extractedText = range.toString();
-		const wordsPage = extractedText.split(/\s+/).filter((word) => word.length > 0);
-		console.log('Extracted Words:', wordsPage);
-		typingWords.set(wordsPage);
-
-		return wordsPage;
+		return extractedText.split(/\s+/).filter((word) => word.length > 0);
 	} catch (error) {
 		console.error('Failed to extract words using CFI range:', error);
 		return [];
@@ -100,10 +96,7 @@ export async function storeCurrentLocation() {
 		const rangeCfi = makeRangeCfi(currentLocation.start.cfi, currentLocation.end.cfi);
 		currentLocationCFI.set(rangeCfi); // Store as string
 		console.log('Stored current location:', rangeCfi);
-	}
-	catch (error) {
+	} catch (error) {
 		console.error('Failed to store current location:', error);
 	}
 }
-
-

@@ -1,11 +1,8 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
 	import { blur } from 'svelte/transition';
 	import { tweened } from 'svelte/motion';
-	import { get } from 'svelte/store';
-	import type { Book, Rendition } from 'epubjs';
 	import '../../styles/type.scss';
-
+	import { typingWords} from '../../stores/typingStore';
 	/*
 	 Game-specific Types
 	*/
@@ -37,6 +34,10 @@
 	let totalLetters = 0;
 	let typedLetters = 0;
 
+  $: typingWords.subscribe(value => {
+		words = value;
+	});
+
 	let wordsPerMinute = tweened(0, { delay: 300, duration: 1000 });
 	let accuracy = tweened(0, { delay: 1300, duration: 1000 });
 
@@ -44,113 +45,9 @@
 	let letterEl: HTMLSpanElement;
 	let inputEl: HTMLInputElement;
 	let caretEl: HTMLDivElement;
-	/*
-	 The HTML container for the EPUB viewer
-	*/
-	// let viewer: HTMLDivElement;
 
-	// async function greedyGetWords() {
-	// 	type Page = {
-	// 		page: number;
-	// 		section: number;
-	// 		words: Word[];
-	// 	};
-	//
-	// 	let pages: Page[] = [];
-	//
-	// 	const sectionIndex = newRendition?.currentLocation()?.start?.index;
-	// 	if (sectionIndex == null || currentBook == null) return;
-	//
-	// 	const lastSection = currentBook.spine.last().index ?? 0;
-	//
-	// 	let currentIndex = sectionIndex;
-	//
-	// 	do {
-	// 		const newWords = await fetchPageWords();
-	// 		const page = {
-	// 			page: currentIndex,
-	// 			section: currentIndex,
-	// 			words: newWords
-	// 		};
-	// 		pages.push(page);
-	//
-	// 		if (currentIndex === lastSection) {
-	// 			break;
-	// 		}
-	//
-	// 		await newRendition?.next();
-	//
-	// 		currentIndex = newRendition?.currentLocation()?.start?.index ?? -1;
-	// 	} while (currentIndex === sectionIndex);
-	//
-	// 	console.log(pages);
-	// }
-	//
-	// async function fetchNextPage() {
-	// 	await newRendition?.next();
-	// 	const newWords = await fetchPageWords();
-	// }
-	//
-	// async function displayBook() {
-	// 	// Destroy any existing rendition
-	// 	get(rendition)?.destroy();
-	//
-	// 	currentBook = get(book);
-	// 	if (!currentBook) {
-	// 		console.log('No Book in store. Please upload or set the book before coming here.');
-	// 		return;
-	// 	}
-	//
-	// 	try {
-	// 		 newRendition =currentBook.renderTo(viewer, {
-	// 			width: '100%',
-	// 			height: '100%',
-	// 			spread: 'none',
-	// 			minSpreadWidth: 999999,
-	// 			flow: 'paginated'
-	// 		});
-	//
-	// 		await newRendition.display($currentLocationCFI);
-	//
-	// 		newRendition.themes.register('largeText', {
-	// 			body: {
-	// 				'font-size': '1.2rem',
-	// 				'line-height': '1.6',
-	// 				'background': 'white',
-	// 				'color': 'black',
-	// 				'padding': '1rem'
-	// 			}
-	// 		});
-	// 		newRendition.themes.select('largeText');
-	//
-	//
-	// 		rendition.set(newRendition);
-	//
-	// 		newRendition.on('relocated', (location) => {
-	// 			console.log('Current location:', location);
-	// 		});
-	// 	} catch (error) {
-	// 		console.error('Failed to load EPUB in book-type page:', error);
-	// 	}
-	// }
-	//
-	// /*
-	//   onMount: set up the Book/Rendition if it’s in the store
-	// */
-	// onMount(() => {
-	// 	focusInput();
-	// });
-	//
-	// /*
-	//   onDestroy: unsubscribe from store & clean up
-	// */
-	// onDestroy(() => {
-	// 	unsubscribe();
-	// });
-	//
-	/*
-	 Handle keydown logic
-	*/
+
+
 	function handleKeydown(event: KeyboardEvent) {
 		const atEndOfWord = letterIndex >= words[wordIndex]?.length;
 
@@ -415,8 +312,6 @@
 		</a>
 	</div>
 
-	<button on:click={greedyGetWords}>Get Words</button>
-
 	<!-- Game Content -->
 	<div class="game-container">
 		{#if game !== 'game over'}
@@ -486,9 +381,6 @@
 		{/if}
 	</div>
 
-	<!-- EPUB Viewer -->
-	<!-- This is where the Book will render -->
-	<div bind:this={viewer} class="viewer"></div>
 </div>
 
 <!-- SCSS styling -->
@@ -507,14 +399,4 @@
     }
   }
 
-  .viewer {
-    flex: 1;
-    width: 100%;
-    background-color: var(--bg-200);
-    overflow: hidden;
-    position: relative;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    max-width: 1300px;
-		opacity: 25%;
-  }
 </style>
