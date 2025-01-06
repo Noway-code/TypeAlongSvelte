@@ -31,16 +31,24 @@
 	let inputEl: HTMLInputElement;
 	let caretEl: HTMLDivElement;
 
-	let titleBook = '';
-	let avatar: FileList | null = null;
+	let audioOn = true;
 
 	const unsubscribe = typingWords.subscribe(value => {
 		words = value;
 	});
 
+	function chooseRandomAudio() {
+		let random = Math.floor((Math.random() * 6) + 1);
+		let audio = new Audio(`src/public/type${random}.mp3`);
+		audio.play();
+		console.log(random);
+	}
+
 	function handleKeydown(event: KeyboardEvent) {
 		const atEndOfWord = letterIndex >= words[wordIndex].length;
-
+		if (audioOn) {
+			chooseRandomAudio();
+		}
 		if (atEndOfWord) {
 			if (event.code !== 'Space' && event.code !== 'Backspace') {
 				event.preventDefault();
@@ -49,6 +57,7 @@
 		}
 
 		if (event.code === 'Space') {
+
 			event.preventDefault();
 			if (game === 'in progress') {
 				nextWord();
@@ -147,6 +156,7 @@
 		resetLetter();
 		moveCaret();
 		debug();
+
 
 		if (typedLetters === totalLetters) {
 			gameOver();
@@ -322,6 +332,13 @@
 			</svg>
 			Back
 		</a>
+		<button aria-label="Toggle audio" class="back" on:click={() => audioOn = !audioOn}>
+			{#if audioOn}
+				🔊
+			{:else}
+				🔇
+			{/if}
+		</button>
 	</div>
 
 	<div class="game-container">

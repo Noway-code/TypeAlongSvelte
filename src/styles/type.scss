@@ -17,18 +17,12 @@
   padding: 1rem;
 }
 
-/* Back Button Styling */
 .back-container {
-  align-self: flex-start; /* Align to the left */
-  margin-bottom: 2rem; /* Space between Back button and Game */
-  justify-content: center;
-  align-items: center;
-  align-content: center;
+  display: flex;
+  justify-content: space-between; /* Put items on the far sides */
   width: 100%;
-  margin-top: 3rem;
-}
-
-.back {
+  margin: 3rem 0 2rem; /* Adjust margins */
+}.back {
   color: var(--fg-200);
   font-size: 18pt;
   text-decoration: none; /* Remove underline */
