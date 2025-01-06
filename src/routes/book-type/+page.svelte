@@ -3,15 +3,6 @@
 	import { blur } from 'svelte/transition';
 	import { tweened } from 'svelte/motion';
 	import { get } from 'svelte/store';
-
-	import {
-		typingWords,
-		book,
-		rendition,
-		fetchPageWords,
-		currentLocationCFI
-	} from '../../stores/typingStore';
-
 	import type { Book, Rendition } from 'epubjs';
 	import '../../styles/type.scss';
 
@@ -25,9 +16,6 @@
 	 Subscribe to typingWords
 	*/
 	export let words: Word[] = [];
-	const unsubscribe = typingWords.subscribe((value) => {
-		words = value;
-	});
 
 	/*
 	 Constants
@@ -56,113 +44,110 @@
 	let letterEl: HTMLSpanElement;
 	let inputEl: HTMLInputElement;
 	let caretEl: HTMLDivElement;
-	let newRendition: Rendition | null;
-	let currentBook: Book | null;
 	/*
 	 The HTML container for the EPUB viewer
 	*/
-	let viewer: HTMLDivElement;
+	// let viewer: HTMLDivElement;
 
-	async function greedyGetWords() {
-		type Page = {
-			page: number;
-			section: number;
-			words: Word[];
-		};
-
-		let pages: Page[] = [];
-
-		const sectionIndex = newRendition?.currentLocation()?.start?.index;
-		if (sectionIndex == null || currentBook == null) return;
-
-		const lastSection = currentBook.spine.last().index ?? 0;
-
-		let currentIndex = sectionIndex;
-
-		do {
-			const newWords = await fetchPageWords();
-			const page = {
-				page: currentIndex,
-				section: currentIndex,
-				words: newWords
-			};
-			pages.push(page);
-
-			if (currentIndex === lastSection) {
-				break;
-			}
-
-			await newRendition?.next();
-
-			currentIndex = newRendition?.currentLocation()?.start?.index ?? -1;
-		} while (currentIndex === sectionIndex);
-
-		console.log(pages);
-	}
-
-	async function fetchNextPage() {
-		await newRendition?.next();
-		const newWords = await fetchPageWords();
-	}
-
-	async function displayBook() {
-		// Destroy any existing rendition
-		get(rendition)?.destroy();
-
-		currentBook = get(book);
-		if (!currentBook) {
-			console.log('No Book in store. Please upload or set the book before coming here.');
-			return;
-		}
-
-		try {
-			 newRendition =currentBook.renderTo(viewer, {
-				width: '100%',
-				height: '100%',
-				spread: 'none',
-				minSpreadWidth: 999999,
-				flow: 'paginated'
-			});
-
-			await newRendition.display($currentLocationCFI);
-
-			newRendition.themes.register('largeText', {
-				body: {
-					'font-size': '1.2rem',
-					'line-height': '1.6',
-					'background': 'white',
-					'color': 'black',
-					'padding': '1rem'
-				}
-			});
-			newRendition.themes.select('largeText');
-
-
-			rendition.set(newRendition);
-
-			newRendition.on('relocated', (location) => {
-				console.log('Current location:', location);
-			});
-		} catch (error) {
-			console.error('Failed to load EPUB in book-type page:', error);
-		}
-	}
-
-	/*
-	  onMount: set up the Book/Rendition if it’s in the store
-	*/
-	onMount(() => {
-		displayBook();
-		focusInput();
-	});
-
-	/*
-	  onDestroy: unsubscribe from store & clean up
-	*/
-	onDestroy(() => {
-		unsubscribe();
-	});
-
+	// async function greedyGetWords() {
+	// 	type Page = {
+	// 		page: number;
+	// 		section: number;
+	// 		words: Word[];
+	// 	};
+	//
+	// 	let pages: Page[] = [];
+	//
+	// 	const sectionIndex = newRendition?.currentLocation()?.start?.index;
+	// 	if (sectionIndex == null || currentBook == null) return;
+	//
+	// 	const lastSection = currentBook.spine.last().index ?? 0;
+	//
+	// 	let currentIndex = sectionIndex;
+	//
+	// 	do {
+	// 		const newWords = await fetchPageWords();
+	// 		const page = {
+	// 			page: currentIndex,
+	// 			section: currentIndex,
+	// 			words: newWords
+	// 		};
+	// 		pages.push(page);
+	//
+	// 		if (currentIndex === lastSection) {
+	// 			break;
+	// 		}
+	//
+	// 		await newRendition?.next();
+	//
+	// 		currentIndex = newRendition?.currentLocation()?.start?.index ?? -1;
+	// 	} while (currentIndex === sectionIndex);
+	//
+	// 	console.log(pages);
+	// }
+	//
+	// async function fetchNextPage() {
+	// 	await newRendition?.next();
+	// 	const newWords = await fetchPageWords();
+	// }
+	//
+	// async function displayBook() {
+	// 	// Destroy any existing rendition
+	// 	get(rendition)?.destroy();
+	//
+	// 	currentBook = get(book);
+	// 	if (!currentBook) {
+	// 		console.log('No Book in store. Please upload or set the book before coming here.');
+	// 		return;
+	// 	}
+	//
+	// 	try {
+	// 		 newRendition =currentBook.renderTo(viewer, {
+	// 			width: '100%',
+	// 			height: '100%',
+	// 			spread: 'none',
+	// 			minSpreadWidth: 999999,
+	// 			flow: 'paginated'
+	// 		});
+	//
+	// 		await newRendition.display($currentLocationCFI);
+	//
+	// 		newRendition.themes.register('largeText', {
+	// 			body: {
+	// 				'font-size': '1.2rem',
+	// 				'line-height': '1.6',
+	// 				'background': 'white',
+	// 				'color': 'black',
+	// 				'padding': '1rem'
+	// 			}
+	// 		});
+	// 		newRendition.themes.select('largeText');
+	//
+	//
+	// 		rendition.set(newRendition);
+	//
+	// 		newRendition.on('relocated', (location) => {
+	// 			console.log('Current location:', location);
+	// 		});
+	// 	} catch (error) {
+	// 		console.error('Failed to load EPUB in book-type page:', error);
+	// 	}
+	// }
+	//
+	// /*
+	//   onMount: set up the Book/Rendition if it’s in the store
+	// */
+	// onMount(() => {
+	// 	focusInput();
+	// });
+	//
+	// /*
+	//   onDestroy: unsubscribe from store & clean up
+	// */
+	// onDestroy(() => {
+	// 	unsubscribe();
+	// });
+	//
 	/*
 	 Handle keydown logic
 	*/
