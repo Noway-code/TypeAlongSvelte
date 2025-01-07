@@ -1,5 +1,22 @@
 <script lang="ts">
 	import '../styles/app.scss';
+	import { onMount, onDestroy } from 'svelte';
+
+	let scrolled = false;
+
+	function handleScroll() {
+		scrolled = window.scrollY > 0;
+	}
+
+	onMount(() => {
+		window.addEventListener('scroll', handleScroll);
+		handleScroll();
+	});
+
+	onDestroy(() => {
+		window.removeEventListener('scroll', handleScroll);
+	});
+
 </script>
 
 <svelte:head>
@@ -7,7 +24,7 @@
 </svelte:head>
 
 <div class="layout">
-	<nav class="nav-bar">
+	<nav class="nav-bar" class:blurred={scrolled} >
 		<h1 class="logo">🔥 TypeAlong</h1>
 		<div class="nav-items">
 			<a class="nav-item" href="/">Home</a>
@@ -35,9 +52,9 @@
   .nav-bar {
     display: flex;
     align-items: center;
-    background-color: var(--bg-200);
+    background-color:#3B4252;
     padding: 1rem 2rem;
-
+		backdrop-filter: blur(20px);
     position: fixed;
     top: 2rem;
     left: 2rem;
@@ -45,6 +62,12 @@
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     z-index: 1000;
+		transition: background 1.0s ease;
+  }
+
+  nav.blurred {
+    background: rgba(59, 66, 82, 0);
+    backdrop-filter: blur(10px);
   }
 
   .logo {
