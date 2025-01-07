@@ -23,9 +23,7 @@
 	let showToc = false;
 	let tocItems: Array<{ label: string; href: string }> = [];
 
-	/**
-	 * Greedily fetches words by iterating through multiple “sections/pages” of the book.
-	 */
+	let spinnerVisible = false;
 
 	function handleChange(event: Event) {
 		const target = event.target as HTMLInputElement;
@@ -48,7 +46,8 @@
 
 		const lastSection = newBook.spine.last().index ?? 0;
 		let currentIndex = sectionIndex;
-
+		spinnerVisible = true;
+		await new Promise(r => setTimeout(r, 250));
 		do {
 			const newWords = await fetchPageWords();
 			const page = {
@@ -66,13 +65,10 @@
 
 			currentIndex = newRendition?.currentLocation()?.start?.index ?? -1;
 		} while (currentIndex === sectionIndex);
-
+		spinnerVisible = false;
 		return pages.flatMap((page) => page.words);
 	}
 
-	/**
-	 * Fetches chapter words using greedyGetWords
-	 */
 	async function fetchChapterWords() {
 		const newWords = await greedyGetWords();
 		console.log('newWords', newWords);
@@ -80,12 +76,6 @@
 		await storeCurrentLocation();
 	}
 
-	// TOC Handling
-
-
-	/**
-	 * Handle keyboard events
-	 */
 	document.addEventListener('keydown', (event) => {
 		if (event.key === 'ArrowRight') {
 			$rendition?.next();
@@ -98,17 +88,9 @@
 		}
 	});
 
-	/**
-	 * Subscribe to changes in uploadedFile.
-	 * We only re-initialize the book if there's actually a new file.
-	 */
 	$: uploadedFile.subscribe(async (file) => {
-		// If no file is provided, do nothing —
-		// keep showing whatever was previously loaded.
 		if (!file) return;
-
-		// If a file is provided, destroy the old book/rendition
-		// and load the new one:
+		spinnerVisible = true;
 		get(rendition)?.destroy();
 		get(book)?.destroy();
 
@@ -125,6 +107,7 @@
 			});
 
 			await newRendition.display();
+			spinnerVisible = false;
 
 			newRendition.themes.register('largeText', {
 				body: {
@@ -139,7 +122,6 @@
 
 			rendition.set(newRendition);
 
-			// Load navigation to get the table of contents
 			const nav = await newBook.loaded.navigation;
 			tocItems = nav.toc || [];
 
@@ -148,16 +130,14 @@
 			});
 		} catch (error) {
 			console.error('Failed to load EPUB:', error);
+			spinnerVisible = false;
 		}
 	});
 
-	/**
-	 * If the user returns to this page (and there's a previously stored book),
-	 * we re-initialize the book from the store and render it.
-	 */
 	onMount(async () => {
 		const existingBook = get(book);
 		if (existingBook) {
+			spinnerVisible = true;
 			try {
 				newBook = existingBook;
 				newRendition = newBook.renderTo(viewer, {
@@ -168,14 +148,13 @@
 					flow: 'paginated'
 				});
 
-				// Here, if you have previously saved the user's location,
-				// you can pass it to display, e.g.: await newRendition.display(savedCfi)
 				let locationCFI = get(currentLocationCFI);
 				if (locationCFI) {
 					await newRendition.display(locationCFI);
 				} else {
 					await newRendition.display();
 				}
+				spinnerVisible = false;
 
 				newRendition.themes.register('largeText', {
 					body: {
@@ -190,7 +169,6 @@
 
 				rendition.set(newRendition);
 
-				// Table of contents
 				const nav = await newBook.loaded.navigation;
 				tocItems = nav.toc || [];
 
@@ -199,21 +177,16 @@
 				});
 			} catch (error) {
 				console.error('Failed to (re)load existing EPUB:', error);
+				spinnerVisible = false;
 			}
 		}
 	});
 
-	/**
-	 * Called by the upload button
-	 */
 	async function uploadEpub() {
 		if (!selectedFile) return;
 		uploadedFile.set(selectedFile[0]);
 	}
 
-	/**
-	 * Jump to a certain section in the book
-	 */
 	function goToSection(href: string) {
 		get(rendition)?.display(href);
 	}
@@ -239,16 +212,20 @@
 	</section>
 
 	{#if $book}
-		<!-- If there is a book in the store, show the viewer controls -->
 		<div class="viewer-controls-wrapper">
 			<div class="controls">
 				<button class="control-button" on:click={() => $rendition?.prev()}>Previous</button>
 				<button class="control-button" on:click={() => $rendition?.next()}>Next</button>
 				<button class="control-button" on:click={() => $rendition?.display()}>Go to Start</button>
 			</div>
+			{#if spinnerVisible}
+				<div class="spinner">
+					<div class="double-bounce1"></div>
+					<div class="double-bounce2"></div>
+				</div>
+			{/if}
 
-			<div bind:this={viewer} class="viewer">
-				<!-- TOC Drawer -->
+			<div bind:this={viewer} class={`viewer ${spinnerVisible ? 'invisible' : ''}`}>
 				<div class="toc-drawer" class:open={showToc}>
 					<div class="toc-header">
 						<h2>Table of Contents</h2>
@@ -262,13 +239,10 @@
 						{/each}
 					</div>
 				</div>
-
-				<!-- TOC Tab Button -->
 				<button class="toc-tab-button" class:open={showToc} on:click={toggleToc}>
 					ToC
 				</button>
 			</div>
-
 			<div class="game-buttons">
 				<button class="start-game-button" on:click={fetchChapterWords}>
 					Fetch chapter
@@ -470,7 +444,47 @@
       }
     }
   }
+  .spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px; /* Center the spinner */
+    z-index: 100;
+  }
 
+  .double-bounce1,
+  .double-bounce2 {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: var(--nord-frost);
+    opacity: 0.6;
+    position: absolute;
+    top: 0;
+    left: 0;
+    animation: bounce 2s infinite ease-in-out;
+  }
+
+  .double-bounce2 {
+    animation-delay: -1s;
+  }
+
+  @keyframes bounce {
+    0%, 100% {
+      transform: scale(0.0);
+    }
+    50% {
+      transform: scale(1.0);
+    }
+  }
+
+  .invisible {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+  }
   .uploaded-file {
     text-align: center;
     margin-bottom: 1rem;
@@ -579,6 +593,13 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     max-width: 1300px;
   }
+
+  .invisible {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
 
   @media (max-width: 768px) {
     .container {
