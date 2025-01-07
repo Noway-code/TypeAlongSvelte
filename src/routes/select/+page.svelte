@@ -76,17 +76,7 @@
 		await storeCurrentLocation();
 	}
 
-	document.addEventListener('keydown', (event) => {
-		if (event.key === 'ArrowRight') {
-			$rendition?.next();
-		} else if (event.key === 'ArrowLeft') {
-			$rendition?.prev();
-		} else if (event.key === 'Escape') {
-			showToc = false;
-		} else if (event.key === 't') {
-			toggleToc();
-		}
-	});
+
 
 	$: uploadedFile.subscribe(async (file) => {
 		if (!file) return;
@@ -135,6 +125,18 @@
 	});
 
 	onMount(async () => {
+		document.addEventListener('keydown', (event) => {
+			if (event.key === 'ArrowRight') {
+				$rendition?.next();
+			} else if (event.key === 'ArrowLeft') {
+				$rendition?.prev();
+			} else if (event.key === 'Escape') {
+				showToc = false;
+			} else if (event.key === 't') {
+				toggleToc();
+			}
+		});
+
 		const existingBook = get(book);
 		if (existingBook) {
 			spinnerVisible = true;

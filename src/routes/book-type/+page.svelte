@@ -1,8 +1,8 @@
-<script lang="ts">
-	import { blur } from 'svelte/transition';
+<script lang="ts"> import { blur } from 'svelte/transition';
 	import '../../styles/type.scss';
 	import { typingWords } from '../../stores/typingStore';
 	import { onMount } from 'svelte';
+import { Spring } from 'svelte/motion';
 	/*
 	 Game-specific Types
 	*/
@@ -31,6 +31,13 @@
 	let correctLetters = 0;
 	let toggleReset = false;
 	let typedLetters = 0;
+	const stack: number[] = [];
+	const windowSize = 100;
+	let accuracy = new Spring(0, {
+		stiffness: 0.1,
+		damping: 1.6,
+	});
+	let total = 0;
 
 	$: typingWords.subscribe(value => {
 		words = value;
@@ -40,6 +47,22 @@
 	let letterEl: HTMLSpanElement | null;
 	let inputEl: HTMLInputElement;
 	let caretEl: HTMLDivElement;
+
+	// Accuracy: my idea is a queue where we push up to 250 letters then becomes kind of a sliding window of push and pop
+
+	function accuracyWindow() {
+		if (stack.length > windowSize) {
+			stack.shift();
+		}
+		if (typedLetter === words[wordIndex]?.[letterIndex]) {
+			stack.push(1);
+		} else {
+			stack.push(0);
+		}
+		total = stack.reduce((acc, curr) => acc + curr, 0);
+		accuracy.set(parseFloat((total / stack.length * 100).toFixed(1)));
+
+	}
 
 
 	function handleKeydown(event: KeyboardEvent) {
@@ -150,6 +173,7 @@
 			return;
 		}
 		setLetter();
+		accuracyWindow();
 		checkLetter();
 		nextLetter();
 		updateLine();
@@ -261,6 +285,7 @@
 
 	onMount(() => {
 		focusInput();
+		accuracy.set(100);
 	});
 </script>
 
@@ -286,6 +311,8 @@
 			</svg>
 			Back
 		</a>
+		<div class="accuracy">Accuracy: {accuracy.current.toFixed(1)}</div>
+
 	</div>
 
 	<!-- Game Content -->
