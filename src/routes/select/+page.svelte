@@ -444,6 +444,7 @@
       }
     }
   }
+
   .spinner {
     position: absolute;
     top: 50%;
@@ -485,6 +486,7 @@
     pointer-events: none;
     visibility: hidden;
   }
+
   .uploaded-file {
     text-align: center;
     margin-bottom: 1rem;
@@ -585,14 +587,18 @@
   }
 
   .viewer {
-    flex: 1;
+    display: block;
     width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1.3;
+    max-width: none;
+    max-height: 80vh;
     background-color: var(--bg-200);
     overflow: hidden;
     position: relative;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    max-width: 1300px;
   }
+
 
   .invisible {
     opacity: 0;
