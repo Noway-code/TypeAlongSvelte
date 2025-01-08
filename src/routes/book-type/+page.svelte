@@ -57,6 +57,36 @@
 	let letterEl: HTMLSpanElement | null;
 	let inputEl: HTMLInputElement;
 	let caretEl: HTMLDivElement;
+	let simulateGame = false;
+
+	async function simulateGamePlay() {
+		simulateGame = !simulateGame;
+		if (!simulateGame) {
+			return;
+		}
+
+		if (game === 'waiting for input') {
+			startGame();
+		}
+
+		// Simulate typing each word
+		for (let w = 0; w < words.length; w++) {
+			const word = words[w];
+
+			for (let li = 0; li < word.length; li++) {
+				typedLetter = word[li];
+				updateGameState();
+				await new Promise(r => setTimeout(r, 100));
+			}
+
+			// Simulate pressing the space bar at the end of the word
+			const spaceEvent = new KeyboardEvent('keydown', { code: 'Space' });
+			handleKeydown(spaceEvent);
+
+			await new Promise(r => setTimeout(r, 100));
+		}
+	}
+
 
 	function accuracyWindow() {
 		if (accStack.length > windowSize) {
@@ -70,9 +100,17 @@
 		total = accStack.reduce((acc, curr) => acc + curr, 0);
 		accuracy.set(parseFloat((total / accStack.length * 100).toFixed(1)));
 	}
+
 	function wpmWindow() {
 		const now = Date.now();
 		const elapsed = now - startTime;
+
+		// Guard against zero or negative elapsed time
+		if (elapsed <= 0) {
+			wpm.set(0);
+			return;
+		}
+
 		while (wordTimestamps.length && now - wordTimestamps[0] > WPM_WINDOW_MS) {
 			wordTimestamps.shift();
 		}
@@ -85,6 +123,7 @@
 			wpm.set(count);
 		}
 	}
+
 
 
 	function handleKeydown(event: KeyboardEvent) {
@@ -177,6 +216,7 @@
 			focusInput();
 			wpmWindow();
 		}
+
 		const interval = setInterval(gameTimer, 1000);
 	}
 
@@ -334,11 +374,12 @@
 				<span>Accuracy</span>
 				<span>{accuracy.current.toFixed(1)}%</span>
 			</div>
-						<div class="stat">
-							<span>WPM</span>
-							<span>{wpm.current.toFixed(1)}</span>
-						</div>
+			<div class="stat">
+				<span>WPM</span>
+				<span>{wpm.current.toFixed(1)}</span>
+			</div>
 		</div>
+		<button on:click={simulateGamePlay}>Simulate</button>
 	</div>
 
 	<!-- Game Content -->
