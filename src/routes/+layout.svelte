@@ -4,19 +4,18 @@
 
 	let scrolled = false;
 
-	function handleScroll() {
-		scrolled = window.scrollY > 0;
-	}
-
 	onMount(() => {
+		function handleScroll() {
+			scrolled = window.scrollY > 0;
+		}
+
 		window.addEventListener('scroll', handleScroll);
 		handleScroll();
-	});
 
-	onDestroy(() => {
-		window.removeEventListener('scroll', handleScroll);
+		return () => {
+			window.removeEventListener('scroll', handleScroll);
+		};
 	});
-
 </script>
 
 <svelte:head>
@@ -24,7 +23,7 @@
 </svelte:head>
 
 <div class="layout">
-	<nav class="nav-bar" class:blurred={scrolled} >
+	<nav class="nav-bar" class:blurred={scrolled}>
 		<h1 class="logo">🔥 TypeAlong</h1>
 		<div class="nav-items">
 			<a class="nav-item" href="/">Home</a>
@@ -36,11 +35,36 @@
 	<main>
 		<slot />
 	</main>
+
+	<footer class="footer">
+		<a href="https://www.github.com/noway-code" title="noway-code" target="_blank" rel="noopener noreferrer">Source Code</a>
+		<a href="https://www.flaticon.com/free-icons/rune" title="rune icons" target="_blank" rel="noopener noreferrer">Rune icons created by Aranagraphics - Flaticon</a>
+	</footer>
 </div>
 
 <style lang="scss">
   * {
     box-sizing: border-box;
+  }
+
+	.footer {
+		text-align: left;
+		display: flex;
+    flex-direction: column;
+		padding: 1rem;
+		color: var(--nord-snow-storm);
+		margin-top: 20px;
+		background: transparent;
+  }
+
+	.footer a {
+		color: var(--nord-snow-storm);
+		text-decoration: #4C566A underline 2px;
+    opacity: 50%;
+		transition: opacity 0.2s ease;
+		&:hover {
+			opacity: 100%;
+		}
   }
 
   .layout {
@@ -52,9 +76,9 @@
   .nav-bar {
     display: flex;
     align-items: center;
-    background-color:#3B4252;
+    background-color: #3B4252;
     padding: 1rem 2rem;
-		backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
     position: fixed;
     top: 2rem;
     left: 2rem;
@@ -62,7 +86,7 @@
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     z-index: 1000;
-		transition: background 1.0s ease;
+    transition: background .8s ease;
   }
 
   nav.blurred {
