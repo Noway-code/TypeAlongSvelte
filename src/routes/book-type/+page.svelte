@@ -4,7 +4,7 @@
 	import { typingWords } from '../../stores/typingStore';
 	import { onMount } from 'svelte';
 	import { Spring } from 'svelte/motion';
-	import { type Word, type Game } from '$lib/types';
+	import { type Word, type Game, type Pitch } from '$lib/types';
 
 	export let words: Word[] = [];
 
@@ -28,7 +28,7 @@
 	const accStack: number[] = [];
 	const windowSize = 100;
 	let startTime = 0;
-	let accuracy = new Spring(0, {
+	let accuracy = new Spring(100, {
 		stiffness: 0.1,
 		damping: 1.6
 	});
@@ -40,13 +40,14 @@
 	let pageWordCount: number[] = [];
 	let pageNumber = 0;
 	let pageWordIndex = 0;
-
+	let pitch: Pitch = 'low';
+	let audioOn = true;
 	/* New variables for WPM sliding window */
 	const wordTimestamps: number[] = [];
 	const WPM_WINDOW_MS = 60000;
 
 	$: typingWords.subscribe(value => {
-		words =	value.flatMap((page) => page.words);
+		words = value.flatMap((page) => page.words);
 		pageWordCount = value.map((page) => page.words.length);
 	});
 
@@ -122,9 +123,18 @@
 	}
 
 
+	function chooseRandomAudio() {
+		let random = Math.floor((Math.random() * 6) + 1);
+		let audio = new Audio(`src/public/${pitch}/type${random}.mp3`);
+
+		audio.play();
+	}
+
 	function handleKeydown(event: KeyboardEvent) {
 		const atEndOfWord = letterIndex >= words[wordIndex]?.length;
-
+		if (audioOn && event.code !== 'Space') {
+			chooseRandomAudio();
+		}
 		if (atEndOfWord) {
 			if (event.code !== 'Space' && event.code !== 'Backspace') {
 				event.preventDefault();
@@ -137,6 +147,11 @@
 			if (game === 'in progress') {
 				nextWord();
 			}
+			if (audioOn) {
+				let audio = new Audio(`src/public/${pitch}/space.mp3`);
+				audio.play();
+			}
+
 		}
 
 		if (event.code === 'Backspace') {
@@ -389,7 +404,24 @@
 				<span>{pageNumber}</span>
 			</div>
 		</div>
-		<button on:click={simulateGamePlay}>Simulate</button>
+
+		<div class="volume-container">
+			<div class="volume-knobs" style="display: flex; flex-direction: row">
+				{#if audioOn}
+				<button aria-label="Toggle pitch" class="volume" on:click={() => pitch = pitch === 'low' ? 'high' : 'low'}>
+					{pitch}
+				</button>
+			{/if}
+			<button aria-label="Toggle audio" class="volume" on:click={() => audioOn = !audioOn}>
+				{#if audioOn}
+					🔊
+				{:else}
+					🔇
+				{/if}
+			</button>
+			</div>
+			<button on:click={simulateGamePlay}>Simulate</button>
+		</div>
 	</div>
 
 	<!-- Game Content -->
@@ -464,4 +496,25 @@
     }
   }
 
+
+  .volume-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none; /* Remove underline */
+    font-weight: bold;
+    transition: background 0.3s ease;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+
+    color: var(--fg-200);
+    &:hover {
+      background: var(--bg-200);
+    }
+  }
+  .volume {
+    font-size: 1.5rem;
+    margin: 0.5rem;
+  }
 </style>

@@ -22,7 +22,9 @@
   justify-content: space-between; /* Put items on the far sides */
   width: 100%;
   margin: 3rem 0 2rem; /* Adjust margins */
-}.back {
+}
+
+.back {
   color: var(--fg-200);
   font-size: 18pt;
   text-decoration: none; /* Remove underline */
@@ -146,6 +148,7 @@
     align-items: center;
   }
 }
+
 
 @keyframes combinedScale {
   0%, 100% {

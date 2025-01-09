@@ -4,7 +4,7 @@
 	import { tweened } from 'svelte/motion';
 	import '../../styles/type.scss';
 	import { typingWords } from '../../stores/typingStore';
-	import { type Word, type Game } from '$lib/types';
+	import { type Word, type Game, type Pitch } from '$lib/types';
 
 	const INITIAL_SECONDS = 30;
 	const WORD_LENGTH = 5;
@@ -30,22 +30,19 @@
 	let caretEl: HTMLDivElement;
 
 	let audioOn = true;
-
-	const unsubscribe = typingWords.subscribe(value => {
-
-	});
+	let pitch: Pitch = 'low';
 
 
 	function chooseRandomAudio() {
 		let random = Math.floor((Math.random() * 6) + 1);
-		let audio = new Audio(`src/public/type${random}.mp3`);
+		let audio = new Audio(`src/public/${pitch}/type${random}.mp3`);
+
 		audio.play();
-		console.log(random);
 	}
 
 	function handleKeydown(event: KeyboardEvent) {
 		const atEndOfWord = letterIndex >= words[wordIndex].length;
-		if (audioOn) {
+		if (audioOn && event.code !== 'Space') {
 			chooseRandomAudio();
 		}
 		if (atEndOfWord) {
@@ -61,6 +58,9 @@
 			if (game === 'in progress') {
 				nextWord();
 			}
+			let audio = new Audio(`src/public/${pitch}/space.mp3`);
+			audio.play();
+
 		}
 
 		if (event.code === 'Backspace') {
@@ -331,14 +331,22 @@
 			</svg>
 			Back
 		</a>
-		<button aria-label="Toggle audio" class="back" on:click={() => audioOn = !audioOn}>
+		<div class="volume-container">
 			{#if audioOn}
-				🔊
-			{:else}
-				🔇
+				<button aria-label="Toggle pitch" class="volume" on:click={() => pitch = pitch === 'low' ? 'high' : 'low'}>
+					{pitch}
+				</button>
 			{/if}
-		</button>
+			<button aria-label="Toggle audio" class="volume" on:click={() => audioOn = !audioOn}>
+				{#if audioOn}
+					🔊
+				{:else}
+					🔇
+				{/if}
+			</button>
+		</div>
 	</div>
+
 
 	<div class="game-container">
 		{#if game !== 'game over'}
@@ -421,5 +429,28 @@
       color: var(--error);
       opacity: 1;
     }
+  }
+
+  .volume-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none; /* Remove underline */
+    font-weight: bold;
+    transition: background 0.3s ease;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+
+    color: var(--fg-200);
+
+    &:hover {
+      background: var(--bg-200);
+    }
+  }
+
+  .volume {
+    font-size: 1.5rem;
+    margin: 0.5rem;
   }
 </style>
