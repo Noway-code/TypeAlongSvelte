@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { get, writable } from 'svelte/store';
+	import { type Page } from '$lib/types';
+
 	import {
 		rendition,
 		fetchPageWords,
@@ -11,20 +13,16 @@
 	} from '../../stores/typingStore';
 	import ePub, { type Book, type Rendition } from 'epubjs';
 
-	let selectedFile: FileList | null = null;
 	const uploadedFile = writable<File | null>(null);
-	let text = '';
-	let page = 1;
+	let selectedFile: FileList | null = null;
 	let viewer: HTMLDivElement;
 
 	let newRendition: Rendition | null = null;
-	type Word = string;
 	let newBook: Book | null = null;
 	let showToc = false;
 	let tocItems: Array<{ label: string; href: string }> = [];
-
 	let spinnerVisible = false;
-
+	let pageInChapter = 0;
 	function handleChange(event: Event) {
 		const target = event.target as HTMLInputElement;
 		if (target.files) {
@@ -34,12 +32,6 @@
 	}
 
 	async function greedyGetWords() {
-		type Page = {
-			page: number;
-			section: number;
-			words: Word[];
-		};
-
 		let pages: Page[] = [];
 		const sectionIndex = newRendition?.currentLocation()?.start?.index;
 		if (sectionIndex == null || newBook == null) return;
@@ -66,16 +58,17 @@
 			currentIndex = newRendition?.currentLocation()?.start?.index ?? -1;
 		} while (currentIndex === sectionIndex);
 		spinnerVisible = false;
-		return pages.flatMap((page) => page.words);
+
+		console.log('Fetched pages:', pages);
+		return pages;
 	}
 
 	async function fetchChapterWords() {
 		const newWords = await greedyGetWords();
-		console.log('newWords', newWords);
+		if (!newWords) return;
 		typingWords.set(newWords);
 		await storeCurrentLocation();
 	}
-
 
 
 	$: uploadedFile.subscribe(async (file) => {

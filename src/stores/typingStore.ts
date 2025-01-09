@@ -1,10 +1,10 @@
 import { get, writable } from 'svelte/store';
 import pkg, { type Book, type Rendition } from 'epubjs';
-
+import { type Page } from '$lib/types';
 // @ts-ignore
 const { CFI } = pkg;
 
-export const typingWords = writable<string[]>([]);
+export const typingWords = writable<Page[]>([]);
 export const rendition = writable<Rendition | null>(null);
 export const currentLocationCFI = writable<string | null>(null);
 

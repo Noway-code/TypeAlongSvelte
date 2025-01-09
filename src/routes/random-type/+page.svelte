@@ -4,9 +4,7 @@
 	import { tweened } from 'svelte/motion';
 	import '../../styles/type.scss';
 	import { typingWords } from '../../stores/typingStore';
-
-	type Game = 'waiting for input' | 'in progress' | 'game over';
-	type Word = string;
+	import { type Word, type Game } from '$lib/types';
 
 	const INITIAL_SECONDS = 30;
 	const WORD_LENGTH = 5;
@@ -34,8 +32,9 @@
 	let audioOn = true;
 
 	const unsubscribe = typingWords.subscribe(value => {
-		words = value;
+
 	});
+
 
 	function chooseRandomAudio() {
 		let random = Math.floor((Math.random() * 6) + 1);

@@ -4,15 +4,8 @@
 	import { typingWords } from '../../stores/typingStore';
 	import { onMount } from 'svelte';
 	import { Spring } from 'svelte/motion';
-	/*
-	 Game-specific Types
-	*/
-	type Game = 'waiting for input' | 'in progress' | 'game over';
-	type Word = string;
+	import { type Word, type Game } from '$lib/types';
 
-	/*
-	 Subscribe to typingWords
-	*/
 	export let words: Word[] = [];
 
 	/*
@@ -44,13 +37,17 @@
 		damping: 1.6
 	});
 	let total = 0;
+	let pageWordCount: number[] = [];
+	let pageNumber = 0;
+	let pageWordIndex = 0;
 
 	/* New variables for WPM sliding window */
 	const wordTimestamps: number[] = [];
 	const WPM_WINDOW_MS = 60000;
 
 	$: typingWords.subscribe(value => {
-		words = value;
+		words =	value.flatMap((page) => page.words);
+		pageWordCount = value.map((page) => page.words.length);
 	});
 
 	let wordsEl: HTMLDivElement;
@@ -125,7 +122,6 @@
 	}
 
 
-
 	function handleKeydown(event: KeyboardEvent) {
 		const atEndOfWord = letterIndex >= words[wordIndex]?.length;
 
@@ -171,6 +167,7 @@
 		} else if (wordIndex > 0) {
 			prevWordIndex -= 1;
 			prevLetterIndex = words[prevWordIndex].length - 1;
+			pageWordIndex -= 1;
 		}
 
 		wordIndex = prevWordIndex;
@@ -282,6 +279,15 @@
 			letterIndex = 0;
 			moveCaret();
 			wordTimestamps.push(Date.now());
+			pageWordIndex += 1;
+			pageUpdate();
+		}
+	}
+
+	function pageUpdate() {
+		if (pageWordIndex === pageWordCount[pageNumber]) {
+			pageNumber += 1;
+			pageWordIndex = 0;
 		}
 	}
 
@@ -377,6 +383,10 @@
 			<div class="stat">
 				<span>WPM</span>
 				<span>{wpm.current.toFixed(1)}</span>
+			</div>
+			<div class="stat">
+				<span>Page</span>
+				<span>{pageNumber}</span>
 			</div>
 		</div>
 		<button on:click={simulateGamePlay}>Simulate</button>
