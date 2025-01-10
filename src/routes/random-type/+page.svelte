@@ -3,7 +3,6 @@
 	import { blur } from 'svelte/transition';
 	import { tweened } from 'svelte/motion';
 	import '../../styles/type.scss';
-	import { typingWords } from '../../stores/typingStore';
 	import { type Word, type Game, type Pitch } from '$lib/types';
 
 	const INITIAL_SECONDS = 30;
@@ -302,13 +301,29 @@
 	}
 
 	onMount(() => {
+		addEventListener('beforeunload', () => {
+			localStorage.setItem('audioOn', JSON.stringify(audioOn));
+			localStorage.setItem('pitch', JSON.stringify(pitch));
+		});
+
+		const audioOnStorage = localStorage.getItem('audioOn');
+		const pitchStorage = localStorage.getItem('pitch');
+
+		if (audioOnStorage) {
+			audioOn = JSON.parse(audioOnStorage);
+		}
+
+		if (pitchStorage) {
+			pitch = JSON.parse(pitchStorage);
+		}
 		getWords(25);
 		focusInput();
 	});
 
 	onDestroy(() => {
-		unsubscribe();
+
 	});
+
 </script>
 
 <div class="page-content">
