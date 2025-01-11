@@ -5,12 +5,15 @@
 
 	import {
 		rendition,
-		fetchPageWords,
-		book,
-		storeCurrentLocation,
+
 		typingWords,
 		currentLocationCFI
 	} from '../../stores/typingStore';
+	import {
+		fetchPageWords,
+		book,
+		storeCurrentLocation
+	} from '$lib/epubtools';
 	import ePub, { type Book, type Rendition } from 'epubjs';
 
 	const uploadedFile = writable<File | null>(null);
@@ -22,7 +25,7 @@
 	let showToc = false;
 	let tocItems: Array<{ label: string; href: string }> = [];
 	let spinnerVisible = false;
-	let pageInChapter = 0;
+
 	function handleChange(event: Event) {
 		const target = event.target as HTMLInputElement;
 		if (target.files) {

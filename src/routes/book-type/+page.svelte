@@ -58,33 +58,38 @@
 	let simulateGame = false;
 
 	async function simulateGamePlay() {
-		simulateGame = !simulateGame;
-		if (!simulateGame) {
-			return;
-		}
-
-		if (game === 'waiting for input') {
-			startGame();
-		}
-
-		// Simulate typing each word
-		for (let w = 0; w < words.length; w++) {
-			const word = words[w];
-
-			for (let li = 0; li < word.length; li++) {
-				typedLetter = word[li];
-				updateGameState();
-				await new Promise(r => setTimeout(r, 100));
+		if (simulateGame) {
+			simulateGame = false;
+		} else {
+			simulateGame = true;
+			if (game === 'waiting for input') {
+				startGame();
 			}
-
-			// Simulate pressing the space bar at the end of the word
-			const spaceEvent = new KeyboardEvent('keydown', { code: 'Space' });
-			handleKeydown(spaceEvent);
-
-			await new Promise(r => setTimeout(r, 100));
+			simulateNextLetter(wordIndex, letterIndex);
 		}
 	}
 
+	function simulateNextLetter(currentWordIndex: number, currentLetterIndex: number) {
+		if (!simulateGame) return;
+		if (currentWordIndex >= words.length) return;
+
+		const word = words[currentWordIndex];
+
+		if (currentLetterIndex < word.length) {
+			typedLetter = word[currentLetterIndex];
+			updateGameState();
+			chooseRandomAudio();
+			setTimeout(() => {
+				simulateNextLetter(currentWordIndex, currentLetterIndex + 1);
+			}, 1);
+		} else {
+			const spaceEvent = new KeyboardEvent('keydown', { code: 'Space' });
+			handleKeydown(spaceEvent);
+			setTimeout(() => {
+				simulateNextLetter(currentWordIndex + 1, 0);
+			}, 1);
+		}
+	}
 
 	function accuracyWindow() {
 		if (accStack.length > windowSize) {
@@ -408,17 +413,17 @@
 		<div class="volume-container">
 			<div class="volume-knobs" style="display: flex; flex-direction: row">
 				{#if audioOn}
-				<button aria-label="Toggle pitch" class="volume" on:click={() => pitch = pitch === 'low' ? 'high' : 'low'}>
-					{pitch}
-				</button>
-			{/if}
-			<button aria-label="Toggle audio" class="volume" on:click={() => audioOn = !audioOn}>
-				{#if audioOn}
-					🔊
-				{:else}
-					🔇
+					<button aria-label="Toggle pitch" class="volume" on:click={() => pitch = pitch === 'low' ? 'high' : 'low'}>
+						{pitch}
+					</button>
 				{/if}
-			</button>
+				<button aria-label="Toggle audio" class="volume" on:click={() => audioOn = !audioOn}>
+					{#if audioOn}
+						🔊
+					{:else}
+						🔇
+					{/if}
+				</button>
 			</div>
 			<button on:click={simulateGamePlay}>Simulate</button>
 		</div>
@@ -509,10 +514,12 @@
     border-radius: 0.5rem;
 
     color: var(--fg-200);
+
     &:hover {
       background: var(--bg-200);
     }
   }
+
   .volume {
     font-size: 1.5rem;
     margin: 0.5rem;
