@@ -37,7 +37,7 @@
 	</main>
 
 	<footer class="footer">
-		<a href="https://www.github.com/noway-code" title="noway-code" target="_blank" rel="noopener noreferrer">Source Code</a>
+		<a href="https://www.github.com/noway-code/TypeAlongSvelte" title="noway-code" target="_blank" rel="noopener noreferrer">Source Code</a>
 		<a href="https://www.flaticon.com/free-icons/rune" title="rune icons" target="_blank" rel="noopener noreferrer">Rune icons created by Aranagraphics - Flaticon</a>
 	</footer>
 </div>
