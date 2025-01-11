@@ -1,7 +1,7 @@
 import { get, writable } from 'svelte/store';
 import pkg, { type Book, type Rendition } from 'epubjs';
-import { type Page } from '$lib/types'
-import { typingWords, rendition, currentLocationCFI} from '../stores/typingStore';
+import { type Page } from '$lib/types';
+import { typingWords, rendition, currentLocationCFI } from '../stores/typingStore';
 // @ts-ignore
 const { CFI } = pkg;
 /**
@@ -67,7 +67,16 @@ export async function fetchPageWords() {
 	if (!r || !b) return [];
 
 	const currentLocation = r.currentLocation();
-	if (!currentLocation) return [];
+	if (
+		!currentLocation ||
+		!currentLocation.start ||
+		!currentLocation.end ||
+		!currentLocation.start.cfi ||
+		!currentLocation.end.cfi
+	) {
+		console.error('Failed to get current location:', currentLocation);
+		return [];
+	}
 
 	try {
 		// @ts-ignore
