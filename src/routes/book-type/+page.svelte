@@ -78,7 +78,8 @@
 		if (currentLetterIndex < word.length) {
 			typedLetter = word[currentLetterIndex];
 			updateGameState();
-			chooseRandomAudio();
+			if (audioOn)
+				chooseRandomAudio();
 			setTimeout(() => {
 				simulateNextLetter(currentWordIndex, currentLetterIndex + 1);
 			}, 1);
