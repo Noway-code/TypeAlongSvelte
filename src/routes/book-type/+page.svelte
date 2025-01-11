@@ -442,7 +442,7 @@
 					type="text"
 				/>
 
-				<div class="time">{seconds}</div>
+
 
 				<!-- This key block helps re-render the words on reset -->
 				{#key toggleReset}

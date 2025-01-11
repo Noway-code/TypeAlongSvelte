@@ -5,7 +5,6 @@
 
 	import {
 		rendition,
-
 		typingWords,
 		currentLocationCFI
 	} from '../../stores/typingStore';
@@ -91,7 +90,9 @@
 				minSpreadWidth: 999999,
 				flow: 'paginated'
 			});
-
+			newRendition.hooks.render.register((context) => {
+				context.iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts');
+			});
 			await newRendition.display();
 			spinnerVisible = false;
 
@@ -144,6 +145,9 @@
 					spread: 'none',
 					minSpreadWidth: 999999,
 					flow: 'paginated'
+				});
+				newRendition.hooks.render.register((context) => {
+					context.iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts');
 				});
 
 				let locationCFI = get(currentLocationCFI);
