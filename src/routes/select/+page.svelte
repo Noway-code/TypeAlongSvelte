@@ -88,11 +88,10 @@
 				height: '100%',
 				spread: 'none',
 				minSpreadWidth: 999999,
-				flow: 'paginated'
+				flow: 'paginated',
+				allowScriptedContent: true
 			});
-			newRendition.hooks.render.register((context) => {
-				context.iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts');
-			});
+
 			await newRendition.display();
 			spinnerVisible = false;
 
@@ -144,7 +143,8 @@
 					height: '100%',
 					spread: 'none',
 					minSpreadWidth: 999999,
-					flow: 'paginated'
+					flow: 'paginated',
+					allowScriptedContent: true
 				});
 				newRendition.hooks.render.register((context) => {
 					context.iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts');
