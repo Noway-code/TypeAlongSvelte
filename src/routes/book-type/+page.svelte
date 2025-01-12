@@ -8,14 +8,8 @@
 
 	export let words: Word[] = [];
 
-	/*
-	 Constants
-	*/
 	const INITIAL_SECONDS = 100;
 
-	/*
-	 Game state
-	*/
 	let game: Game = 'waiting for input';
 	let seconds = INITIAL_SECONDS;
 	let typedLetter = '';
@@ -42,7 +36,7 @@
 	let pageWordIndex = 0;
 	let pitch: Pitch = 'low';
 	let audioOn = true;
-	/* New variables for WPM sliding window */
+
 	const wordTimestamps: number[] = [];
 	const WPM_WINDOW_MS = 60000;
 
@@ -56,6 +50,15 @@
 	let inputEl: HTMLInputElement;
 	let caretEl: HTMLDivElement;
 	let simulateGame = false;
+
+	let debugMode = false;
+	let audioPoolSize = 14;
+	let audioElements: HTMLAudioElement[] = [];
+	let audioIndex = 0;
+
+	for (let i = 0; i < audioPoolSize; i++) {
+		audioElements.push(new Audio());
+	}
 
 	async function simulateGamePlay() {
 		if (simulateGame) {
@@ -78,17 +81,15 @@
 		if (currentLetterIndex < word.length) {
 			typedLetter = word[currentLetterIndex];
 			updateGameState();
-			if (audioOn)
-				chooseRandomAudio();
-			setTimeout(() => {
+			requestAnimationFrame(() => {
 				simulateNextLetter(currentWordIndex, currentLetterIndex + 1);
-			}, 1);
+			});
 		} else {
 			const spaceEvent = new KeyboardEvent('keydown', { code: 'Space' });
 			handleKeydown(spaceEvent);
-			setTimeout(() => {
+			requestAnimationFrame(() => {
 				simulateNextLetter(currentWordIndex + 1, 0);
-			}, 1);
+			});
 		}
 	}
 
@@ -109,7 +110,6 @@
 		const now = Date.now();
 		const elapsed = now - startTime;
 
-		// Guard against zero or negative elapsed time
 		if (elapsed <= 0) {
 			wpm.set(0);
 			return;
@@ -120,20 +120,19 @@
 		}
 		const count = wordTimestamps.length;
 		if (elapsed < WPM_WINDOW_MS) {
-			// Calculate WPM based on elapsed time if less than 60 seconds have passed
 			wpm.set(count / (elapsed / 60000));
 		} else {
-			// Use the sliding window for WPM calculation after 60 seconds
 			wpm.set(count);
 		}
 	}
 
-
 	function chooseRandomAudio() {
 		let random = Math.floor((Math.random() * 6) + 1);
-		let audio = new Audio(`src/public/${pitch}/type${random}.mp3`);
-
-		audio.play();
+		let el = audioElements[audioIndex];
+		el.src = `src/public/${pitch}/type${random}.mp3`;
+		el.currentTime = 0;
+		el.play();
+		audioIndex = (audioIndex + 1) % audioPoolSize;
 	}
 
 	function handleKeydown(event: KeyboardEvent) {
@@ -153,11 +152,13 @@
 			if (game === 'in progress') {
 				nextWord();
 			}
-			if (audioOn) {
-				let audio = new Audio(`src/public/${pitch}/space.mp3`);
-				audio.play();
+			if (audioOn && !simulateGame) {
+				let el = audioElements[audioIndex];
+				el.src = `src/public/${pitch}/space.mp3`;
+				el.currentTime = 0;
+				el.play();
+				audioIndex = (audioIndex + 1) % audioPoolSize;
 			}
-
 		}
 
 		if (event.code === 'Backspace') {
@@ -217,10 +218,9 @@
 
 	function startGame() {
 		setGameState('in progress');
-		startTime = Date.now();  // Record the start time
+		startTime = Date.now();
 		setGameTimer();
 	}
-
 
 	function setGameState(state: Game) {
 		game = state;
@@ -237,7 +237,6 @@
 
 		const interval = setInterval(gameTimer, 1000);
 	}
-
 
 	function updateGameState() {
 		if (!wordsEl) {
@@ -312,7 +311,6 @@
 		}
 	}
 
-
 	function updateLine() {
 		const wordEl = wordsEl.children[wordIndex];
 		const wordsY = wordsEl.getBoundingClientRect().y;
@@ -344,11 +342,10 @@
 		letterIndex = 0;
 		correctLetters = 0;
 		typedLetters = 0;
-		wordTimestamps.length = 0; // Clear WPM sliding window data
-		startTime = 0;             // Reset start time
+		wordTimestamps.length = 0;
+		startTime = 0;
 		focusInput();
 	}
-
 
 	function focusInput() {
 		if (inputEl) {
@@ -357,6 +354,7 @@
 	}
 
 	function debug() {
+		if (!debugMode) return;
 		console.log({
 			letterIndex,
 			wordIndex,
@@ -372,10 +370,7 @@
 	});
 </script>
 
-
-<!-- PAGE CONTENT -->
 <div class="page-content">
-	<!-- Back Button -->
 	<div class="back-container">
 		<a aria-label="Go back to selection page" class="back" href="/select">
 			<svg
@@ -430,7 +425,6 @@
 		</div>
 	</div>
 
-	<!-- Game Content -->
 	<div class="game-container">
 		{#if game !== 'game over'}
 			<div class="game" data-game={game}>
@@ -443,9 +437,6 @@
 					type="text"
 				/>
 
-
-
-				<!-- This key block helps re-render the words on reset -->
 				{#key toggleReset}
 					<div in:blur|local bind:this={wordsEl} class="words">
 						{#each words as word}
@@ -455,7 +446,6 @@
 								{/each}
 							</span>
 						{/each}
-
 						<div bind:this={caretEl} class="caret"></div>
 					</div>
 				{/key}
@@ -481,12 +471,9 @@
 				</div>
 			</div>
 		{/if}
-
 	</div>
-
 </div>
 
-<!-- SCSS styling -->
 <style lang="scss">
   .letter {
     opacity: 0.4;
@@ -502,18 +489,16 @@
     }
   }
 
-
   .volume-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    text-decoration: none; /* Remove underline */
+    text-decoration: none;
     font-weight: bold;
     transition: background 0.3s ease;
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
-
     color: var(--fg-200);
 
     &:hover {
