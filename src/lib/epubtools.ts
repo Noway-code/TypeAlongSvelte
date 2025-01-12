@@ -56,34 +56,34 @@ export const makeRangeCfi = (a: string, b: string): string => {
  * Fetches words from the current page using CFI-based range extraction.
  * This function now reads both `rendition` and `book` directly from the stores.
  */
-export async function fetchPageWords() {
-	const r = get(rendition);
-	const b = get(book);
-	if (!r || !b) return [];
-
-	const currentLocation = r.currentLocation();
-	if (
-		!currentLocation ||
-		!currentLocation.start ||
-		!currentLocation.end ||
-		!currentLocation.start.cfi ||
-		!currentLocation.end.cfi
-	) {
-		console.error('Failed to get current location:', currentLocation);
-		return [];
-	}
-
-	try {
-		// @ts-ignore
-		const rangeCfi = makeRangeCfi(currentLocation.start.cfi, currentLocation.end.cfi);
-		const range = await b.getRange(rangeCfi);
-		const extractedText = range.toString();
-		return extractedText.split(/\s+/).filter((word) => word.length > 0);
-	} catch (error) {
-		console.error('Failed to extract words using CFI range:', error);
-		return [];
-	}
-}
+// export async function fetchPageWords() {
+// 	const r = get(rendition);
+// 	const b = get(book);
+// 	if (!r || !b) return [];
+//
+// 	const currentLocation = r.currentLocation();
+// 	if (
+// 		!currentLocation ||
+// 		!currentLocation.start ||
+// 		!currentLocation.end ||
+// 		!currentLocation.start.cfi ||
+// 		!currentLocation.end.cfi
+// 	) {
+// 		console.error('Failed to get current location:', currentLocation);
+// 		return [];
+// 	}
+//
+// 	try {
+// 		// @ts-ignore
+// 		const rangeCfi = makeRangeCfi(currentLocation.start.cfi, currentLocation.end.cfi);
+// 		const range = await b.getRange(rangeCfi);
+// 		const extractedText = range.toString();
+// 		return extractedText.split(/\s+/).filter((word) => word.length > 0);
+// 	} catch (error) {
+// 		console.error('Failed to extract words using CFI range:', error);
+// 		return [];
+// 	}
+// }
 
 export async function storeCurrentLocation() {
 	const r = get(rendition);

@@ -2,7 +2,7 @@
 	import { blur } from 'svelte/transition';
 	import '../../styles/type.scss';
 	import { typingWords } from '../../stores/typingStore';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { Spring } from 'svelte/motion';
 	import { type Word, type Game, type Pitch } from '$lib/types';
 
@@ -226,21 +226,21 @@
 		game = state;
 	}
 
+	let gameTimerInterval: ReturnType<typeof setInterval>;
+
 	function setGameTimer() {
 		function gameTimer() {
 			if (game === 'waiting for input') {
-				clearInterval(interval);
+				clearInterval(gameTimerInterval);
 			}
 			focusInput();
 			wpmWindow();
 		}
-
-		const interval = setInterval(gameTimer, 1000);
+		gameTimerInterval = setInterval(gameTimer, 1000);
 	}
 
 	function updateGameState() {
 		if (!wordsEl) {
-			console.warn('wordsEl is not available yet.');
 			return;
 		}
 		setLetter();
@@ -251,7 +251,7 @@
 		updateLine();
 		resetLetter();
 		moveCaret();
-		debug();
+		// debug();
 		focusInput();
 	}
 
@@ -273,7 +273,6 @@
 	function checkLetter() {
 		const currentLetter = words[wordIndex]?.[letterIndex];
 		if (!letterEl) return;
-
 		if (typedLetter === currentLetter) {
 			letterEl.dataset.letter = 'correct';
 			increaseScore();
@@ -315,7 +314,6 @@
 		const wordEl = wordsEl.children[wordIndex];
 		const wordsY = wordsEl.getBoundingClientRect().y;
 		const wordY = wordEl.getBoundingClientRect().y;
-
 		if (wordY > wordsY) {
 			wordEl.scrollIntoView({ block: 'center' });
 		}
@@ -334,7 +332,6 @@
 
 	function resetGame() {
 		toggleReset = !toggleReset;
-
 		setGameState('waiting for input');
 		seconds = INITIAL_SECONDS;
 		typedLetter = '';
@@ -367,6 +364,10 @@
 	onMount(() => {
 		focusInput();
 		accuracy.set(100);
+	});
+
+	onDestroy(() => {
+		clearInterval(gameTimerInterval);
 	});
 </script>
 

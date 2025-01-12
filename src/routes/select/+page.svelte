@@ -1,15 +1,13 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { get, writable } from 'svelte/store';
 	import { type Page } from '$lib/types';
-
 	import {
 		rendition,
 		typingWords,
 		currentLocationCFI
 	} from '../../stores/typingStore';
 	import {
-		fetchPageWords,
 		book,
 		storeCurrentLocation,
 		fetchVisibleWords
@@ -30,7 +28,6 @@
 		const target = event.target as HTMLInputElement;
 		if (target.files) {
 			selectedFile = target.files;
-			console.log('Selected files:', selectedFile);
 		}
 	}
 
@@ -62,7 +59,6 @@
 		} while (currentIndex === sectionIndex);
 		spinnerVisible = false;
 
-		console.log('Fetched pages:', pages);
 		return pages;
 	}
 
@@ -72,7 +68,6 @@
 		typingWords.set(newWords);
 		await storeCurrentLocation();
 	}
-
 
 	$: uploadedFile.subscribe(async (file) => {
 		if (!file) return;
@@ -113,26 +108,26 @@
 			tocItems = nav.toc || [];
 
 			newRendition.on('relocated', (location) => {
-				console.log('Current location:', location);
 			});
 		} catch (error) {
-			console.error('Failed to load EPUB:', error);
 			spinnerVisible = false;
 		}
 	});
 
+	let handleKeydown = (event: KeyboardEvent) => {
+		if (event.key === 'ArrowRight') {
+			$rendition?.next();
+		} else if (event.key === 'ArrowLeft') {
+			$rendition?.prev();
+		} else if (event.key === 'Escape') {
+			showToc = false;
+		} else if (event.key === 't') {
+			toggleToc();
+		}
+	};
+
 	onMount(async () => {
-		document.addEventListener('keydown', (event) => {
-			if (event.key === 'ArrowRight') {
-				$rendition?.next();
-			} else if (event.key === 'ArrowLeft') {
-				$rendition?.prev();
-			} else if (event.key === 'Escape') {
-				showToc = false;
-			} else if (event.key === 't') {
-				toggleToc();
-			}
-		});
+		document.addEventListener('keydown', handleKeydown);
 
 		const existingBook = get(book);
 		if (existingBook) {
@@ -176,13 +171,15 @@
 				tocItems = nav.toc || [];
 
 				newRendition.on('relocated', (location) => {
-					console.log('Current location:', location);
 				});
 			} catch (error) {
-				console.error('Failed to (re)load existing EPUB:', error);
 				spinnerVisible = false;
 			}
 		}
+	});
+
+	onDestroy(() => {
+		document.removeEventListener('keydown', handleKeydown);
 	});
 
 	async function uploadEpub() {
