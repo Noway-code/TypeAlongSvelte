@@ -11,7 +11,8 @@
 	import {
 		fetchPageWords,
 		book,
-		storeCurrentLocation
+		storeCurrentLocation,
+		fetchVisibleWords
 	} from '$lib/epubtools';
 	import ePub, { type Book, type Rendition } from 'epubjs';
 
@@ -43,7 +44,7 @@
 		spinnerVisible = true;
 		await new Promise(r => setTimeout(r, 250));
 		do {
-			const newWords = await fetchPageWords();
+			const newWords = fetchVisibleWords();
 			const page = {
 				page: currentIndex,
 				section: currentIndex,

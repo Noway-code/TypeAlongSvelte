@@ -35,16 +35,11 @@ export const makeRangeCfi = (a: string, b: string): string => {
 	for (let i = 0; i < len; i++) {
 		if (CFIInstance.equalStep(cfi.start.steps[i], cfi.end.steps[i])) {
 			if (i === len - 1) {
-				// Last step is equal, check terminals
 				if (cfi.start.terminal === cfi.end.terminal) {
-					// CFIs are equal
-					// @ts-ignore
 					cfi.path.steps.push(cfi.start.steps[i]);
-					// Not a range
 					cfi.range = false;
 				}
 			} else {
-				// @ts-ignore
 				cfi.path.steps.push(cfi.start.steps[i]);
 			}
 		} else {
@@ -105,4 +100,15 @@ export async function storeCurrentLocation() {
 	} catch (error) {
 		console.error('Failed to store current location:', error);
 	}
+}
+
+export function fetchVisibleWords() {
+	const r = get(rendition);
+	if (!r) return [];
+	const contents = r.getContents();
+	let text = '';
+	contents.forEach((content) => {
+		text += content.document.body.innerText + ' ';
+	});
+	return text.trim().split(/\s+/).filter((word) => word.length > 0);
 }
