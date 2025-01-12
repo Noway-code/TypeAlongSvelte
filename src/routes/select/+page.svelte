@@ -24,6 +24,39 @@
 	let tocItems: Array<{ label: string; href: string }> = [];
 	let spinnerVisible = false;
 
+	async function weirdLocation() {
+		let location = newRendition?.currentLocation();
+
+		let pageText = '';
+		try {
+			// 1. Get the start and end CFIs of the currently displayed page
+			const startCfi = location.start.cfi;
+			const endCfi = location.end.cfi;
+			if (!startCfi || !endCfi) return;
+
+			// 2. Fetch the DOM Range for start & end
+			const startRange = await newBook.getRange(startCfi);
+			const endRange = await newBook.getRange(endCfi);
+
+			// 3. Create a new (combined) Range from the two smaller ranges
+			const doc = startRange.commonAncestorContainer.ownerDocument;
+			const combinedRange = doc.createRange();
+
+			combinedRange.setStart(startRange.startContainer, startRange.startOffset);
+			combinedRange.setEnd(endRange.endContainer, endRange.endOffset);
+
+			// 4. Convert that range to text
+			pageText = combinedRange.toString();
+			console.log('Text on current page:', pageText);
+		} catch (error) {
+			console.error('Error getting page text:', error);
+		}
+
+		let c = pageText.trim().split(/\s+/).filter((word) => word.length > 0);
+		console.log('Words on current page:', c);
+		return c;
+	}
+
 	function handleChange(event: Event) {
 		const target = event.target as HTMLInputElement;
 		if (target.files) {
@@ -41,7 +74,7 @@
 		spinnerVisible = true;
 		await new Promise(r => setTimeout(r, 250));
 		do {
-			const newWords = fetchVisibleWords();
+			const newWords = await weirdLocation();
 			const page = {
 				page: currentIndex,
 				section: currentIndex,
@@ -59,6 +92,7 @@
 		} while (currentIndex === sectionIndex);
 		spinnerVisible = false;
 
+		console.log('Pages:', pages);
 		return pages;
 	}
 
