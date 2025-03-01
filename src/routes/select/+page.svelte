@@ -2,6 +2,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { get, writable } from 'svelte/store';
 	import { type Page } from '$lib/types';
+	import { savePage, loadPage } from '$lib/epubtools';
 	import {
 		rendition,
 		typingWords,
@@ -10,7 +11,6 @@
 	import {
 		book,
 		storeCurrentLocation,
-		fetchVisibleWords
 	} from '$lib/epubtools';
 	import ePub, { type Book, type Rendition } from 'epubjs';
 
@@ -251,6 +251,11 @@
 				<button class="control-button" on:click={() => $rendition?.prev()}>Previous</button>
 				<button class="control-button" on:click={() => $rendition?.next()}>Next</button>
 				<button class="control-button" on:click={() => $rendition?.display()}>Go to Start</button>
+				<!-- New Save and Load buttons -->
+
+				<button on:click={savePage}>Save Page</button>
+				<button on:click={loadPage}>Load Page</button>
+
 			</div>
 			{#if spinnerVisible}
 				<div class="spinner">
@@ -310,8 +315,8 @@
     justify-content: center;
     min-height: 100vh;
     font-family: 'Roboto Mono', monospace;
-    background-color: #2E3440; /* var(--nord-polar-night) */
-    color: #ECEFF4; /* var(--nord-snow-storm) */
+    background-color: #2E3440;
+    color: #ECEFF4;
   }
 
   :root {
@@ -340,7 +345,7 @@
     border-radius: 20px;
     background-color: var(--nord-polar-night-accent);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    position: relative; /* so the ToC drawer can overlap */
+    position: relative;
   }
 
   .toc-drawer {
@@ -485,7 +490,7 @@
     left: 50%;
     width: 40px;
     height: 40px;
-    margin: -20px 0 0 -20px; /* Center the spinner */
+    margin: -20px 0 0 -20px;
     z-index: 100;
   }
 
@@ -633,13 +638,11 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
 
-
   .invisible {
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
   }
-
 
   @media (max-width: 768px) {
     .container {

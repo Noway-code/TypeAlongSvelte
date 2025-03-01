@@ -1,9 +1,11 @@
+// file: src/lib/epubtools.ts
 import { get, writable } from 'svelte/store';
 import pkg, { type Book, type Rendition } from 'epubjs';
 import { type Page } from '$lib/types';
 import { typingWords, rendition, currentLocationCFI } from '../stores/typingStore';
 // @ts-ignore
 const { CFI } = pkg;
+
 /**
  * This store will hold the Book instance.
  */
@@ -102,13 +104,37 @@ export async function storeCurrentLocation() {
 	}
 }
 
-export function fetchVisibleWords() {
+// New store to hold the saved page CFI
+export const savedPageCFI = writable<string | null>(null);
+
+/**
+ * Saves the current page's starting CFI from the rendition.
+ */
+export function savePage() {
 	const r = get(rendition);
-	if (!r) return [];
-	const contents = r.getContents();
-	let text = '';
-	contents.forEach((content) => {
-		text += content.document.body.innerText + ' ';
-	});
-	return text.trim().split(/\s+/).filter((word) => word.length > 0);
+	if (r) {
+		const location = r.currentLocation();
+		if (location?.start?.cfi) {
+			savedPageCFI.set(location.start.cfi);
+			console.log('Saved page at CFI:', location.start.cfi);
+		} else {
+			console.log('No valid CFI found in current location.');
+		}
+	} else {
+		console.log('No rendition available to save page.');
+	}
+}
+
+/**
+ * Loads the saved page by instructing the rendition to display the saved CFI.
+ */
+export async function loadPage() {
+	const r = get(rendition);
+	const cfi = get(savedPageCFI);
+	if (r && cfi) {
+		await r.display(cfi);
+		console.log('Loaded page at CFI:', cfi);
+	} else {
+		console.log('No saved page found or no rendition available.');
+	}
 }
