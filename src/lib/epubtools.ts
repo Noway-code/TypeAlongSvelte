@@ -2,7 +2,7 @@
 import { get, writable } from 'svelte/store';
 import pkg, { type Book, type Rendition } from 'epubjs';
 import { type Page } from '$lib/types';
-import { typingWords, rendition, currentLocationCFI } from '../stores/typingStore';
+import { typingPages, rendition, currentLocationCFI } from '../stores/typingStore';
 // @ts-ignore
 const { CFI } = pkg;
 
@@ -110,13 +110,15 @@ export const savedPageCFI = writable<string | null>(null);
 /**
  * Saves the current page's starting CFI from the rendition.
  */
-export function savePage() {
+export function savePage(): string | void {
 	const r = get(rendition);
 	if (r) {
 		const location = r.currentLocation();
-		if (location?.start?.cfi) {
+		const cfi = location?.start?.cfi;
+		if (cfi) {
 			savedPageCFI.set(location.start.cfi);
 			console.log('Saved page at CFI:', location.start.cfi);
+			return cfi;
 		} else {
 			console.log('No valid CFI found in current location.');
 		}

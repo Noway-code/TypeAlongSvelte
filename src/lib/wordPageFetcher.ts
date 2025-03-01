@@ -1,8 +1,8 @@
 import { derived } from 'svelte/store';
-import { typingWords } from '../stores/typingStore';
+import { typingPages } from '../stores/typingStore';
 import type { Word } from '$lib/types';
 
-export const wordsData = derived(typingWords, ($typingWords) => {
+export const wordsData = derived(typingPages, ($typingWords) => {
 	return {
 		words: $typingWords.flatMap((page) => page.words),
 		pageWordCount: $typingWords.map((page) => page.words.length)

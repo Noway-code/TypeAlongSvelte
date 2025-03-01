@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { blur } from 'svelte/transition';
 	import '../../styles/type.scss';
-	import { typingWords } from '../../stores/typingStore';
+	import { typingPages } from '../../stores/typingStore';
 	import { onMount, onDestroy } from 'svelte';
 	import { Spring } from 'svelte/motion';
 	import { type Word, type Game, type Pitch } from '$lib/types';

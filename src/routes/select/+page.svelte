@@ -5,7 +5,7 @@
 	import { savePage, loadPage } from '$lib/epubtools';
 	import {
 		rendition,
-		typingWords,
+		typingPages,
 		currentLocationCFI
 	} from '../../stores/typingStore';
 	import {
@@ -75,10 +75,12 @@
 		await new Promise(r => setTimeout(r, 250));
 		do {
 			const newWords = await weirdLocation();
+			const cfi = savePage();
 			const page = {
 				page: currentIndex,
 				section: currentIndex,
-				words: newWords
+				words: newWords,
+				cfi: cfi
 			};
 			pages.push(page);
 
@@ -97,9 +99,9 @@
 	}
 
 	async function fetchChapterWords() {
-		const newWords = await greedyGetWords();
-		if (!newWords) return;
-		typingWords.set(newWords);
+		const newPages = await greedyGetWords();
+		if (!newPages) return;
+		typingPages.set(newPages);
 		await storeCurrentLocation();
 	}
 
