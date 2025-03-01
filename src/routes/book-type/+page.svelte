@@ -5,6 +5,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { Spring } from 'svelte/motion';
 	import { type Word, type Game, type Pitch } from '$lib/types';
+	import { wordsData, updatePage } from '$lib/wordPageFetcher';
 
 	export let words: Word[] = [];
 
@@ -40,10 +41,7 @@
 	const wordTimestamps: number[] = [];
 	const WPM_WINDOW_MS = 60000;
 
-	$: typingWords.subscribe(value => {
-		words = value.flatMap((page) => page.words);
-		pageWordCount = value.map((page) => page.words.length);
-	});
+	$: { ({ words, pageWordCount } = $wordsData); }
 
 	let wordsEl: HTMLDivElement;
 	let letterEl: HTMLSpanElement | null;
@@ -251,7 +249,6 @@
 		updateLine();
 		resetLetter();
 		moveCaret();
-		// debug();
 		focusInput();
 	}
 
@@ -299,14 +296,7 @@
 			moveCaret();
 			wordTimestamps.push(Date.now());
 			pageWordIndex += 1;
-			pageUpdate();
-		}
-	}
-
-	function pageUpdate() {
-		if (pageWordIndex === pageWordCount[pageNumber]) {
-			pageNumber += 1;
-			pageWordIndex = 0;
+			({ pageWordIndex, pageNumber } = updatePage({ pageWordIndex, pageNumber, pageWordCount }));
 		}
 	}
 
