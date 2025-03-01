@@ -99,6 +99,10 @@
 	}
 
 	async function fetchChapterWords() {
+		const savedPaged = savePage();
+		if (typeof savedPaged === 'string') {
+			localStorage.setItem('currentLocationCFI', savedPaged);
+		}
 		const newPages = await greedyGetWords();
 		if (!newPages) return;
 		typingPages.set(newPages);

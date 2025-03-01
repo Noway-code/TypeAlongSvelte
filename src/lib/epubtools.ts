@@ -99,6 +99,7 @@ export async function storeCurrentLocation() {
 		const rangeCfi = makeRangeCfi(currentLocation.start.cfi, currentLocation.end.cfi);
 		currentLocationCFI.set(rangeCfi);
 		console.log('Stored current location:', rangeCfi);
+
 	} catch (error) {
 		console.error('Failed to store current location:', error);
 	}
@@ -132,7 +133,7 @@ export function savePage(): string | void {
  */
 export async function loadPage() {
 	const r = get(rendition);
-	const cfi = get(savedPageCFI);
+	const cfi = localStorage.getItem('currentLocationCFI');
 	if (r && cfi) {
 		await r.display(cfi);
 		console.log('Loaded page at CFI:', cfi);

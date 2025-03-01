@@ -1,4 +1,5 @@
-import { derived } from 'svelte/store';
+import { derived, get } from 'svelte/store';
+
 import { typingPages } from '../stores/typingStore';
 import type { Word } from '$lib/types';
 
@@ -21,6 +22,12 @@ export function updatePage({
 	if (pageWordIndex === pageWordCount[pageNumber]) {
 		pageNumber += 1;
 		pageWordIndex = 0;
+
+		const pages = get(typingPages);
+		if (pages[pageNumber] && pages[pageNumber].cfi){
+			localStorage.setItem('currentLocationCFI', pages[pageNumber].cfi);
+		}
+
 	}
 	return { pageWordIndex, pageNumber };
 }
