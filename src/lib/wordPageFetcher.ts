@@ -25,7 +25,7 @@ export function updatePage({
 
 		const pages = get(typingPages);
 		if (pages[pageNumber] && pages[pageNumber].cfi){
-			localStorage.setItem('currentLocationCFI', pages[pageNumber].cfi);
+			//localStorage.setItem('currentLocationCFI', pages[pageNumber].cfi);
 		}
 
 	}

@@ -75,7 +75,6 @@
 		await new Promise(r => setTimeout(r, 250));
 		do {
 			const newWords = await weirdLocation();
-			const cfi = savePage();
 			const page = {
 				page: currentIndex,
 				section: currentIndex,
@@ -99,17 +98,14 @@
 	}
 
 	async function fetchChapterWords() {
-		const savedPaged = savePage();
-		if (typeof savedPaged === 'string') {
-			localStorage.setItem('currentLocationCFI', savedPaged);
-		}
 		const newPages = await greedyGetWords();
 		if (!newPages) return;
 		typingPages.set(newPages);
 		await storeCurrentLocation();
 	}
 
-	$: uploadedFile.subscribe(async (file) => {
+
+	$:uploadedFile.subscribe(async (file) => {
 		if (!file) return;
 		spinnerVisible = true;
 		get(rendition)?.destroy();
@@ -128,7 +124,19 @@
 				allowScriptedContent: true
 			});
 
-			await newRendition.display();
+			// Set relocated handler to update localStorage
+			newRendition.on('relocated', (location) => {
+
+			});
+
+			const savedLocation = localStorage.getItem('currentLocationCFI');
+			if (savedLocation) {
+				console.log("Saved location true in subscribe");
+				await newRendition.display(savedLocation);
+			} else {
+				console.log('No saved location in subscribe, displaying book');
+				await newRendition.display();
+			}
 			spinnerVisible = false;
 
 			newRendition.themes.register('largeText', {
@@ -146,13 +154,11 @@
 
 			const nav = await newBook.loaded.navigation;
 			tocItems = nav.toc || [];
-
-			newRendition.on('relocated', (location) => {
-			});
 		} catch (error) {
 			spinnerVisible = false;
 		}
 	});
+
 
 	let handleKeydown = (event: KeyboardEvent) => {
 		if (event.key === 'ArrowRight') {
@@ -186,10 +192,21 @@
 					context.iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts');
 				});
 
-				let locationCFI = get(currentLocationCFI);
-				if (locationCFI) {
-					await newRendition.display(locationCFI);
+				// Set relocated handler to update localStorage
+				newRendition.on('relocated', (location) => {
+					if (location?.start?.cfi) {
+						// localStorage.setItem('currentLocationCFI', location.start.cfi);
+						// console.log('Updated current location in localStorage:', location.start.cfi);
+					}
+				});
+
+				const savedLocation = localStorage.getItem('currentLocationCFI');
+				console.log('Saved location:', savedLocation);
+				if (savedLocation) {
+					console.log("Saved location true in onMount");
+					await newRendition.display(savedLocation);
 				} else {
+					console.log('No saved location in onMount, displaying book');
 					await newRendition.display();
 				}
 				spinnerVisible = false;
@@ -209,14 +226,12 @@
 
 				const nav = await newBook.loaded.navigation;
 				tocItems = nav.toc || [];
-
-				newRendition.on('relocated', (location) => {
-				});
 			} catch (error) {
 				spinnerVisible = false;
 			}
 		}
 	});
+
 
 	onDestroy(() => {
 		document.removeEventListener('keydown', handleKeydown);
