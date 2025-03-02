@@ -6,6 +6,7 @@
 	import { Spring } from 'svelte/motion';
 	import { type Word, type Game, type Pitch } from '$lib/types';
 	import { wordsData, updatePage } from '$lib/wordPageFetcher';
+	import { get } from 'svelte/store';
 
 	export let words: Word[] = [];
 
@@ -218,6 +219,8 @@
 		setGameState('in progress');
 		startTime = Date.now();
 		setGameTimer();
+		const pages = get(typingPages);
+		localStorage.setItem('currentLocationCFI', pages[0].cfi);
 	}
 
 	function setGameState(state: Game) {

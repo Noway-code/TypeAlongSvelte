@@ -2,7 +2,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { get, writable } from 'svelte/store';
 	import { type Page } from '$lib/types';
-	import { savePage, loadPage } from '$lib/epubtools';
+	import { savePage, loadPage, getPageCFI } from '$lib/epubtools';
 	import {
 		rendition,
 		typingPages,
@@ -75,6 +75,7 @@
 		await new Promise(r => setTimeout(r, 250));
 		do {
 			const newWords = await weirdLocation();
+			const cfi = getPageCFI();
 			const page = {
 				page: currentIndex,
 				section: currentIndex,
@@ -200,15 +201,7 @@
 					}
 				});
 
-				const savedLocation = localStorage.getItem('currentLocationCFI');
-				console.log('Saved location:', savedLocation);
-				if (savedLocation) {
-					console.log("Saved location true in onMount");
-					await newRendition.display(savedLocation);
-				} else {
-					console.log('No saved location in onMount, displaying book');
-					await newRendition.display();
-				}
+
 				spinnerVisible = false;
 
 				newRendition.themes.register('largeText', {
@@ -223,7 +216,15 @@
 				newRendition.themes.select('largeText');
 
 				rendition.set(newRendition);
-
+				const savedLocation = localStorage.getItem('currentLocationCFI');
+				console.log('Saved location:', savedLocation);
+				if (savedLocation) {
+					console.log("Saved location true in onMount");
+					await newRendition.display(savedLocation);
+				} else {
+					console.log('No saved location in onMount, displaying book');
+					await newRendition.display();
+				}
 				const nav = await newBook.loaded.navigation;
 				tocItems = nav.toc || [];
 			} catch (error) {
