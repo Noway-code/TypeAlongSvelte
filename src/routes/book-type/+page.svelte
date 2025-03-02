@@ -8,7 +8,7 @@
 	import { wordsData, updatePage } from '$lib/wordPageFetcher';
 	import { get } from 'svelte/store';
 
-	export let words: Word[] = [];
+	export let words: Word[] = ["If", "you're", "seeing", "this", "you", "forgot", "to", "load", "the", "chapter"];
 
 	const INITIAL_SECONDS = 100;
 
