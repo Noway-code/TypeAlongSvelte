@@ -24,41 +24,29 @@
 	let tocItems: Array<{ label: string; href: string }> = [];
 	let spinnerVisible = false;
 
-	async function weirdLocation() {
-		let location = newRendition?.currentLocation();
+	export async function getCurrentPageWords(): Promise<string[] | undefined> {
+		const location = newRendition?.currentLocation();
+		if (!location?.start?.cfi || !location?.end?.cfi) return;
 
-		let pageText = '';
 		try {
-			if (!location || !location.start || !location.end || !location.start.cfi || !location.end.cfi) {
-				console.error('Current location or CFIs not available');
-				return '';
-			}
-			// 1. Get the start and end CFIs of the currently displayed page
-			const startCfi = location.start.cfi;
-			const endCfi = location.end.cfi;
-			if (!startCfi || !endCfi) return;
+			// Get the DOM ranges for the start and end CFIs.
+			const startRange = await newBook.getRange(location.start.cfi);
+			const endRange = await newBook.getRange(location.end.cfi);
 
-			// 2. Fetch the DOM Range for start & end
-			const startRange = await newBook.getRange(startCfi);
-			const endRange = await newBook.getRange(endCfi);
-
-			// 3. Create a new (combined) Range from the two smaller ranges
-			const doc = startRange.commonAncestorContainer.ownerDocument;
-			const combinedRange = doc.createRange();
-
+			// Create a new combined Range from the two ranges.
+			const ownerDoc = startRange.commonAncestorContainer.ownerDocument;
+			const combinedRange = ownerDoc.createRange();
 			combinedRange.setStart(startRange.startContainer, startRange.startOffset);
 			combinedRange.setEnd(endRange.endContainer, endRange.endOffset);
 
-			// 4. Convert that range to text
-			pageText = combinedRange.toString();
-			console.log('Text on current page:', pageText);
+			// Convert the range to text and split it into words.
+			const pageText = combinedRange.toString().trim();
+			const words = pageText.split(/\s+/).filter((word) => word.length > 0);
+			console.log('Words on current page:', words);
+			return words;
 		} catch (error) {
 			console.error('Error getting page text:', error);
 		}
-
-		let c = pageText.trim().split(/\s+/).filter((word) => word.length > 0);
-		console.log('Words on current page:', c);
-		return c;
 	}
 
 	function handleChange(event: Event) {
@@ -78,7 +66,7 @@
 		spinnerVisible = true;
 		await new Promise(r => setTimeout(r, 250));
 		do {
-			const newWords = await weirdLocation();
+			const newWords = await getCurrentPageWords();
 			const cfi = getPageCFI();
 			const page = {
 				page: currentIndex,
@@ -129,17 +117,13 @@
 				allowScriptedContent: true
 			});
 
-			// Set relocated handler to update localStorage
-			newRendition.on('relocated', (location) => {
-
-			});
-
 			const savedLocation = localStorage.getItem('currentLocationCFI');
 			if (savedLocation) {
 				console.log("Saved location true in subscribe");
 				await newRendition.display(savedLocation);
 			} else {
-				console.log('No saved location in subscribe, displaying book');
+				console.log('No saved location in subscribe, displaying book')
+				localStorage.removeItem('currentLocationCFI');
 				await newRendition.display();
 			}
 			spinnerVisible = false;
@@ -226,6 +210,7 @@
 					console.log("Saved location true in onMount");
 					await newRendition.display(savedLocation);
 				} else {
+					localStorage.removeItem('currentLocationCFI');
 					console.log('No saved location in onMount, displaying book');
 					await newRendition.display();
 				}
@@ -312,7 +297,7 @@
 				<button class="start-game-button" on:click={fetchChapterWords}>
 					Fetch chapter
 				</button>
-				<a class="game-link" href="../book-type" on:click={fetchChapterWords}>
+				<a class="game-link" href="../book-type">
 					<button class="start-game-button">
 						Start Game
 					</button>
