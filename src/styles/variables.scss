@@ -1,16 +1,16 @@
 /* src/styles/variables.scss */
 :root {
-  --primary: #83a598;       /* Gruvbox Blue */
-  --fg-100: #ebdbb2;        /* Gruvbox Light (Foreground) */
-  --fg-200: #928374;        /* Gruvbox Gray (Dim Foreground) */
-  --bg-100: #282828;        /* Gruvbox Dark Background */
-  --bg-200: #3c3836;        /* Gruvbox Medium Dark Background */
-  --bg-300: #504945;        /* Gruvbox Lighter Dark Background */
-  --accent: #fe8019;        /* Gruvbox Orange */
-  --accent-hover: #d65d0e;   /* Slightly Darker Orange for Hover */
-  --error: #fb4934;         /* Gruvbox Red */
-  --success: #b8bb26;       /* Gruvbox Green */
-  --warning: #fabd2f;       /* Gruvbox Yellow */
-  --info: #83a598;          /* Gruvbox Blue (Same as Primary) */
-  --info-hover: #689d90;     /* Slightly Darker Blue for Hover */
+    --primary: #007acc;
+    --fg-100: #ffffff;
+    --fg-200: #dcdcdc;
+    --bg-100: #1e1e1e;
+    --bg-200: #252526;
+    --bg-300: #2d2d30;
+    --accent: #007acc;
+    --accent-hover: #005f99;
+    --error: #f44747;
+    --success: #4ec9b0;
+    --warning: #ff8800;
+    --info: #569cd6;
+    --info-hover: #4078c0;
 }

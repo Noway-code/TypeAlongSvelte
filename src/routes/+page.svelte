@@ -1,5 +1,11 @@
 <script lang="ts">
 	import '../styles/app.scss';
+	import { onMount } from 'svelte';
+	import ColorSettings from '../components/ColorSettings.svelte';
+	let mounted = false;
+	onMount(() => {
+		mounted = true;
+	});
 </script>
 
 <!-- Glassmorphism Background Wrapper -->
@@ -20,7 +26,6 @@
 		<a href="/select" class="nav-link">Select Book</a>
 		<a href="/random-type" class="nav-link">Random Typing</a>
 	</nav>
-
 	<!-- Feature Showcase Rows -->
 	<section class="feature-showcase">
 		<div class="feature-description">
@@ -32,7 +37,7 @@
 			</p>
 		</div>
 		<div class="feature-image">
-			<img src="src/public/images/placeholder.WEBP" alt="Typing Game Screenshot" />
+			<img src="src/public/images/img.png" alt="Typing Game Screenshot" />
 		</div>
 	</section>
 
@@ -45,7 +50,7 @@
 			</p>
 		</div>
 		<div class="feature-image">
-			<img src="src/public/images/placeholder.WEBP" alt="Theme Customization" />
+			<img src="src/public/images/img_1.png" alt="Theme Customization" />
 		</div>
 	</section>
 
@@ -58,15 +63,22 @@
 			</p>
 		</div>
 		<div class="feature-image">
-			<img src="src/public/images/placeholder.WEBP" alt="Progress Dashboard" />
+			<img src="src/public/images/img_1.png" alt="Progress Dashboard" />
 		</div>
 	</section>
+
+	{#if mounted}
+		<ColorSettings />
+	{/if}
+
+
 </main>
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Lexend+Deca&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
-		@import '../styles/variables.scss';
+    @import '../styles/variables.scss';
+
     /* Reset and Global Styles */
     *,
     *::before,
