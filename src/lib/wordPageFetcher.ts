@@ -18,16 +18,19 @@ export function updatePage({
 	pageWordIndex: number;
 	pageNumber: number;
 	pageWordCount: number[];
-}): { pageWordIndex: number; pageNumber: number } {
+}): { pageWordIndex: number; pageNumber: number; chapterComplete: boolean } {
+	const pages = get(typingPages);
+	let chapterComplete = false;
 	if (pageWordIndex === pageWordCount[pageNumber]) {
-		pageNumber += 1;
-		pageWordIndex = 0;
-
-		const pages = get(typingPages);
-		if (pages[pageNumber] && pages[pageNumber].cfi){
-			localStorage.setItem('currentLocationCFI', pages[pageNumber].cfi);
+		if (pageNumber === pages.length - 1) {
+			chapterComplete = true;
+		} else {
+			pageNumber += 1;
+			pageWordIndex = 0;
+			if (pages[pageNumber] && pages[pageNumber].cfi) {
+				localStorage.setItem('currentLocationCFI', pages[pageNumber].cfi);
+			}
 		}
-
 	}
-	return { pageWordIndex, pageNumber };
+	return { pageWordIndex, pageNumber, chapterComplete };
 }

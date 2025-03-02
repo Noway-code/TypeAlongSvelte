@@ -32,6 +32,8 @@
 		stiffness: 0.1,
 		damping: 1.6
 	});
+	let finalWPM = 0;
+	let finalAccuracy = 0;
 	let total = 0;
 	let pageWordCount: number[] = [];
 	let pageNumber = 0;
@@ -240,6 +242,15 @@
 		gameTimerInterval = setInterval(gameTimer, 1000);
 	}
 
+	function gameOver() {
+		simulateGame = false;
+		finalWPM = wpm.current;
+		finalAccuracy = accuracy.current;
+
+
+		setGameState('game over');
+	}
+
 	function updateGameState() {
 		if (!wordsEl) {
 			return;
@@ -299,7 +310,13 @@
 			moveCaret();
 			wordTimestamps.push(Date.now());
 			pageWordIndex += 1;
-			({ pageWordIndex, pageNumber } = updatePage({ pageWordIndex, pageNumber, pageWordCount }));
+			const updatedPage = updatePage({ pageWordIndex, pageNumber, pageWordCount });
+			pageWordIndex = updatedPage.pageWordIndex;
+			pageNumber = updatedPage.pageNumber;
+			if (updatedPage.chapterComplete) {
+				console.log('Chapter complete');
+				gameOver();
+			}
 		}
 	}
 
@@ -385,7 +402,8 @@
 			Back
 		</a>
 
-		<div class="stats">
+		{#if game !== 'game over'}
+			<div class="stats">
 			<div class="stat">
 				<span>Accuracy</span>
 				<span>{accuracy.current.toFixed(1)}%</span>
@@ -399,6 +417,8 @@
 				<span>{pageNumber}</span>
 			</div>
 		</div>
+		{/if}
+
 
 		<div class="volume-container">
 			<div class="volume-knobs" style="display: flex; flex-direction: row">
@@ -464,6 +484,16 @@
 					</button>
 				</div>
 			</div>
+		{/if}
+
+		{#if game === 'game over'}
+			<div class="game-over">
+				<h1>Game Over</h1>
+				<p>Accuracy: {finalAccuracy.toFixed(1)}%</p>
+				<p>WPM: {finalWPM.toFixed(1)}</p>
+				<button on:click={resetGame}>Play Again</button>
+			</div>
+
 		{/if}
 	</div>
 </div>

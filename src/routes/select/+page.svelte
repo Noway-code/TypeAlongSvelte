@@ -29,6 +29,10 @@
 
 		let pageText = '';
 		try {
+			if (!location || !location.start || !location.end || !location.start.cfi || !location.end.cfi) {
+				console.error('Current location or CFIs not available');
+				return '';
+			}
 			// 1. Get the start and end CFIs of the currently displayed page
 			const startCfi = location.start.cfi;
 			const endCfi = location.end.cfi;

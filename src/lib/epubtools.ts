@@ -62,18 +62,19 @@ export async function storeCurrentLocation() {
 	const b = get(book);
 	if (!r || !b) return;
 	const currentLocation = r.currentLocation();
-	if (!currentLocation) return [];
-
+	if (!currentLocation || !currentLocation.start || !currentLocation.end || !currentLocation.start.cfi || !currentLocation.end.cfi) {
+		console.error("Current location or CFIs not available");
+		return;
+	}
 	try {
-		// @ts-ignore
 		const rangeCfi = makeRangeCfi(currentLocation.start.cfi, currentLocation.end.cfi);
 		currentLocationCFI.set(rangeCfi);
 		console.log('Stored current location:', rangeCfi);
-
 	} catch (error) {
 		console.error('Failed to store current location:', error);
 	}
 }
+
 
 // New store to hold the saved page CFI
 export const savedPageCFI = writable<string | null>(null);
