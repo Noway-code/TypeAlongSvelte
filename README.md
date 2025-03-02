@@ -95,6 +95,18 @@ TypeAlong isn’t just another typing game. It’s an innovative platform that l
 
 ## Screenshots
 
+### Home Page
+![Home Page](src/public/images/home-page.png)
+
+### Typing Mode
+![Typing Mode](src/public/images/practice-type.png)
+
+### Book Upload & Preview
+![Book Upload & Preview](src/public/images/book-toc.png)
+
+### Customization Options
+![Customization Options](src/public/images/themes.png)
+
 ## Development Status
 As of now, the project is in its early stages of development. The core features are functional, but there are still many improvements and enhancements to be made. Here are some of the planned updates:
 - **Live Multiplayer:** Introduce real-time multiplayer typing games (book clubs).
@@ -110,6 +122,8 @@ TypeAlong was born out of a need to create something that wasn’t just a toy pr
 - **Research & Experimentation:** Extensive note-taking and iterative learning with Svelte, SvelteKit, and TypeScript helped shape the project’s foundation.
 - **EPUB Integration:** Incorporating [epub.js](https://github.com/futurepress/epub.js) was challenging due to sparse documentation and legacy code examples. Overcoming these obstacles led to a unique, if initially rough, implementation.
 - **Overcoming Challenges:** From grappling with technical debt to managing personal challenges (shoutout to my friend [Jacob](https://github.com/jdioso) for his constant UI/UX support and encouragement), TypeAlong is a testament to perseverance and creative problem-solving.
+
+Want to read more about the development journey? Check out my [Blog Post](https://www.nowaycode.com/projects/typealong) for a detailed account of the project’s inception, challenges, and future plans.
 
 ---
 
