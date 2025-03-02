@@ -499,7 +499,8 @@
 </div>
 
 <style lang="scss">
-  .letter {
+  @import '../../styles/variables.scss';
+	.letter {
     opacity: 0.4;
     transition: all 0.3s ease;
 

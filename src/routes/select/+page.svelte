@@ -310,7 +310,7 @@
 <style lang="scss">
   @import url('https://fonts.googleapis.com/css2?family=Lexend+Deca&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
-
+	@import '../../styles/variables.scss';
   html, body, #app, main {
     margin: 0;
     padding: 0;
@@ -330,21 +330,6 @@
     color: #ECEFF4;
   }
 
-  :root {
-    --nord-frost: #88C0D0;
-    --nord-snow-storm: #ECEFF4;
-    --nord-snow-storm-dim: #D8DEE9;
-    --nord-polar-night: #2E3440;
-    --nord-polar-night-accent: #3B4252;
-    --nord-accent: #81A1C1;
-    --nord-accent-hover: #5E81AC;
-    --nord-aurora-red: #BF616A;
-    --nord-aurora-green: #A3BE8C;
-    --nord-aurora-yellow: #EBCB8B;
-    --nord-info: #88C0D0;
-    --nord-info-hover: #5E81AC;
-  }
-
   .container {
     display: flex;
     flex-direction: column;
@@ -354,7 +339,7 @@
     margin-top: 1rem;
     padding: 2rem;
     border-radius: 20px;
-    background-color: var(--nord-polar-night-accent);
+    background-color: var(--bg-200);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     position: relative;
   }
@@ -416,9 +401,9 @@
     top: 1rem;
     left: 0;
     transform: translateX(25%);
-    background-color: var(--nord-accent);
+    background-color: var(--accent);
     border: none;
-    color: var(--nord-snow-storm);
+    color: var(--fg-100);
     cursor: pointer;
     border-radius: 50%;
     width: 2.5rem;
@@ -428,7 +413,7 @@
     transition: background-color 0.3s ease, transform 0.3s ease, opacity .2s ease-in-out;
 
     &:hover {
-      background-color: var(--nord-accent-hover);
+      background-color: var(--accent-hover);
     }
   }
 
@@ -444,7 +429,7 @@
     h1 {
       font-family: 'Lexend Deca', sans-serif;
       font-size: 2rem;
-      color: var(--nord-frost);
+      color: var(--primary);
     }
   }
 
@@ -458,24 +443,24 @@
 
     input[type="file"] {
       padding: 0.5rem;
-      border: 1px solid var(--nord-snow-storm-dim);
+      border: 1px solid var(--fg-200);
       border-radius: 4px;
-      background-color: var(--nord-polar-night-accent);
-      color: var(--nord-snow-storm-dim);
+      background-color: var(--bg-200);
+      color: var(--fg-200);
       transition: border-color 0.3s ease;
       max-width: 300px;
 
       &:focus {
         outline: none;
-        border-color: var(--nord-frost);
+        border-color: var(--primary);
       }
     }
 
     .upload-button {
       padding: 0.75rem 1.5rem;
       font-size: 1rem;
-      color: var(--nord-snow-storm);
-      background-color: var(--nord-accent);
+      color: var(--fg-100);
+      background-color: var(--accent);
       border: none;
       border-radius: 8px;
       cursor: pointer;
@@ -484,13 +469,13 @@
       width: 100%;
 
       &:hover {
-        background-color: var(--nord-accent-hover);
+        background-color: var(--accent-hover);
         transform: translateY(-2px);
       }
 
       &:active {
         transform: translateY(0);
-        background-color: var(--nord-frost);
+        background-color: var(--primary);
       }
     }
   }
@@ -510,7 +495,7 @@
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background-color: var(--nord-frost);
+    background-color: var(--primary);
     opacity: 0.6;
     position: absolute;
     top: 0;
@@ -543,7 +528,7 @@
 
     p {
       font-size: 1.1rem;
-      color: var(--nord-snow-storm-dim);
+      color: var(--fg-200);
       word-wrap: break-word;
     }
   }
@@ -567,9 +552,9 @@
   .control-button {
     padding: 0.6rem 1.2rem;
     font-size: 1.5rem;
-    color: var(--nord-snow-storm);
-    background-color: var(--nord-polar-night-accent);
-    border: 2px solid var(--nord-frost);
+    color: var(--fg-100);
+    background-color: var(--bg-200);
+    border: 2px solid var(--primary);
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
@@ -577,15 +562,15 @@
 
     &:hover,
     &:focus {
-      background-color: var(--nord-frost);
-      color: var(--nord-polar-night);
+      background-color: var(--primary);
+      color: var(--bg-100);
       transform: translateY(-2px);
       outline: none;
     }
 
     &:active {
       transform: translateY(0);
-      background-color: var(--nord-accent-hover);
+      background-color: var(--accent-hover);
     }
   }
 
@@ -600,8 +585,8 @@
   .start-game-button {
     padding: 0.75rem 1rem;
     font-size: 1rem;
-    color: var(--nord-snow-storm);
-    background-color: var(--nord-accent);
+    color: var(--fg-100);
+    background-color: var(--accent);
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -610,27 +595,27 @@
     max-width: 250px;
 
     &:hover {
-      background-color: var(--nord-accent-hover);
+      background-color: var(--accent-hover);
       transform: translateY(-2px);
     }
 
     &:active {
       transform: translateY(0);
-      background-color: var(--nord-frost);
+      background-color: var(--primary);
     }
   }
 
   .game-link {
     display: inline-block;
     font-size: 1rem;
-    color: var(--nord-snow-storm);
+    color: var(--fg-100);
     text-decoration: none;
     transition: color 0.3s ease;
     text-align: center;
 
     &:hover,
     &:focus {
-      color: var(--nord-info-hover);
+      color: var(--info-hover);
       text-decoration: underline;
       outline: none;
     }

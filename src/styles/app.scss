@@ -1,28 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Lexend+Deca&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
-
+@import 'variables';
 *,
 *::before,
 *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
-
-:root {
-  --primary: #88C0D0; /* Nord Frost */
-  --fg-100: #ECEFF4; /* Nord Snow Storm */
-  --fg-200: #D8DEE9; /* Slightly dimmer Snow Storm */
-  --bg-100: #2E3440; /* Nord Polar Night */
-  --bg-200: #3B4252; /* Polar Night accent */
-  --bg-300: #434C5E; /* Polar Night accent */
-  --accent: #81A1C1; /* Nord Frost */
-  --accent-hover: #374552; /* Nord Frost */
-  --error: #BF616A; /* Nord Aurora Red */
-  --success: #A3BE8C; /* Nord Aurora Green */
-  --warning: #EBCB8B; /* Nord Aurora Yellow */
-  --info: #88C0D0; /* Nord Frost */
-  --info-hover: #5E81AC; /* Nord Frost */
 }
 
 html,
