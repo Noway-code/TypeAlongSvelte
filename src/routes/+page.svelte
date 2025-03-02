@@ -26,14 +26,14 @@
 		<a href="/select" class="nav-link">Select Book</a>
 		<a href="/random-type" class="nav-link">Random Typing</a>
 	</nav>
+
 	<!-- Feature Showcase Rows -->
 	<section class="feature-showcase">
 		<div class="feature-description">
 			<h2>Seamless Typing Experience</h2>
 			<p>
 				Experience a typing game that is both engaging and beautiful. Our interface features fluid animations,
-				responsive design,
-				and an intuitive layout—perfect for improving your typing speed while enjoying your favorite ebooks.
+				responsive design, and an intuitive layout—perfect for improving your typing speed while enjoying your favorite ebooks.
 			</p>
 		</div>
 		<div class="feature-image">
@@ -71,7 +71,6 @@
 		<ColorSettings />
 	{/if}
 
-
 </main>
 
 <style>
@@ -102,7 +101,6 @@
         border-radius: 50%;
         backdrop-filter: blur(30px);
         background-color: var(--bg-100);
-        border: 1px solid rgba(47, 90, 115, 0.3);
         box-shadow: 0 4px 30px var(--primary);
     }
 
@@ -192,11 +190,11 @@
         margin: 3rem auto;
         max-width: 60%;
         padding: 1rem;
-        background: rgba(255, 255, 255, 0.05);
+        background: color-mix(in srgb, var(--bg-300) 75%, transparent);
         border-radius: 12px;
         box-shadow: 0 8px 32px 0 rgba(17, 21, 72, 0.37);
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.18);
+        border: 1px solid var(--fg-200);
     }
 
     .feature-showcase:nth-of-type(even) {
@@ -212,13 +210,14 @@
     .feature-description h2 {
         font-family: 'Lexend Deca', sans-serif;
         font-size: 2rem;
-        color: var(--accent-hover);
+        color: var(--primary);
         margin-bottom: 1rem;
     }
 
     .feature-description p {
         font-family: 'Roboto Mono', monospace;
-        color: var(--fg-200);
+				font-size: 1.25rem;
+				color: var(--fg-200);
         line-height: 1.5;
     }
 

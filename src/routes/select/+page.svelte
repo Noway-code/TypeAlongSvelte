@@ -326,8 +326,7 @@
     justify-content: center;
     min-height: 100vh;
     font-family: 'Roboto Mono', monospace;
-    background-color: #2E3440;
-    color: #ECEFF4;
+
   }
 
   .container {
@@ -349,7 +348,7 @@
     top: 0;
     width: 350px;
     height: 100%;
-    background-color: #4C566A;
+    background-color: var(--bg-200);
     transform: translateX(-100%);
     transition: transform 0.3s ease;
     z-index: 10;
@@ -366,15 +365,15 @@
     align-items: center;
     justify-content: space-between;
     padding: 1rem;
-    background-color: #3B4252;
-    color: #D8DEE9;
+    background-color: var(--bg-200);
+    color: var(--fg-200);
   }
 
   .toc-close-button {
     background: transparent;
     border: none;
     font-size: 4rem;
-    color: #D8DEE9;
+    color: var(--fg-200);
     cursor: pointer;
     margin: 3px;
     line-height: 1;
@@ -388,11 +387,11 @@
 
   .toc-item {
     padding: 0.75rem;
-    color: #ECEFF4;
+    color: var(--fg-100);
     cursor: pointer;
 
     &:hover {
-      background-color: #434C5E;
+      background-color: var(--bg-300);
     }
   }
 
@@ -403,7 +402,7 @@
     transform: translateX(25%);
     background-color: var(--accent);
     border: none;
-    color: var(--fg-100);
+    color: var(--bg-200);
     cursor: pointer;
     border-radius: 50%;
     width: 2.5rem;
@@ -458,8 +457,8 @@
 
     .upload-button {
       padding: 0.75rem 1.5rem;
-      font-size: 1rem;
-      color: var(--fg-100);
+      font-size: 1.15rem;
+      color: var(--bg-200);
       background-color: var(--accent);
       border: none;
       border-radius: 8px;

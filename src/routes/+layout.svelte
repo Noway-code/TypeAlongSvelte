@@ -1,6 +1,6 @@
 <script lang="ts">
 	import '../styles/app.scss';
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount } from 'svelte';
 
 	let scrolled = false;
 
@@ -37,6 +37,7 @@
 	</main>
 
 	<footer class="footer">
+		<a href="https://www.nowaycode.com/projects/second-post" title="noway-code" target="_blank" rel="noopener noreferrer">Blog Post</a>
 		<a href="https://www.github.com/noway-code/TypeAlongSvelte" title="noway-code" target="_blank" rel="noopener noreferrer">Source Code</a>
 		<a href="https://www.flaticon.com/free-icons/rune" title="rune icons" target="_blank" rel="noopener noreferrer">Rune icons created by Aranagraphics - Flaticon</a>
 	</footer>
@@ -59,7 +60,7 @@
 
 	.footer a {
 		color: var(--fg-100);
-		text-decoration: #4C566A underline 2px;
+		text-decoration: var(--bg-300) underline 2px;
     opacity: 50%;
 		transition: opacity 0.2s ease;
 		&:hover {
