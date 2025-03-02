@@ -2,15 +2,15 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { get, writable } from 'svelte/store';
 	import { type Page } from '$lib/types';
+	import { savePage, loadPage, getPageCFI } from '$lib/epubtools';
 	import {
 		rendition,
-		typingWords,
+		typingPages,
 		currentLocationCFI
 	} from '../../stores/typingStore';
 	import {
 		book,
 		storeCurrentLocation,
-		fetchVisibleWords
 	} from '$lib/epubtools';
 	import ePub, { type Book, type Rendition } from 'epubjs';
 
@@ -75,10 +75,12 @@
 		await new Promise(r => setTimeout(r, 250));
 		do {
 			const newWords = await weirdLocation();
+			const cfi = getPageCFI();
 			const page = {
 				page: currentIndex,
 				section: currentIndex,
-				words: newWords
+				words: newWords,
+				cfi: cfi
 			};
 			pages.push(page);
 
@@ -97,13 +99,14 @@
 	}
 
 	async function fetchChapterWords() {
-		const newWords = await greedyGetWords();
-		if (!newWords) return;
-		typingWords.set(newWords);
+		const newPages = await greedyGetWords();
+		if (!newPages) return;
+		typingPages.set(newPages);
 		await storeCurrentLocation();
 	}
 
-	$: uploadedFile.subscribe(async (file) => {
+
+	$:uploadedFile.subscribe(async (file) => {
 		if (!file) return;
 		spinnerVisible = true;
 		get(rendition)?.destroy();
@@ -122,7 +125,19 @@
 				allowScriptedContent: true
 			});
 
-			await newRendition.display();
+			// Set relocated handler to update localStorage
+			newRendition.on('relocated', (location) => {
+
+			});
+
+			const savedLocation = localStorage.getItem('currentLocationCFI');
+			if (savedLocation) {
+				console.log("Saved location true in subscribe");
+				await newRendition.display(savedLocation);
+			} else {
+				console.log('No saved location in subscribe, displaying book');
+				await newRendition.display();
+			}
 			spinnerVisible = false;
 
 			newRendition.themes.register('largeText', {
@@ -140,13 +155,11 @@
 
 			const nav = await newBook.loaded.navigation;
 			tocItems = nav.toc || [];
-
-			newRendition.on('relocated', (location) => {
-			});
 		} catch (error) {
 			spinnerVisible = false;
 		}
 	});
+
 
 	let handleKeydown = (event: KeyboardEvent) => {
 		if (event.key === 'ArrowRight') {
@@ -180,12 +193,15 @@
 					context.iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts');
 				});
 
-				let locationCFI = get(currentLocationCFI);
-				if (locationCFI) {
-					await newRendition.display(locationCFI);
-				} else {
-					await newRendition.display();
-				}
+				// Set relocated handler to update localStorage
+				newRendition.on('relocated', (location) => {
+					if (location?.start?.cfi) {
+						// localStorage.setItem('currentLocationCFI', location.start.cfi);
+						// console.log('Updated current location in localStorage:', location.start.cfi);
+					}
+				});
+
+
 				spinnerVisible = false;
 
 				newRendition.themes.register('largeText', {
@@ -200,17 +216,23 @@
 				newRendition.themes.select('largeText');
 
 				rendition.set(newRendition);
-
+				const savedLocation = localStorage.getItem('currentLocationCFI');
+				console.log('Saved location:', savedLocation);
+				if (savedLocation) {
+					console.log("Saved location true in onMount");
+					await newRendition.display(savedLocation);
+				} else {
+					console.log('No saved location in onMount, displaying book');
+					await newRendition.display();
+				}
 				const nav = await newBook.loaded.navigation;
 				tocItems = nav.toc || [];
-
-				newRendition.on('relocated', (location) => {
-				});
 			} catch (error) {
 				spinnerVisible = false;
 			}
 		}
 	});
+
 
 	onDestroy(() => {
 		document.removeEventListener('keydown', handleKeydown);
@@ -251,6 +273,11 @@
 				<button class="control-button" on:click={() => $rendition?.prev()}>Previous</button>
 				<button class="control-button" on:click={() => $rendition?.next()}>Next</button>
 				<button class="control-button" on:click={() => $rendition?.display()}>Go to Start</button>
+				<!-- New Save and Load buttons -->
+
+				<button on:click={savePage}>Save Page</button>
+				<button on:click={loadPage}>Load Page</button>
+
 			</div>
 			{#if spinnerVisible}
 				<div class="spinner">
@@ -310,8 +337,8 @@
     justify-content: center;
     min-height: 100vh;
     font-family: 'Roboto Mono', monospace;
-    background-color: #2E3440; /* var(--nord-polar-night) */
-    color: #ECEFF4; /* var(--nord-snow-storm) */
+    background-color: #2E3440;
+    color: #ECEFF4;
   }
 
   :root {
@@ -340,7 +367,7 @@
     border-radius: 20px;
     background-color: var(--nord-polar-night-accent);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    position: relative; /* so the ToC drawer can overlap */
+    position: relative;
   }
 
   .toc-drawer {
@@ -485,7 +512,7 @@
     left: 50%;
     width: 40px;
     height: 40px;
-    margin: -20px 0 0 -20px; /* Center the spinner */
+    margin: -20px 0 0 -20px;
     z-index: 100;
   }
 
@@ -633,13 +660,11 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
 
-
   .invisible {
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
   }
-
 
   @media (max-width: 768px) {
     .container {

@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { blur } from 'svelte/transition';
 	import '../../styles/type.scss';
-	import { typingWords } from '../../stores/typingStore';
+	import { typingPages } from '../../stores/typingStore';
 	import { onMount, onDestroy } from 'svelte';
 	import { Spring } from 'svelte/motion';
 	import { type Word, type Game, type Pitch } from '$lib/types';
+	import { wordsData, updatePage } from '$lib/wordPageFetcher';
+	import { get } from 'svelte/store';
 
 	export let words: Word[] = [];
 
@@ -40,10 +42,7 @@
 	const wordTimestamps: number[] = [];
 	const WPM_WINDOW_MS = 60000;
 
-	$: typingWords.subscribe(value => {
-		words = value.flatMap((page) => page.words);
-		pageWordCount = value.map((page) => page.words.length);
-	});
+	$: { ({ words, pageWordCount } = $wordsData); }
 
 	let wordsEl: HTMLDivElement;
 	let letterEl: HTMLSpanElement | null;
@@ -220,6 +219,8 @@
 		setGameState('in progress');
 		startTime = Date.now();
 		setGameTimer();
+		const pages = get(typingPages);
+		localStorage.setItem('currentLocationCFI', pages[0].cfi);
 	}
 
 	function setGameState(state: Game) {
@@ -251,7 +252,6 @@
 		updateLine();
 		resetLetter();
 		moveCaret();
-		// debug();
 		focusInput();
 	}
 
@@ -299,14 +299,7 @@
 			moveCaret();
 			wordTimestamps.push(Date.now());
 			pageWordIndex += 1;
-			pageUpdate();
-		}
-	}
-
-	function pageUpdate() {
-		if (pageWordIndex === pageWordCount[pageNumber]) {
-			pageNumber += 1;
-			pageWordIndex = 0;
+			({ pageWordIndex, pageNumber } = updatePage({ pageWordIndex, pageNumber, pageWordCount }));
 		}
 	}
 

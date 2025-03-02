@@ -1,9 +1,13 @@
+// file: src/lib/epubtools.ts
+// noinspection TypeScriptUnresolvedReference
+
 import { get, writable } from 'svelte/store';
 import pkg, { type Book, type Rendition } from 'epubjs';
 import { type Page } from '$lib/types';
-import { typingWords, rendition, currentLocationCFI } from '../stores/typingStore';
+import { typingPages, rendition, currentLocationCFI } from '../stores/typingStore';
 // @ts-ignore
 const { CFI } = pkg;
+
 /**
  * This store will hold the Book instance.
  */
@@ -52,38 +56,6 @@ export const makeRangeCfi = (a: string, b: string): string => {
 	return `epubcfi(${CFIInstance.segmentString(cfi.base)}!${CFIInstance.segmentString(cfi.path)},${CFIInstance.segmentString(cfi.start)},${CFIInstance.segmentString(cfi.end)})`;
 };
 
-/**
- * Fetches words from the current page using CFI-based range extraction.
- * This function now reads both `rendition` and `book` directly from the stores.
- */
-// export async function fetchPageWords() {
-// 	const r = get(rendition);
-// 	const b = get(book);
-// 	if (!r || !b) return [];
-//
-// 	const currentLocation = r.currentLocation();
-// 	if (
-// 		!currentLocation ||
-// 		!currentLocation.start ||
-// 		!currentLocation.end ||
-// 		!currentLocation.start.cfi ||
-// 		!currentLocation.end.cfi
-// 	) {
-// 		console.error('Failed to get current location:', currentLocation);
-// 		return [];
-// 	}
-//
-// 	try {
-// 		// @ts-ignore
-// 		const rangeCfi = makeRangeCfi(currentLocation.start.cfi, currentLocation.end.cfi);
-// 		const range = await b.getRange(rangeCfi);
-// 		const extractedText = range.toString();
-// 		return extractedText.split(/\s+/).filter((word) => word.length > 0);
-// 	} catch (error) {
-// 		console.error('Failed to extract words using CFI range:', error);
-// 		return [];
-// 	}
-// }
 
 export async function storeCurrentLocation() {
 	const r = get(rendition);
@@ -97,18 +69,58 @@ export async function storeCurrentLocation() {
 		const rangeCfi = makeRangeCfi(currentLocation.start.cfi, currentLocation.end.cfi);
 		currentLocationCFI.set(rangeCfi);
 		console.log('Stored current location:', rangeCfi);
+
 	} catch (error) {
 		console.error('Failed to store current location:', error);
 	}
 }
 
-export function fetchVisibleWords() {
+// New store to hold the saved page CFI
+export const savedPageCFI = writable<string | null>(null);
+
+/**
+ * Saves the current page's starting CFI from the rendition.
+ */
+export function savePage(): void {
 	const r = get(rendition);
-	if (!r) return [];
-	const contents = r.getContents();
-	let text = '';
-	contents.forEach((content) => {
-		text += content.document.body.innerText + ' ';
-	});
-	return text.trim().split(/\s+/).filter((word) => word.length > 0);
+	if (r) {
+		const location = r.currentLocation();
+		const cfi = location?.start?.cfi;
+		if (cfi) {
+			savedPageCFI.set(location.start.cfi);
+			localStorage.setItem('currentLocationCFI', location.start.cfi);
+			console.log('Saved page at CFI:', location.start.cfi);
+		} else {
+			console.log('No valid CFI found in current location.');
+		}
+	} else {
+		console.log('No rendition available to save page.');
+	}
+}
+
+export function getPageCFI(): string | null {
+	const r = get(rendition);
+	if (r) {
+		const location = r.currentLocation();
+		const cfi = location?.start?.cfi;
+		if (cfi) {
+			console.log('Current page at CFI:', location.start.cfi);
+			return cfi;
+		}
+	}
+	return null;
+}
+
+/**
+ * Loads the saved page by instructing the rendition to display the saved CFI.
+ */
+export async function loadPage() {
+	const r = get(rendition);
+	const cfi = localStorage.getItem('currentLocationCFI');
+	if (r && cfi) {
+		await r.display(cfi);
+		console.log('Loaded page at CFI:', cfi);
+	} else {
+		console.log('No saved page found or no rendition available.');
+	}
 }
