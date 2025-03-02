@@ -37,7 +37,7 @@
 			</p>
 		</div>
 		<div class="feature-image">
-			<img src="src/public/images/img.png" alt="Typing Game Screenshot" />
+			<img src="src/public/images/practice-type.png" alt="Typing Game Screenshot" />
 		</div>
 	</section>
 
@@ -50,7 +50,7 @@
 			</p>
 		</div>
 		<div class="feature-image">
-			<img src="src/public/images/img_1.png" alt="Theme Customization" />
+			<img src="src/public/images/themes.png" alt="Theme Customization" />
 		</div>
 	</section>
 
@@ -63,7 +63,7 @@
 			</p>
 		</div>
 		<div class="feature-image">
-			<img src="src/public/images/img_1.png" alt="Progress Dashboard" />
+			<img src="src/public/images/book-toc.png" alt="Progress Dashboard" />
 		</div>
 	</section>
 
