@@ -1,15 +1,16 @@
+/* src/styles/variables.scss */
 :root {
-  --primary: #88C0D0;       /* Nord Frost */
-  --fg-100: #ECEFF4;        /* Nord Snow Storm */
-  --fg-200: #D8DEE9;        /* Slightly dimmer Snow Storm */
-  --bg-100: #2E3440;        /* Nord Polar Night */
-  --bg-200: #3B4252;        /* Polar Night Accent */
-  --bg-300: #434C5E;        /* Additional background shade */
-  --accent: #81A1C1;        /* Nord Accent */
-  --accent-hover: #5E81AC;   /* Accent Hover */
-  --error: #BF616A;         /* Nord Aurora Red */
-  --success: #A3BE8C;       /* Nord Aurora Green */
-  --warning: #EBCB8B;       /* Nord Aurora Yellow */
-  --info: #88C0D0;          /* Nord Frost */
-  --info-hover: #5E81AC;     /* Info Hover */
+  --primary: #83a598;       /* Gruvbox Blue */
+  --fg-100: #ebdbb2;        /* Gruvbox Light (Foreground) */
+  --fg-200: #928374;        /* Gruvbox Gray (Dim Foreground) */
+  --bg-100: #282828;        /* Gruvbox Dark Background */
+  --bg-200: #3c3836;        /* Gruvbox Medium Dark Background */
+  --bg-300: #504945;        /* Gruvbox Lighter Dark Background */
+  --accent: #fe8019;        /* Gruvbox Orange */
+  --accent-hover: #d65d0e;   /* Slightly Darker Orange for Hover */
+  --error: #fb4934;         /* Gruvbox Red */
+  --success: #b8bb26;       /* Gruvbox Green */
+  --warning: #fabd2f;       /* Gruvbox Yellow */
+  --info: #83a598;          /* Gruvbox Blue (Same as Primary) */
+  --info-hover: #689d90;     /* Slightly Darker Blue for Hover */
 }

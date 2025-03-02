@@ -52,13 +52,13 @@
 		display: flex;
     flex-direction: column;
 		padding: 1rem;
-		color: var(--nord-snow-storm);
+		color: var(--fg-100);
 		margin-top: 20px;
 		background: transparent;
   }
 
 	.footer a {
-		color: var(--nord-snow-storm);
+		color: var(--fg-100);
 		text-decoration: #4C566A underline 2px;
     opacity: 50%;
 		transition: opacity 0.2s ease;
@@ -76,7 +76,7 @@
   .nav-bar {
     display: flex;
     align-items: center;
-    background-color: #3B4252;
+    background-color: var(--bg-300);
     padding: 1rem 2rem;
     backdrop-filter: blur(20px);
     position: fixed;

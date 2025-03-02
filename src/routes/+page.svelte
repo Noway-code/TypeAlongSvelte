@@ -66,7 +66,7 @@
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Lexend+Deca&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
-
+		@import '../styles/variables.scss';
     /* Reset and Global Styles */
     *,
     *::before,
@@ -76,39 +76,22 @@
         box-sizing: border-box;
     }
 
-    :root {
-        --nord-frost: #88C0D0;
-        --nord-snow-storm: #ECEFF4;
-        --nord-snow-storm-dim: #D8DEE9;
-        --nord-polar-night: #2E3440;
-        --nord-polar-night-accent: #3B4252;
-        --nord-polar-night-dim: #434c5e;
-        --nord-polar-night-dim-accent: #4C566A;
-        --nord-accent: #81A1C1;
-        --nord-accent-hover: #5E81AC;
-        --nord-aurora-red: #BF616A;
-        --nord-aurora-green: #A3BE8C;
-        --nord-aurora-yellow: #EBCB8B;
-        --nord-info: #88C0D0;
-        --nord-info-hover: #5E81AC;
-    }
-
     /***** Glassmorphism Background *****/
     .glass-bg {
         position: fixed;
         inset: 0;
         z-index: -1;
         overflow: hidden;
-        background: radial-gradient(circle, var(--nord-polar-night-accent) 30%, var(--nord-polar-night) 100%);
+        background: radial-gradient(circle, var(--bg-200) 30%, var(--bg-100) 100%);
     }
 
     .shape {
         position: absolute;
         border-radius: 50%;
         backdrop-filter: blur(30px);
-        background-color: var(--nord-polar-night);
+        background-color: var(--bg-100);
         border: 1px solid rgba(47, 90, 115, 0.3);
-        box-shadow: 0 4px 30px var(--nord-frost);
+        box-shadow: 0 4px 30px var(--primary);
     }
 
     .shape1 {
@@ -148,13 +131,13 @@
     header h1 {
         font-family: 'Lexend Deca', sans-serif;
         font-size: 3rem;
-        color: var(--nord-frost);
+        color: var(--primary);
         margin-bottom: 0.5rem;
     }
 
     .subtitle {
         font-size: 1.5rem;
-        color: var(--nord-snow-storm-dim);
+        color: var(--fg-200);
     }
 
     .navigation {
@@ -168,9 +151,9 @@
         display: inline-block;
         padding: 0.75rem 1.5rem;
         font-size: 1.25rem;
-        color: var(--nord-snow-storm);
-        background-color: var(--nord-polar-night-accent);
-        border: 2px solid var(--nord-frost);
+        color: var(--fg-100);
+        background-color: var(--bg-200);
+        border: 2px solid var(--primary);
         border-radius: 8px;
         text-decoration: none;
         transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
@@ -178,15 +161,15 @@
 
     .nav-link:hover,
     .nav-link:focus {
-        background-color: var(--nord-frost);
-        color: var(--nord-polar-night);
+        background-color: var(--primary);
+        color: var(--bg-100);
         transform: translateY(-2px);
         outline: none;
     }
 
     .nav-link:active {
         transform: translateY(0);
-        background-color: var(--nord-accent-hover);
+        background-color: var(--error);
     }
 
     /* Feature Showcase Styles */
@@ -217,13 +200,13 @@
     .feature-description h2 {
         font-family: 'Lexend Deca', sans-serif;
         font-size: 2rem;
-        color: var(--nord-accent);
+        color: var(--accent-hover);
         margin-bottom: 1rem;
     }
 
     .feature-description p {
         font-family: 'Roboto Mono', monospace;
-        color: var(--nord-snow-storm-dim);
+        color: var(--fg-200);
         line-height: 1.5;
     }
 
@@ -238,7 +221,7 @@
         max-width: 100%;
         height: auto;
         border-radius: 16px;
-        border: 4px solid var(--nord-accent);
+        border: 4px solid var(--accent-hover);
         box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
     }
 
