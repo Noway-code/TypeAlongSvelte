@@ -2,17 +2,11 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { get, writable } from 'svelte/store';
 	import { type Page } from '$lib/types';
-	import { savePage, loadPage, getPageCFI } from '$lib/epubtools';
-	import {
-		rendition,
-		typingPages,
-		currentLocationCFI
-	} from '../../stores/typingStore';
-	import {
-		book,
-		storeCurrentLocation,
-	} from '$lib/epubtools';
+	import { book, getPageCFI, loadPage, savePage, storeCurrentLocation } from '$lib/epubtools';
+	import { currentLocationCFI, rendition, typingPages } from '../../stores/typingStore';
 	import ePub, { type Book, type Rendition } from 'epubjs';
+	import { Button } from 'flowbite-svelte';
+	import { storeBook } from '$lib/storage';
 
 	const uploadedFile = writable<File | null>(null);
 	let selectedFile: FileList | null = null;
@@ -29,17 +23,12 @@
 		if (!location?.start?.cfi || !location?.end?.cfi) return;
 
 		try {
-			// Get the DOM ranges for the start and end CFIs.
 			const startRange = await newBook.getRange(location.start.cfi);
 			const endRange = await newBook.getRange(location.end.cfi);
-
-			// Create a new combined Range from the two ranges.
 			const ownerDoc = startRange.commonAncestorContainer.ownerDocument;
 			const combinedRange = ownerDoc.createRange();
 			combinedRange.setStart(startRange.startContainer, startRange.startOffset);
 			combinedRange.setEnd(endRange.endContainer, endRange.endOffset);
-
-			// Convert the range to text and split it into words.
 			const pageText = combinedRange.toString().trim();
 			const words = pageText.split(/\s+/).filter((word) => word.length > 0);
 			console.log('Words on current page:', words);
@@ -76,12 +65,8 @@
 			};
 			pages.push(page);
 
-			if (currentIndex === lastSection) {
-				break;
-			}
-
+			if (currentIndex === lastSection) break;
 			await newRendition?.next();
-
 			currentIndex = newRendition?.currentLocation()?.start?.index ?? -1;
 		} while (currentIndex === sectionIndex);
 		spinnerVisible = false;
@@ -97,8 +82,7 @@
 		await storeCurrentLocation();
 	}
 
-
-	$:uploadedFile.subscribe(async (file) => {
+	$: uploadedFile.subscribe(async (file) => {
 		if (!file) return;
 		spinnerVisible = true;
 		get(rendition)?.destroy();
@@ -119,10 +103,10 @@
 
 			const savedLocation = localStorage.getItem('currentLocationCFI');
 			if (savedLocation) {
-				console.log("Saved location true in subscribe");
+				console.log('Saved location true in subscribe');
 				await newRendition.display(savedLocation);
 			} else {
-				console.log('No saved location in subscribe, displaying book')
+				console.log('No saved location in subscribe, displaying book');
 				localStorage.removeItem('currentLocationCFI');
 				await newRendition.display();
 			}
@@ -143,11 +127,46 @@
 
 			const nav = await newBook.loaded.navigation;
 			tocItems = nav.toc || [];
+			await storeTOCItems();
+
+			const bookDetails = extractBookDetails(newBook);
+			storeBook(bookDetails);
+
 		} catch (error) {
 			spinnerVisible = false;
 		}
 	});
 
+	function extractBookDetails(book: Book) {
+		const metadata = book.package.metadata;
+		const title = metadata.title;
+		const cover = metadata.cover;
+		const author = metadata.creator;
+		const publisher = metadata.publisher;
+		const language = metadata.language;
+		const description = metadata.description;
+		const subjects = metadata.subjects;
+		const publicationDate = metadata.pubdate;
+		const identifier = metadata.identifier;
+		const source = metadata.source;
+		const toc = tocItems;
+		const pageProgression = metadata.pageProgression;
+
+		return {
+			title,
+			author,
+			cover,
+			publisher,
+			language,
+			description,
+			subjects,
+			publicationDate,
+			identifier,
+			source,
+			toc,
+			pageProgression
+		};
+	}
 
 	let handleKeydown = (event: KeyboardEvent) => {
 		if (event.key === 'ArrowRight') {
@@ -181,14 +200,11 @@
 					context.iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts');
 				});
 
-				// Set relocated handler to update localStorage
 				newRendition.on('relocated', (location) => {
 					if (location?.start?.cfi) {
-						// localStorage.setItem('currentLocationCFI', location.start.cfi);
-						// console.log('Updated current location in localStorage:', location.start.cfi);
+						// Optionally update localStorage here
 					}
 				});
-
 
 				spinnerVisible = false;
 
@@ -207,7 +223,7 @@
 				const savedLocation = localStorage.getItem('currentLocationCFI');
 				console.log('Saved location:', savedLocation);
 				if (savedLocation) {
-					console.log("Saved location true in onMount");
+					console.log('Saved location true in onMount');
 					await newRendition.display(savedLocation);
 				} else {
 					localStorage.removeItem('currentLocationCFI');
@@ -222,10 +238,15 @@
 		}
 	});
 
-
 	onDestroy(() => {
 		document.removeEventListener('keydown', handleKeydown);
 	});
+
+	async function storeTOCItems() {
+		for (let i = 0; i < tocItems.length; i++) {
+			tocItems[i].label = tocItems[i].label.trim();
+		}
+	}
 
 	async function uploadEpub() {
 		if (!selectedFile) return;
@@ -240,6 +261,7 @@
 		showToc = !showToc;
 	}
 </script>
+
 
 <main class="container">
 	<header>
@@ -266,6 +288,9 @@
 
 				<button on:click={savePage}>Save Page</button>
 				<button on:click={loadPage}>Load Page</button>
+				<button class="control-button">
+					<a href="/selection" style="text-decoration: none; color: var(--fg-100);">Books</a>
+				</button>
 
 			</div>
 			{#if spinnerVisible}
@@ -310,7 +335,8 @@
 <style lang="scss">
   @import url('https://fonts.googleapis.com/css2?family=Lexend+Deca&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
-	@import '../../styles/variables.scss';
+  @import '../../styles/variables.scss';
+
   html, body, #app, main {
     margin: 0;
     padding: 0;

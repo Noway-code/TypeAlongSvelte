@@ -383,7 +383,7 @@
 
 <div class="page-content">
 	<div class="back-container">
-		<a aria-label="Go back to selection page" class="back" href="/select">
+		<a aria-label="Go back to selection page" class="back" href="/view-book">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				viewBox="0 0 24 17"
