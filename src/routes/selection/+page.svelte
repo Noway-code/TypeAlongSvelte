@@ -3,9 +3,63 @@
 	import { fade, fly } from 'svelte/transition';
 	import { Button, Textarea } from 'flowbite-svelte';
 
+	// Data source: 'local' uses localStorage; 'public' uses Gutendex.
+	let dataSource: 'local' | 'public' = 'local';
+
+	// Reactive books list: updates based on the data source.
 	let bookDetails: BookDetails[] = getStoredBooks();
+
 	let selectedBook: BookDetails | null = null;
 	let coverUrls: Record<string, string> = {};
+
+	// Fetch 5 books from Gutendex and cache them under "publicBooks"
+	async function fetchPublicBooks(): Promise<BookDetails[]> {
+		const cacheKey = 'publicBooks';
+		const cached = localStorage.getItem(cacheKey);
+		if (cached) {
+			try {
+				return JSON.parse(cached) as BookDetails[];
+			} catch (error) {
+				console.error('Error parsing cached public books:', error);
+			}
+		}
+		try {
+			const res = await fetch('https://gutendex.com/books/?page=1');
+			const data = await res.json();
+			// Limit to 5 books
+			const results = data.results.slice(0, 5);
+			const books: BookDetails[] = results.map((b: any) => ({
+				title: b.title,
+				author: (b.authors && b.authors.length > 0) ? b.authors[0].name : "Unknown",
+				cover: b.formats['image/jpeg'] || "",
+				publisher: "Project Gutenberg",
+				language: (b.languages && b.languages[0]) || "en",
+				description: "No description available",
+				subjects: b.subjects || [],
+				publicationDate: "",
+				identifier: `gutendex-${b.id}`,
+				source: "gutendex",
+				toc: [{ label: "Chapter 1", href: "#" }], // Dummy ToC data
+				pageProgression: "ltr"
+			}));
+			localStorage.setItem(cacheKey, JSON.stringify(books));
+			return books;
+		} catch (error) {
+			console.error('Error fetching public books:', error);
+			return [];
+		}
+	}
+
+	// Switch data source by setting the source and updating bookDetails.
+	async function setDataSource(source: 'local' | 'public') {
+		dataSource = source;
+		if (dataSource === 'local') {
+			bookDetails = getStoredBooks();
+		} else {
+			bookDetails = await fetchPublicBooks();
+		}
+		closeModal();
+	}
 
 	function openModal(book: BookDetails) {
 		selectedBook = book;
@@ -20,21 +74,26 @@
 			openModal(book);
 			event.preventDefault();
 		}
-
 	}
 
 	function addCoverToBookHandler(book: BookDetails, url: string) {
 		coverUrls[book.identifier] = '';
 		book.cover = url;
-
-		addCoverToBook(book.identifier, url);
-		bookDetails = getStoredBooks();
-
+		if (dataSource === 'local') {
+			addCoverToBook(book.identifier, url);
+			bookDetails = getStoredBooks();
+		} else {
+			bookDetails = bookDetails.map(b => b.identifier === book.identifier ? { ...b, cover: url } : b);
+		}
 	}
 
 	function removeBookHandler(identifier: string) {
-		removeBook(identifier);
-		bookDetails = getStoredBooks();
+		if (dataSource === 'local') {
+			removeBook(identifier);
+			bookDetails = getStoredBooks();
+		} else {
+			bookDetails = bookDetails.filter(book => book.identifier !== identifier);
+		}
 		closeModal();
 	}
 </script>
@@ -42,7 +101,15 @@
 <div class="container">
 	<h1 class="title">Book Selection</h1>
 	<p class="subtitle">Click a book to see more details</p>
-
+	<!-- Flipflop toggle between Local and Public data sources -->
+	<div class="flipflop">
+		<button class:active={dataSource === 'local'} on:click={() => setDataSource('local')}>
+			Local
+		</button>
+		<button class:active={dataSource === 'public'} on:click={() => setDataSource('public')}>
+			Public
+		</button>
+	</div>
 	<div class="books-grid">
 		{#each bookDetails as book (book.identifier)}
 			<div
@@ -83,7 +150,6 @@
 						<li>{item.label}</li>
 					{/each}
 				</ul>
-
 				<br>
 				{#if !selectedBook.cover}
 					<h3>Want to add a cover?</h3>
@@ -95,18 +161,19 @@
 					<Button
 						color="primary"
 						on:click={() => {
-								const url = coverUrls[selectedBook.identifier];
-								if (url) {
-									addCoverToBookHandler(selectedBook, url);
-									selectedBook.cover = url;
-								}
-							}}
+							const url = coverUrls[selectedBook.identifier];
+							if (url) {
+								addCoverToBookHandler(selectedBook, url);
+								selectedBook.cover = url;
+							}
+						}}
 					>
 						Add Cover
 					</Button>
 				{/if}
-
-				<Button on:click={() => { if (selectedBook) removeBookHandler(selectedBook.identifier) }}>Delete Book?</Button>
+				<Button on:click={() => { if (selectedBook) removeBookHandler(selectedBook.identifier) }}>
+					Delete Book?
+				</Button>
 			</div>
 		</div>
 	</div>
@@ -135,7 +202,34 @@
     margin-bottom: 2rem;
   }
 
-  /* Use flex layout so that the cards stay fixed-size and centered */
+  /* Flipflop Toggle Styles */
+  .flipflop {
+    display: inline-flex;
+    border: 1px solid var(--primary);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+
+    button {
+      padding: 0.5rem 1rem;
+      border: none;
+      background-color: var(--bg-200);
+      color: var(--fg-200);
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      flex: 1;
+    }
+
+    button.active {
+      background-color: var(--primary);
+      color: var(--bg-100);
+    }
+
+    button:not(:last-child) {
+      border-right: 1px solid var(--primary);
+    }
+  }
+
   .books-grid {
     display: flex;
     flex-wrap: wrap;
@@ -191,7 +285,6 @@
     color: var(--fg-100);
   }
 
-  /* Modal Styles */
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -230,61 +323,8 @@
     cursor: pointer;
   }
 
-  .modal-header {
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid var(--bg-300);
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
-
-    @media (max-width: 500px) {
-      flex-direction: column;
-      text-align: center;
-    }
-  }
-
-  .modal-cover {
-    width: 150px;
-    height: auto;
-    object-fit: cover;
-    border-radius: 4px;
-    margin-right: 1rem;
-
-    @media (max-width: 500px) {
-      margin-right: 0;
-      margin-bottom: 1rem;
-      width: 100%;
-    }
-  }
-
-  .modal-title {
-    flex: 1;
-
-    h2 {
-      margin: 0;
-      font-size: 1.75rem;
-    }
-
-    .author {
-      font-style: italic;
-      color: var(--fg-200);
-      margin-top: 0.5rem;
-    }
-  }
-
   .modal-body {
     text-align: left;
-
-    .description {
-      margin-bottom: 1rem;
-      line-height: 1.5;
-    }
-
-    h3 {
-      margin-top: 1rem;
-      font-size: 1.5rem;
-      color: var(--primary);
-    }
   }
 
   .toc-list {
