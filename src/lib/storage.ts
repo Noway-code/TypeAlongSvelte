@@ -31,11 +31,20 @@ export function storeBook(newBook: BookDetails): void {
 	localStorage.setItem('books', JSON.stringify(books));
 }
 
-// file: src/lib/storage.ts
 export function addCoverToBook(identifier: string, cover: string): void {
 	const books = getStoredBooks();
 	const updatedBooks = books.map(book =>
 		book.identifier === identifier ? { ...book, cover } : book
 	);
 	localStorage.setItem('books', JSON.stringify(updatedBooks));
+}
+
+export function removeBook(identifier: string): void {
+	const books = getStoredBooks();
+	const updatedBooks = books.filter(book => book.identifier !== identifier);
+	localStorage.setItem('books', JSON.stringify(updatedBooks));
+}
+
+export function clearStoredBooks(): void {
+	localStorage.removeItem('books');
 }

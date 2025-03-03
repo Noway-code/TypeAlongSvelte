@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { getStoredBooks, type BookDetails, addCoverToBook } from '$lib/storage';
+	import { getStoredBooks, type BookDetails, addCoverToBook, removeBook } from '$lib/storage';
 	import { fade, fly } from 'svelte/transition';
 	import { Button, Textarea } from 'flowbite-svelte';
 
 	let bookDetails: BookDetails[] = getStoredBooks();
 	let selectedBook: BookDetails | null = null;
 	let coverUrls: Record<string, string> = {};
+
 	function openModal(book: BookDetails) {
 		selectedBook = book;
 	}
@@ -29,6 +30,12 @@
 		addCoverToBook(book.identifier, url);
 		bookDetails = getStoredBooks();
 
+	}
+
+	function removeBookHandler(identifier: string) {
+		removeBook(identifier);
+		bookDetails = getStoredBooks();
+		closeModal();
 	}
 </script>
 
@@ -98,6 +105,8 @@
 						Add Cover
 					</Button>
 				{/if}
+
+				<Button on:click={() => { if (selectedBook) removeBookHandler(selectedBook.identifier) }}>Delete Book?</Button>
 			</div>
 		</div>
 	</div>
@@ -126,23 +135,12 @@
     margin-bottom: 2rem;
   }
 
+  /* Use flex layout so that the cards stay fixed-size and centered */
   .books-grid {
-    display: grid;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 1.5rem;
-    // Default grid: 1 column on very small screens
-    grid-template-columns: 1fr;
-  }
-
-  @media (min-width: 600px) {
-    .books-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @media (min-width: 900px) {
-    .books-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
   }
 
   .book-card {
@@ -153,7 +151,8 @@
     background-color: var(--bg-100);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    aspect-ratio: 2 / 3;
+    width: 280px;
+    height: 420px;
 
     &:hover {
       transform: translateY(-5px);
@@ -192,6 +191,7 @@
     color: var(--fg-100);
   }
 
+  /* Modal Styles */
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -208,7 +208,7 @@
 
   .modal-content {
     background-color: var(--bg-200);
-		color: var(--fg-100);
+    color: var(--fg-100);
     border-radius: 8px;
     max-width: 600px;
     width: 100%;
@@ -230,26 +230,61 @@
     cursor: pointer;
   }
 
-  .modal-body {
-    text-align: left;
+  .modal-header {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--bg-300);
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+
+    @media (max-width: 500px) {
+      flex-direction: column;
+      text-align: center;
+    }
   }
 
   .modal-cover {
-    width: 100%;
-    max-height: 300px;
+    width: 150px;
+    height: auto;
     object-fit: cover;
     border-radius: 4px;
-    margin-bottom: 1rem;
+    margin-right: 1rem;
+
+    @media (max-width: 500px) {
+      margin-right: 0;
+      margin-bottom: 1rem;
+      width: 100%;
+    }
   }
 
-  .author {
-    font-style: italic;
-    margin-bottom: 1rem;
-    color: var(--fg-100);
+  .modal-title {
+    flex: 1;
+
+    h2 {
+      margin: 0;
+      font-size: 1.75rem;
+    }
+
+    .author {
+      font-style: italic;
+      color: var(--fg-200);
+      margin-top: 0.5rem;
+    }
   }
 
-  .description {
-    margin-bottom: 1rem;
+  .modal-body {
+    text-align: left;
+
+    .description {
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+
+    h3 {
+      margin-top: 1rem;
+      font-size: 1.5rem;
+      color: var(--primary);
+    }
   }
 
   .toc-list {
