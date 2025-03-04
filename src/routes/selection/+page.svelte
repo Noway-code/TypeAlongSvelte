@@ -171,9 +171,6 @@
 						Add Cover
 					</Button>
 				{/if}
-				<Button on:click={() => { if (selectedBook) removeBookHandler(selectedBook.identifier) }}>
-					Delete Book?
-				</Button>
 			</div>
 		</div>
 	</div>
