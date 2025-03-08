@@ -1,8 +1,10 @@
 <script lang="ts">
 	import '../styles/app.scss';
 	import { onMount } from 'svelte';
+	import Sidebar from '../components/Sidebar.svelte';
 
 	let scrolled = false;
+	let sidebarOpen = true;
 
 	onMount(() => {
 		function handleScroll() {
@@ -23,25 +25,40 @@
 </svelte:head>
 
 <div class="layout">
-	<nav class="nav-bar" class:blurred={scrolled}>
-		<h1 class="logo">🔥 TypeAlong</h1>
-		<div class="nav-items">
-			<a class="nav-item" href="/">Home</a>
-			<a class="nav-item" href="/random-type">Random-Type</a>
-			<a class="nav-item" href="/view-book">Select</a>
-			<a class="nav-item" href="/selection">Selection</a>
-		</div>
-	</nav>
+	<Sidebar bind:open={sidebarOpen} links={[
+		{ href: '/', text: 'Home' },
+		{ href: '/random-type', text: 'Random-Type' },
+		{ href: '/view-book', text: 'Select' },
+		{ href: '/selection', text: 'Selection' }
+	]} />
 
-	<main>
-		<slot />
-	</main>
+	<div class="content" style="margin-left: {sidebarOpen ? '250px' : '60px'}">
+		<nav class="nav-bar" class:blurred={scrolled}>
+			<h1 class="logo">🔥 TypeAlong</h1>
+			<div class="nav-items">
+				<a class="nav-item" href="/">Home</a>
+				<a class="nav-item" href="/random-type">Random-Type</a>
+				<a class="nav-item" href="/view-book">Select</a>
+				<a class="nav-item" href="/selection">Selection</a>
+			</div>
+		</nav>
 
-	<footer class="footer">
-		<a href="https://www.nowaycode.com/projects/second-post" title="noway-code" target="_blank" rel="noopener noreferrer">Blog Post</a>
-		<a href="https://www.github.com/noway-code/TypeAlongSvelte" title="noway-code" target="_blank" rel="noopener noreferrer">Source Code</a>
-		<a href="https://www.flaticon.com/free-icons/rune" title="rune icons" target="_blank" rel="noopener noreferrer">Rune icons created by Aranagraphics - Flaticon</a>
-	</footer>
+		<main>
+			<slot />
+		</main>
+
+		<footer class="footer">
+			<a href="https://www.nowaycode.com/projects/second-post" title="noway-code" target="_blank" rel="noopener noreferrer">
+				Blog Post
+			</a>
+			<a href="https://www.github.com/noway-code/TypeAlongSvelte" title="noway-code" target="_blank" rel="noopener noreferrer">
+				Source Code
+			</a>
+			<a href="https://www.flaticon.com/free-icons/rune" title="rune icons" target="_blank" rel="noopener noreferrer">
+				Rune icons created by Aranagraphics - Flaticon
+			</a>
+		</footer>
+	</div>
 </div>
 
 <style lang="scss">
@@ -49,28 +66,14 @@
     box-sizing: border-box;
   }
 
-	.footer {
-		text-align: left;
-		display: flex;
-    flex-direction: column;
-		padding: 1rem;
-		color: var(--fg-100);
-		margin-top: 20px;
-		background: transparent;
-  }
-
-	.footer a {
-		color: var(--fg-100);
-		text-decoration: var(--bg-300) underline 2px;
-    opacity: 50%;
-		transition: opacity 0.2s ease;
-		&:hover {
-			opacity: 100%;
-		}
-  }
-
   .layout {
+    display: flex;
     height: 100vh;
+  }
+
+  .content {
+    flex: 1;
+    transition: margin-left 0.3s ease;
     display: flex;
     flex-direction: column;
   }
@@ -88,7 +91,7 @@
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     z-index: 1000;
-    transition: background .8s ease;
+    transition: background 0.8s ease;
   }
 
   nav.blurred {
@@ -114,7 +117,6 @@
     color: var(--fg-200);
     font-size: 1.2rem;
     transition: color 0.3s ease;
-
     &:hover {
       color: var(--accent);
     }
@@ -127,5 +129,25 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+  }
+
+  .footer {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    color: var(--fg-100);
+    margin-top: 20px;
+    background: transparent;
+  }
+
+  .footer a {
+    color: var(--fg-100);
+    text-decoration: underline;
+    opacity: 50%;
+    transition: opacity 0.2s ease;
+    &:hover {
+      opacity: 100%;
+    }
   }
 </style>

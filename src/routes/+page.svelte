@@ -2,6 +2,7 @@
 	import '../styles/app.scss';
 	import { onMount } from 'svelte';
 	import ColorSettings from '../components/ColorSettings.svelte';
+	import Sidebar from '../components/Sidebar.svelte';
 	let mounted = false;
 	onMount(() => {
 		mounted = true;
@@ -16,62 +17,63 @@
 	<div class="shape shape3"></div>
 </div>
 
-<main class="container">
-	<header>
-		<h1>Welcome to TypeAlong!</h1>
-		<p class="subtitle">A typing game for your epubs!</p>
-	</header>
+<div class="layout">
+	<main class="container">
+		<header>
+			<h1>Welcome to TypeAlong!</h1>
+			<p class="subtitle">A typing game for your epubs!</p>
+		</header>
 
-	<nav class="navigation">
-		<a href="/select" class="nav-link">Select Book</a>
-		<a href="/random-type" class="nav-link">Random Typing</a>
-	</nav>
+		<nav class="navigation">
+			<a href="/select" class="nav-link">Select Book</a>
+			<a href="/random-type" class="nav-link">Random Typing</a>
+		</nav>
 
-	<!-- Feature Showcase Rows -->
-	<section class="feature-showcase">
-		<div class="feature-description">
-			<h2>Seamless Typing Experience</h2>
-			<p>
-				Experience a typing game that is both engaging and beautiful. Our interface features fluid animations,
-				responsive design, and an intuitive layout—perfect for improving your typing speed while enjoying your favorite ebooks.
-			</p>
-		</div>
-		<div class="feature-image">
-			<img src="src/public/images/practice-type.png" alt="Typing Game Screenshot" />
-		</div>
-	</section>
+		<!-- Feature Showcase Rows -->
+		<section class="feature-showcase">
+			<div class="feature-description">
+				<h2>Seamless Typing Experience</h2>
+				<p>
+					Experience a typing game that is both engaging and beautiful. Our interface features fluid animations,
+					responsive design, and an intuitive layout—perfect for improving your typing speed while enjoying your favorite ebooks.
+				</p>
+			</div>
+			<div class="feature-image">
+				<img src="src/public/images/practice-type.png" alt="Typing Game Screenshot" />
+			</div>
+		</section>
 
-	<section class="feature-showcase">
-		<div class="feature-description">
-			<h2>Customizable Themes</h2>
-			<p>
-				Personalize your typing environment. Choose from various themes and backgrounds to create a unique and
-				motivating workspace that suits your style.
-			</p>
-		</div>
-		<div class="feature-image">
-			<img src="src/public/images/themes.png" alt="Theme Customization" />
-		</div>
-	</section>
+		<section class="feature-showcase">
+			<div class="feature-description">
+				<h2>Customizable Themes</h2>
+				<p>
+					Personalize your typing environment. Choose from various themes and backgrounds to create a unique and
+					motivating workspace that suits your style.
+				</p>
+			</div>
+			<div class="feature-image">
+				<img src="src/public/images/themes.png" alt="Theme Customization" />
+			</div>
+		</section>
 
-	<section class="feature-showcase">
-		<div class="feature-description">
-			<h2>Progress Tracking</h2>
-			<p>
-				Keep track of your typing speed and accuracy with detailed statistics. Our progress dashboard helps you set
-				goals and monitor improvements over time.
-			</p>
-		</div>
-		<div class="feature-image">
-			<img src="src/public/images/book-toc.png" alt="Progress Dashboard" />
-		</div>
-	</section>
+		<section class="feature-showcase">
+			<div class="feature-description">
+				<h2>Progress Tracking</h2>
+				<p>
+					Keep track of your typing speed and accuracy with detailed statistics. Our progress dashboard helps you set
+					goals and monitor improvements over time.
+				</p>
+			</div>
+			<div class="feature-image">
+				<img src="src/public/images/book-toc.png" alt="Progress Dashboard" />
+			</div>
+		</section>
 
-	{#if mounted}
-		<ColorSettings />
-	{/if}
-
-</main>
+		{#if mounted}
+			<ColorSettings />
+		{/if}
+	</main>
+</div>
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Lexend+Deca&display=swap');
@@ -128,10 +130,17 @@
         filter: blur(4px);
     }
 
+    /***** Layout *****/
+    .layout {
+        display: flex;
+    }
+
     /***** Main Container & Navigation *****/
     .container {
         text-align: center;
         padding: 2rem;
+        flex: 1;
+        margin-left: 250px; /* same as sidebar width */
     }
 
     header {
@@ -216,8 +225,8 @@
 
     .feature-description p {
         font-family: 'Roboto Mono', monospace;
-				font-size: 1.25rem;
-				color: var(--fg-200);
+        font-size: 1.25rem;
+        color: var(--fg-200);
         line-height: 1.5;
     }
 
