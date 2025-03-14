@@ -2,6 +2,7 @@
 	import '../styles/app.scss';
 	import { onMount } from 'svelte';
 	import Sidebar from '../components/Sidebar.svelte';
+	import ColorSettings from '../components/ColorSettings.svelte';
 
 	let scrolled = false;
 	let sidebarOpen = true;
@@ -33,7 +34,11 @@
 	]} />
 
 	<div class="content" style="margin-left: {sidebarOpen ? '250px' : '60px'}">
-		<nav class="nav-bar" class:blurred={scrolled}>
+		<nav
+			class="nav-bar"
+			class:blurred={scrolled}
+			style="left: {sidebarOpen ? 'calc(250px + 2rem)' : 'calc(60px + 2rem)'}; width: calc(100% - {sidebarOpen ? '250px' : '60px'} - 4rem);"
+		>
 			<h1 class="logo">🔥 TypeAlong</h1>
 			<div class="nav-items">
 				<a class="nav-item" href="/">Home</a>

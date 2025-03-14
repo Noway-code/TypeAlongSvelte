@@ -69,9 +69,6 @@
 			</div>
 		</section>
 
-		{#if mounted}
-			<ColorSettings />
-		{/if}
 	</main>
 </div>
 

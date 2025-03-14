@@ -1,4 +1,6 @@
 <script lang="ts">
+	import ColorSettings from './ColorSettings.svelte';
+
 	export let open: boolean = true;
 	export let links: { href: string; text: string }[] = [
 		{ href: '/', text: 'Home' },
@@ -33,14 +35,14 @@
 					<a href={link.href}>
 						{#if open}
 							{link.text}
-						{:else}
-							<!-- When collapsed, show first letter as an icon -->
-							<span class="icon">{link.text.charAt(0)}</span>
-						{/if}
+						 {/if}
 					</a>
 				</li>
 			{/each}
 		</ul>
+		{#if open}
+			<ColorSettings />
+		{/if}
 	</nav>
 </aside>
 
