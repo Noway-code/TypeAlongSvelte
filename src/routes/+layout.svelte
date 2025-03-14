@@ -5,7 +5,7 @@
 	import ColorSettings from '../components/ColorSettings.svelte';
 
 	let scrolled = false;
-	let sidebarOpen = true;
+	let sidebarOpen = false;
 
 	onMount(() => {
 		function handleScroll() {

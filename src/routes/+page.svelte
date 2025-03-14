@@ -1,8 +1,6 @@
 <script lang="ts">
 	import '../styles/app.scss';
 	import { onMount } from 'svelte';
-	import ColorSettings from '../components/ColorSettings.svelte';
-	import Sidebar from '../components/Sidebar.svelte';
 	let mounted = false;
 	onMount(() => {
 		mounted = true;
