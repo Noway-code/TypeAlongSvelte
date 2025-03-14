@@ -60,7 +60,7 @@
     overflow: hidden;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
     &.open {
-      width: 250px;
+      width: 300px;
     }
     &.collapsed {
       width: 60px;

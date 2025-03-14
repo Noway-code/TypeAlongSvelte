@@ -238,13 +238,13 @@
 
 <style>
     .color-settings {
-        padding: 1rem;
         background: var(--bg-200);
         color: var(--fg-100);
         border: 1px solid var(--accent);
         border-radius: 8px;
         max-width: 400px;
-        margin: 1rem auto;
+        margin: 1rem;
+				padding: 1rem;
     }
 
     .color-control {

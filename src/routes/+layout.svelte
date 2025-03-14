@@ -33,11 +33,11 @@
 		{ href: '/selection', text: 'Selection' }
 	]} />
 
-	<div class="content" style="margin-left: {sidebarOpen ? '250px' : '60px'}">
+	<div class="content" style="margin-left: {sidebarOpen ? '300px' : '60px'}">
 		<nav
 			class="nav-bar"
 			class:blurred={scrolled}
-			style="left: {sidebarOpen ? 'calc(250px + 2rem)' : 'calc(60px + 2rem)'}; width: calc(100% - {sidebarOpen ? '250px' : '60px'} - 4rem);"
+			style="left: {sidebarOpen ? 'calc(300px + 2rem)' : 'calc(60px + 2rem)'}; width: calc(100% - {sidebarOpen ? '300px' : '60px'} - 4rem);"
 		>
 			<h1 class="logo">🔥 TypeAlong</h1>
 			<div class="nav-items">
@@ -78,7 +78,7 @@
 
   .content {
     flex: 1;
-    transition: margin-left 0.3s ease;
+    transition: margin-left 0.8s ease;
     display: flex;
     flex-direction: column;
   }
@@ -96,7 +96,7 @@
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     z-index: 1000;
-    transition: background 0.8s ease;
+    transition: width 0.3s ease, left 0.3s ease, background 0.8s ease;
   }
 
   nav.blurred {
