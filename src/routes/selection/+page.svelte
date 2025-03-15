@@ -1,11 +1,15 @@
 <script lang="ts">
-	import { getStoredBooks, type BookDetails, addCoverToBook, removeBook } from '$lib/storage';
-	import { fade, fly } from 'svelte/transition';
+	// Imports from $lib/storage
+	import { getStoredBooks, type BookDetails, addCoverToBook  } from '$lib/storage';
+	import { fade } from 'svelte/transition';
 	import { Button, Textarea } from 'flowbite-svelte';
+	import ePub, { type Book } from 'epubjs';
+	import { book } from '$lib/epubtools';
 
 	// Data source: 'local' uses localStorage; 'public' uses Gutendex.
 	let dataSource: 'local' | 'public' = 'local';
 
+	let selectedFile: FileList | null = null;
 	// Reactive books list: updates based on the data source.
 	let bookDetails: BookDetails[] = getStoredBooks();
 
@@ -93,15 +97,19 @@
 		}
 	}
 
-	function removeBookHandler(identifier: string) {
-		if (dataSource === 'local') {
-			removeBook(identifier);
-			bookDetails = getStoredBooks();
-		} else {
-			bookDetails = bookDetails.filter(book => book.identifier !== identifier);
+	function handleChange(event: Event) {
+		const target = event.target as HTMLInputElement;
+		if (target.files) {
+			selectedFile = target.files;
 		}
+	}
 
-		closeModal();
+	async function uploadEpub() {
+		if (!selectedFile) return;
+		// Instantiate the book and store it
+		const file = selectedFile[0];
+		const newBook = ePub(file);
+		book.set(newBook);
 	}
 </script>
 
@@ -163,6 +171,16 @@
 					{/each}
 				</ul>
 				<br>
+				<section class="upload-section">
+					<input
+						type="file"
+						id="uploadedFile"
+						accept=".epub"
+						on:change={handleChange}
+					/>
+					<button class="upload-button" on:click={uploadEpub}>Upload EPUB</button>
+				</section>
+				<br/>
 				{#if !selectedBook.cover}
 					<h3>Want to add a cover?</h3>
 					<Textarea
@@ -188,9 +206,55 @@
 	</div>
 {/if}
 
-
 <style lang="scss">
   @import '../../styles/variables.scss';
+
+  .upload-section {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    input[type="file"] {
+      padding: 0.5rem;
+      border: 1px solid var(--fg-200);
+      border-radius: 4px;
+      background-color: var(--bg-200);
+      color: var(--fg-200);
+      transition: border-color 0.3s ease;
+      max-width: 300px;
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+    }
+
+    .upload-button {
+      padding: 0.75rem 1.5rem;
+      font-size: 1.15rem;
+      color: var(--bg-200);
+      background-color: var(--accent);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      max-width: 200px;
+      width: 100%;
+
+      &:hover {
+        background-color: var(--accent-hover);
+        transform: translateY(-2px);
+      }
+
+      &:active {
+        transform: translateY(0);
+        background-color: var(--primary);
+      }
+    }
+  }
 
   .container {
     max-width: 1200px;
