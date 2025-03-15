@@ -3,6 +3,7 @@ import pkg, { type Book, type Rendition } from 'epubjs';
 import { type Page } from '$lib/types';
 import { typingPages, rendition, currentLocationCFI } from '../stores/typingStore';
 import { createRangeCfi, getSavedCfi, loadSavedPage, saveCfi, updateCurrentLocation } from './cfi';
+import { updateBookDetails } from '$lib/storage';
 
 export const book = writable<Book | null>(null);
 
@@ -13,6 +14,8 @@ export async function storeCurrentLocation() {
 	if (rangeCfi) {
 		currentLocationCFI.set(rangeCfi);
 		console.log('Stored current location:', rangeCfi);
+
+		persistCurrentLocation(rangeCfi)
 	}
 }
 
@@ -23,8 +26,10 @@ export function savePage(): void {
 		const cfi = location?.start?.cfi;
 		if (cfi) {
 			saveCfi('currentLocationCFI', cfi);
+			persistCurrentLocation(cfi);
 			console.log('Saved page at CFI:', cfi);
-		} else {
+
+	} else {
 			console.log('No valid CFI found in current location.');
 		}
 	} else {
@@ -43,6 +48,14 @@ export function getPageCFI(): string | null {
 		}
 	}
 	return null;
+}
+
+export function persistCurrentLocation(cfi: string): void {
+	localStorage.setItem('currentLocationCFI', cfi);
+	const identifier = localStorage.getItem('openedBook');
+	if (identifier) {
+		updateBookDetails(identifier, { location_cfi: cfi });
+	}
 }
 
 export async function loadPage() {

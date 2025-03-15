@@ -2,6 +2,8 @@ import { derived, get } from 'svelte/store';
 
 import { typingPages } from '../stores/typingStore';
 import type { Word } from '$lib/types';
+import { updateBookDetails } from '$lib/storage';
+import { persistCurrentLocation } from '$lib/epubtools';
 
 export const wordsData = derived(typingPages, ($typingWords) => {
 	return {
@@ -28,7 +30,7 @@ export function updatePage({
 			pageNumber += 1;
 			pageWordIndex = 0;
 			if (pages[pageNumber] && pages[pageNumber].cfi) {
-				localStorage.setItem('currentLocationCFI', pages[pageNumber].cfi);
+				persistCurrentLocation(pages[pageNumber].cfi);
 			}
 		}
 	}

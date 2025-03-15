@@ -1,10 +1,11 @@
 <script lang="ts">
 	// Imports from $lib/storage
-	import { getStoredBooks, type BookDetails, addCoverToBook  } from '$lib/storage';
+	import { getStoredBooks, type BookDetails, addCoverToBook, getBookCfi } from '$lib/storage';
 	import { fade } from 'svelte/transition';
 	import { Button, Textarea } from 'flowbite-svelte';
 	import ePub, { type Book } from 'epubjs';
 	import { book } from '$lib/epubtools';
+	import { goto } from '$app/navigation';
 
 	// Data source: 'local' uses localStorage; 'public' uses Gutendex.
 	let dataSource: 'local' | 'public' = 'local';
@@ -110,6 +111,9 @@
 		const file = selectedFile[0];
 		const newBook = ePub(file);
 		book.set(newBook);
+		const book_cfi = getBookCfi(selectedBook.identifier)
+		localStorage.setItem('currentLocationCFI', book_cfi);
+		await goto('/view-book');
 	}
 </script>
 

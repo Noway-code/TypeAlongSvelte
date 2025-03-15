@@ -11,6 +11,35 @@ export interface BookDetails {
 	source: string;
 	toc: Array<{ label: string; href: string }>;
 	pageProgression: string;
+	location_cfi: string;
+}
+
+export function updateBookDetails(
+	identifier: string,
+	updatedFields: Partial<BookDetails>
+): void {
+	const books = getStoredBooks();
+	const updatedBooks = books.map((book) =>
+		book.identifier === identifier ? { ...book, ...updatedFields } : book
+	);
+	localStorage.setItem('books', JSON.stringify(updatedBooks));
+}
+
+// Get a book by its identifier
+export function getBookByIdentifier(identifier: string): BookDetails | null {
+	const books = getStoredBooks();
+	return books.find((book) => book.identifier === identifier) || null;
+}
+
+// Get the stored CFI for a specific book
+export function getBookCfi(identifier: string): string | null {
+	const book = getBookByIdentifier(identifier);
+	return book ? book.location_cfi : null;
+}
+
+// Update the CFI for a specific book
+export function setBookCfi(identifier: string, cfi: string): void {
+	updateBookDetails(identifier, { location_cfi: cfi });
 }
 
 export function getStoredBooks(): BookDetails[] {

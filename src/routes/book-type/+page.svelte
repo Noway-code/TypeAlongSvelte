@@ -7,6 +7,7 @@
 	import { type Word, type Game, type Pitch } from '$lib/types';
 	import { wordsData, updatePage } from '$lib/wordPageFetcher';
 	import { get } from 'svelte/store';
+	import { updateBookDetails } from '$lib/storage';
 
 	export let words: Word[] = ["If", "you're", "seeing", "this", "you", "forgot", "to", "load", "the", "chapter"];
 
@@ -217,12 +218,23 @@
 		typedLetters -= 1;
 	}
 
+	function storeCurrentLocation() {
+		const pages = get(typingPages);
+		const currentCFI = pages[0]?.cfi;
+		if (currentCFI) {
+			localStorage.setItem('currentLocationCFI', currentCFI);
+			const identifier = localStorage.getItem('openedBook');
+			if (identifier) {
+				updateBookDetails(identifier, { location_cfi: currentCFI });
+			}
+		}
+	}
+
 	function startGame() {
 		setGameState('in progress');
 		startTime = Date.now();
 		setGameTimer();
-		const pages = get(typingPages);
-		localStorage.setItem('currentLocationCFI', pages[0].cfi);
+		storeCurrentLocation();
 	}
 
 	function setGameState(state: Game) {

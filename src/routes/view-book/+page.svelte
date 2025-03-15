@@ -131,6 +131,7 @@
 
 			const bookDetails = extractBookDetails(newBook);
 			storeBook(bookDetails);
+			localStorage.setItem('openedBook', bookDetails['identifier']);
 
 		} catch (error) {
 			spinnerVisible = false;
