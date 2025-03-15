@@ -43,7 +43,7 @@
 			<div class="nav-items">
 				<a class="nav-item" href="/">Home</a>
 				<a class="nav-item" href="/random-type">Random-Type</a>
-				<a class="nav-item" href="/view-book">Select</a>
+				<a class="nav-item" href="/view-book">View</a>
 				<a class="nav-item" href="/selection">Selection</a>
 			</div>
 		</nav>

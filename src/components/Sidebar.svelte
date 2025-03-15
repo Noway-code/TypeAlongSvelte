@@ -35,14 +35,15 @@
 					<a href={link.href}>
 						{#if open}
 							{link.text}
-						 {/if}
+						{/if}
 					</a>
 				</li>
 			{/each}
 		</ul>
-		{#if open}
+		<!-- Always render ColorSettings, but wrap it in a container that slides out when closed -->
+		<div class="color-settings-wrapper {open ? 'visible' : 'hidden'}">
 			<ColorSettings />
-		{/if}
+		</div>
 	</nav>
 </aside>
 
@@ -104,5 +105,18 @@
         }
       }
     }
+  }
+  .color-settings-wrapper {
+    transition: opacity 0.1s ease, transform 0.3s ease;
+  }
+  /* Hide the ColorSettings when sidebar is collapsed */
+  .color-settings-wrapper.hidden {
+    opacity: 0;
+    transform: translateX(-100%);
+    pointer-events: none;
+  }
+  .color-settings-wrapper.visible {
+    opacity: 1;
+    transform: translateX(0);
   }
 </style>

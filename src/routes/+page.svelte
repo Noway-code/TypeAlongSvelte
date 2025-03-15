@@ -23,7 +23,7 @@
 		</header>
 
 		<nav class="navigation">
-			<a href="/select" class="nav-link">Select Book</a>
+			<a href="/selection" class="nav-link">Select Book</a>
 			<a href="/random-type" class="nav-link">Random Typing</a>
 		</nav>
 
