@@ -33,17 +33,17 @@
 			const results = data.results.slice(0, 5);
 			const books: BookDetails[] = results.map((b: any) => ({
 				title: b.title,
-				author: (b.authors && b.authors.length > 0) ? b.authors[0].name : 'Unknown',
-				cover: b.formats['image/jpeg'] || '',
-				publisher: 'Project Gutenberg',
-				language: (b.languages && b.languages[0]) || 'en',
-				description: 'No description available',
+				author: (b.authors && b.authors.length > 0) ? b.authors[0].name : "Unknown",
+				cover: b.formats['image/jpeg'] || "",
+				publisher: "Project Gutenberg",
+				language: (b.languages && b.languages[0]) || "en",
+				description: "No description available",
 				subjects: b.subjects || [],
-				publicationDate: '',
+				publicationDate: "",
 				identifier: `gutendex-${b.id}`,
-				source: 'gutendex',
-				toc: [{ label: 'Chapter 1', href: '#' }], // Dummy ToC data
-				pageProgression: 'ltr'
+				source: "gutendex",
+				toc: [{ label: "Chapter 1", href: "#" }], // Dummy ToC data
+				pageProgression: "ltr"
 			}));
 
 			localStorage.setItem(cacheKey, JSON.stringify(books));
@@ -93,7 +93,6 @@
 		}
 	}
 
-	/*
 	function removeBookHandler(identifier: string) {
 		if (dataSource === 'local') {
 			removeBook(identifier);
@@ -103,7 +102,7 @@
 		}
 
 		closeModal();
-	}*/
+	}
 </script>
 
 <div class="container">
@@ -141,13 +140,18 @@
 </div>
 
 {#if selectedBook}
-	<div class="modal-overlay" on:click={closeModal} transition:fade>
-		<div
-			class="modal-content"
-			on:click|stopPropagation
-			transition:fly={{ y: 20, duration: 300 }}
-		>
-			<button class="close-button" on:click={closeModal}>×</button>
+	<div
+		class="modal-overlay"
+		role="button"
+		tabindex="0"
+		on:click|self={closeModal}
+		on:keydown={(e) => {
+			if (e.key === 'Enter' || e.key === ' ') closeModal();
+		}}
+		transition:fade
+	>
+		<div class="modal-content" role="dialog" aria-modal="true">
+			<button class="close-button" type="button" on:click={closeModal}>×</button>
 			<div class="modal-body">
 				<h2>{selectedBook.title}</h2>
 				<p class="author">By: {selectedBook.author}</p>
@@ -169,12 +173,12 @@
 					<Button
 						color="primary"
 						on:click={() => {
-              const url = coverUrls[selectedBook.identifier];
-              if (url) {
-                addCoverToBookHandler(selectedBook, url);
-                selectedBook.cover = url;
-              }
-            }}
+							const url = coverUrls[selectedBook.identifier];
+							if (url) {
+								addCoverToBookHandler(selectedBook, url);
+								selectedBook.cover = url;
+							}
+						}}
 					>
 						Add Cover
 					</Button>
@@ -183,6 +187,7 @@
 		</div>
 	</div>
 {/if}
+
 
 <style lang="scss">
   @import '../../styles/variables.scss';
