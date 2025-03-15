@@ -7,10 +7,26 @@ import { updateBookDetails } from '$lib/storage';
 
 export const book = writable<Book | null>(null);
 
-// Composite key generator for a book's CFI
-function getLocationKey(identifier: string): string {
+// Composite key helpers
+function getOpenedBookIdentifier(): string | null {
+	return localStorage.getItem('openedBook');
+}
+
+export function getLocationKey(identifier: string): string {
 	return `currentLocationCFI_${identifier}`;
 }
+
+function persistCurrentCfiForBook(cfi: string): void {
+	const identifier = getOpenedBookIdentifier();
+	if (identifier) {
+		const key = getLocationKey(identifier);
+		localStorage.setItem(key, cfi);
+		updateBookDetails(identifier, { location_cfi: cfi });
+	}
+}
+
+// Export the helper so other modules can use it
+export { persistCurrentCfiForBook };
 
 export async function storeCurrentLocation(): Promise<void> {
 	const r = get(rendition);

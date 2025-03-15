@@ -6,7 +6,7 @@
 	import ePub, { type Book } from 'epubjs';
 	import { book } from '$lib/epubtools';
 	import { goto } from '$app/navigation';
-
+	import { getLocationKey } from '$lib/epubtools';
 	// Data source: 'local' uses localStorage; 'public' uses Gutendex.
 	let dataSource: 'local' | 'public' = 'local';
 
@@ -107,16 +107,24 @@
 
 	async function uploadEpub() {
 		if (!selectedFile) return;
-		// Instantiate the book and store it
 		const file = selectedFile[0];
 		const newBook = ePub(file);
 		book.set(newBook);
-		const book_cfi = getBookCfi(selectedBook.identifier)
-		localStorage.removeItem('currentLocationCFI');
-		if (book_cfi)
-			localStorage.setItem('currentLocationCFI', book_cfi);
+
+		const openedBookId = selectedBook?.identifier;
+		if (openedBookId) {
+			localStorage.setItem('openedBook', openedBookId);
+			const book_cfi = getBookCfi(openedBookId);
+			const locationKey = getLocationKey(openedBookId);
+			localStorage.removeItem(locationKey);
+			if (book_cfi) {
+				localStorage.setItem(locationKey, book_cfi);
+			}
+		}
+
 		await goto('/view-book');
 	}
+
 </script>
 
 <div class="container">

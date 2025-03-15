@@ -1,7 +1,7 @@
 import { derived, get } from 'svelte/store';
 import { typingPages } from '../stores/typingStore';
 import type { Word } from '$lib/types';
-import { persistCurrentLocation } from '$lib/epubtools';
+import { persistCurrentCfiForBook } from '$lib/epubtools';
 
 export const wordsData = derived(typingPages, ($typingPages) => ({
 	words: $typingPages.flatMap((page) => page.words),
@@ -9,10 +9,10 @@ export const wordsData = derived(typingPages, ($typingPages) => ({
 }));
 
 export function updatePage({
-	pageWordIndex,
-	pageNumber,
-	pageWordCount
-}: {
+														 pageWordIndex,
+														 pageNumber,
+														 pageWordCount
+													 }: {
 	pageWordIndex: number;
 	pageNumber: number;
 	pageWordCount: number[];
@@ -26,7 +26,7 @@ export function updatePage({
 			pageNumber += 1;
 			pageWordIndex = 0;
 			if (pages[pageNumber] && pages[pageNumber].cfi) {
-				persistCurrentLocation(pages[pageNumber].cfi);
+				persistCurrentCfiForBook(pages[pageNumber].cfi);
 			}
 		}
 	}

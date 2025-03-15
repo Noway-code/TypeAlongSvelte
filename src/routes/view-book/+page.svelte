@@ -7,6 +7,7 @@
 	import ePub, { type Book, type Rendition } from 'epubjs';
 	import { Button } from 'flowbite-svelte';
 	import { storeBook } from '$lib/storage';
+	import { getLocationKey } from '$lib/epubtools';
 
 	const uploadedFile = writable<File | null>(null);
 	let selectedFile: FileList | null = null;
@@ -101,15 +102,23 @@
 				allowScriptedContent: true
 			});
 
-			const savedLocation = localStorage.getItem('currentLocationCFI');
-			if (savedLocation) {
-				console.log('Saved location true in subscribe');
-				await newRendition.display(savedLocation);
+			const openedBookId = localStorage.getItem('openedBook');
+			if (openedBookId) {
+				const locationKey = getLocationKey(openedBookId);
+				const savedLocation = localStorage.getItem(locationKey);
+				console.log('Saved location:', savedLocation);
+				if (savedLocation) {
+					console.log('Displaying saved location for this book');
+					await newRendition.display(savedLocation);
+				} else {
+					console.log('No saved location for this book, displaying default start');
+					await newRendition.display();
+				}
 			} else {
-				console.log('No saved location in subscribe, displaying book');
-				localStorage.removeItem('currentLocationCFI');
+				console.log('No openedBook identifier, displaying default start');
 				await newRendition.display();
 			}
+
 			spinnerVisible = false;
 
 			newRendition.themes.register('largeText', {
@@ -203,7 +212,6 @@
 
 				newRendition.on('relocated', (location) => {
 					if (location?.start?.cfi) {
-						// Optionally update localStorage here
 					}
 				});
 
@@ -221,16 +229,7 @@
 				newRendition.themes.select('largeText');
 
 				rendition.set(newRendition);
-				const savedLocation = localStorage.getItem('currentLocationCFI');
-				console.log('Saved location:', savedLocation);
-				if (savedLocation) {
-					console.log('Saved location true in onMount');
-					await newRendition.display(savedLocation);
-				} else {
-					localStorage.removeItem('currentLocationCFI');
-					console.log('No saved location in onMount, displaying book');
-					await newRendition.display();
-				}
+				await loadPage();
 				const nav = await newBook.loaded.navigation;
 				tocItems = nav.toc || [];
 			} catch (error) {
