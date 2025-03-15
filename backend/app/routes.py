@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Response
 import ebooklib
 from ebooklib import epub
 from bs4 import BeautifulSoup
@@ -6,7 +6,7 @@ import os
 import uuid
 import random
 import json
-
+import aiohttp
 router = APIRouter()
 
 # When epubs were processed and stored in the backend, but i'll leave it commented out for now
@@ -74,3 +74,12 @@ async def get_random_words(limit: int):
         words = data["words"]
     random_words = random.sample(words, limit)
     return {"words": random_words}
+
+@router.get("/download")
+async def download_epub(url: str):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status != 200:
+                raise HTTPException(status_code=response.status, detail="Failed to download EPUB")
+            content = await response.read()
+            return Response(content, media_type="application/epub+zip")

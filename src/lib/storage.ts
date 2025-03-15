@@ -14,6 +14,7 @@ export interface BookDetails {
 	toc: Array<{ label: string; href: string }>;
 	pageProgression: string;
 	location_cfi: string;
+	downloadUrl?: string;
 }
 
 export function getStoredBooks(): BookDetails[] {

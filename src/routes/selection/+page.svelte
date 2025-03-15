@@ -7,6 +7,8 @@
 	import { book } from '$lib/epubtools';
 	import { goto } from '$app/navigation';
 	import { getLocationKey } from '$lib/epubtools';
+	import { get, writable } from 'svelte/store';
+
 	// Data source: 'local' uses localStorage; 'public' uses Gutendex.
 	let dataSource: 'local' | 'public' = 'local';
 
@@ -14,8 +16,26 @@
 	// Reactive books list: updates based on the data source.
 	let bookDetails: BookDetails[] = getStoredBooks();
 
-	let selectedBook: BookDetails | null = null;
+	let uploadedFile = writable<File | null>(null);
 	let coverUrls: Record<string, string> = {};
+	export let selectedBook: { identifier: string; downloadUrl: string } | null = null;
+
+	async function downloadAndLoadBook(gutenbergUrl: string, filename = "book.epub") {
+		try {
+			const proxyUrl = `http://localhost:8000/api/download?url=${encodeURIComponent(gutenbergUrl)}`;
+			const response = await fetch(proxyUrl);
+			if (!response.ok) {
+				throw new Error("Failed to download EPUB");
+			}
+			const blob = await response.blob();
+			const file = new File([blob], filename, { type: "application/epub+zip" });
+			uploadedFile.set(file);
+			await uploadEpub();
+		} catch (error) {
+			console.error("Error downloading or uploading book:", error);
+		}
+	}
+
 
 	// Fetch 5 books from Gutendex and cache them under "publicBooks"
 	async function fetchPublicBooks(): Promise<BookDetails[]> {
@@ -42,13 +62,14 @@
 				cover: b.formats['image/jpeg'] || "",
 				publisher: "Project Gutenberg",
 				language: (b.languages && b.languages[0]) || "en",
-				description: "No description available",
+				description: b.summaries[0] || "",
 				subjects: b.subjects || [],
 				publicationDate: "",
 				identifier: `gutendex-${b.id}`,
 				source: "gutendex",
 				toc: [{ label: "Chapter 1", href: "#" }], // Dummy ToC data
-				pageProgression: "ltr"
+				pageProgression: "ltr",
+				downloadUrl: b.formats['application/epub+zip'],
 			}));
 
 			localStorage.setItem(cacheKey, JSON.stringify(books));
@@ -106,8 +127,8 @@
 	}
 
 	async function uploadEpub() {
-		if (!selectedFile) return;
-		const file = selectedFile[0];
+		const file = get(uploadedFile);
+		if (!file) return;
 		const newBook = ePub(file);
 		book.set(newBook);
 
@@ -120,10 +141,13 @@
 			if (book_cfi) {
 				localStorage.setItem(locationKey, book_cfi);
 			}
+		} else {
+			console.error('No book selected for upload');
 		}
 
 		await goto('/view-book');
 	}
+
 
 </script>
 
@@ -185,6 +209,7 @@
 					{/each}
 				</ul>
 				<br>
+				{#if dataSource==='local'}
 				<section class="upload-section">
 					<input
 						type="file"
@@ -194,6 +219,13 @@
 					/>
 					<button class="upload-button" on:click={uploadEpub}>Upload EPUB</button>
 				</section>
+					{:else if selectedBook.downloadUrl}
+					<p>{selectedBook.downloadUrl}</p>
+					<button on:click={() => downloadAndLoadBook(selectedBook.downloadUrl)}>
+						Download &amp; Open EPUB
+					</button>
+				{/if}
+
 				<br/>
 				{#if !selectedBook.cover}
 					<h3>Want to add a cover?</h3>
