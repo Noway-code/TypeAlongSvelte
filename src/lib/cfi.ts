@@ -1,11 +1,14 @@
 import pkg from 'epubjs';
+
 const { CFI } = pkg;
+
+export const CURRENT_LOCATION_KEY = 'currentLocationCFI';
 
 export function createRangeCfi(startCfi: string, endCfi: string): string {
 	const cfiInstance = new CFI();
 	const start = cfiInstance.parse(startCfi);
 	const end = cfiInstance.parse(endCfi);
-	let commonSteps: any[] = [];
+	const commonSteps: any[] = [];
 	const minSteps = Math.min(start.path.steps.length, end.path.steps.length);
 	for (let i = 0; i < minSteps; i++) {
 		if (cfiInstance.equalStep(start.path.steps[i], end.path.steps[i])) {
@@ -16,7 +19,10 @@ export function createRangeCfi(startCfi: string, endCfi: string): string {
 	}
 	const uniqueStart = { ...start.path, steps: start.path.steps.slice(commonSteps.length) };
 	const uniqueEnd = { ...end.path, steps: end.path.steps.slice(commonSteps.length) };
-	return `epubcfi(${cfiInstance.segmentString(start.base)}!${cfiInstance.segmentString({steps: commonSteps, terminal: null})},${cfiInstance.segmentString(uniqueStart)},${cfiInstance.segmentString(uniqueEnd)})`;
+	return `epubcfi(${cfiInstance.segmentString(start.base)}!${cfiInstance.segmentString({
+		steps: commonSteps,
+		terminal: null
+	})},${cfiInstance.segmentString(uniqueStart)},${cfiInstance.segmentString(uniqueEnd)})`;
 }
 
 export function saveCfi(storageKey: string, cfi: string): void {
@@ -42,11 +48,14 @@ export function getCurrentCfi(rendition: any): string | null {
 	return null;
 }
 
-export function updateCurrentLocation(rendition: any, storageKey: string = 'currentLocationCFI'): string | void {
+export function updateCurrentLocation(
+	rendition: any,
+	storageKey: string = CURRENT_LOCATION_KEY
+): string | void {
 	if (!rendition) return;
 	const location = rendition.currentLocation();
 	if (!location || !location.start?.cfi || !location.end?.cfi) {
-		console.error("Current location or CFIs not available");
+		console.error('Current location or CFIs not available');
 		return;
 	}
 	try {

@@ -1,16 +1,12 @@
 import { derived, get } from 'svelte/store';
-
 import { typingPages } from '../stores/typingStore';
 import type { Word } from '$lib/types';
-import { updateBookDetails } from '$lib/storage';
 import { persistCurrentLocation } from '$lib/epubtools';
 
-export const wordsData = derived(typingPages, ($typingWords) => {
-	return {
-		words: $typingWords.flatMap((page) => page.words),
-		pageWordCount: $typingWords.map((page) => page.words.length)
-	};
-});
+export const wordsData = derived(typingPages, ($typingPages) => ({
+	words: $typingPages.flatMap((page) => page.words),
+	pageWordCount: $typingPages.map((page) => page.words.length)
+}));
 
 export function updatePage({
 	pageWordIndex,

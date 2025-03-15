@@ -112,7 +112,9 @@
 		const newBook = ePub(file);
 		book.set(newBook);
 		const book_cfi = getBookCfi(selectedBook.identifier)
-		localStorage.setItem('currentLocationCFI', book_cfi);
+		localStorage.removeItem('currentLocationCFI');
+		if (book_cfi)
+			localStorage.setItem('currentLocationCFI', book_cfi);
 		await goto('/view-book');
 	}
 </script>

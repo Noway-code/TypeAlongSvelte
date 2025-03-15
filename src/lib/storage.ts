@@ -1,3 +1,5 @@
+const BOOKS_KEY = 'books';
+
 export interface BookDetails {
 	title: string;
 	author: string;
@@ -14,36 +16,8 @@ export interface BookDetails {
 	location_cfi: string;
 }
 
-export function updateBookDetails(
-	identifier: string,
-	updatedFields: Partial<BookDetails>
-): void {
-	const books = getStoredBooks();
-	const updatedBooks = books.map((book) =>
-		book.identifier === identifier ? { ...book, ...updatedFields } : book
-	);
-	localStorage.setItem('books', JSON.stringify(updatedBooks));
-}
-
-// Get a book by its identifier
-export function getBookByIdentifier(identifier: string): BookDetails | null {
-	const books = getStoredBooks();
-	return books.find((book) => book.identifier === identifier) || null;
-}
-
-// Get the stored CFI for a specific book
-export function getBookCfi(identifier: string): string | null {
-	const book = getBookByIdentifier(identifier);
-	return book ? book.location_cfi : null;
-}
-
-// Update the CFI for a specific book
-export function setBookCfi(identifier: string, cfi: string): void {
-	updateBookDetails(identifier, { location_cfi: cfi });
-}
-
 export function getStoredBooks(): BookDetails[] {
-	const booksStr = localStorage.getItem('books');
+	const booksStr = localStorage.getItem(BOOKS_KEY);
 	if (!booksStr) return [];
 	try {
 		return JSON.parse(booksStr) as BookDetails[];
@@ -55,25 +29,47 @@ export function getStoredBooks(): BookDetails[] {
 
 export function storeBook(newBook: BookDetails): void {
 	const books = getStoredBooks();
-	if (books.some(book => book.identifier === newBook.identifier)) return;
+	if (books.some((book) => book.identifier === newBook.identifier)) return;
 	books.push(newBook);
-	localStorage.setItem('books', JSON.stringify(books));
+	localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
+}
+
+export function updateBookDetails(identifier: string, updatedFields: Partial<BookDetails>): void {
+	const books = getStoredBooks();
+	const updatedBooks = books.map((book) =>
+		book.identifier === identifier ? { ...book, ...updatedFields } : book
+	);
+	localStorage.setItem(BOOKS_KEY, JSON.stringify(updatedBooks));
+}
+
+export function getBookByIdentifier(identifier: string): BookDetails | null {
+	const books = getStoredBooks();
+	return books.find((book) => book.identifier === identifier) || null;
+}
+
+export function getBookCfi(identifier: string): string | null {
+	const book = getBookByIdentifier(identifier);
+	return book ? book.location_cfi : null;
+}
+
+export function setBookCfi(identifier: string, cfi: string): void {
+	updateBookDetails(identifier, { location_cfi: cfi });
 }
 
 export function addCoverToBook(identifier: string, cover: string): void {
 	const books = getStoredBooks();
-	const updatedBooks = books.map(book =>
+	const updatedBooks = books.map((book) =>
 		book.identifier === identifier ? { ...book, cover } : book
 	);
-	localStorage.setItem('books', JSON.stringify(updatedBooks));
+	localStorage.setItem(BOOKS_KEY, JSON.stringify(updatedBooks));
 }
 
 export function removeBook(identifier: string): void {
 	const books = getStoredBooks();
-	const updatedBooks = books.filter(book => book.identifier !== identifier);
-	localStorage.setItem('books', JSON.stringify(updatedBooks));
+	const updatedBooks = books.filter((book) => book.identifier !== identifier);
+	localStorage.setItem(BOOKS_KEY, JSON.stringify(updatedBooks));
 }
 
 export function clearStoredBooks(): void {
-	localStorage.removeItem('books');
+	localStorage.removeItem(BOOKS_KEY);
 }
