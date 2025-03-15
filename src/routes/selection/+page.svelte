@@ -16,6 +16,7 @@
 	async function fetchPublicBooks(): Promise<BookDetails[]> {
 		const cacheKey = 'publicBooks';
 		const cached = localStorage.getItem(cacheKey);
+
 		if (cached) {
 			try {
 				return JSON.parse(cached) as BookDetails[];
@@ -23,25 +24,28 @@
 				console.error('Error parsing cached public books:', error);
 			}
 		}
+
 		try {
-			const res = await fetch('https://gutendex.com/books/?page=1');
-			const data = await res.json();
+			const response = await fetch('https://gutendex.com/books/?page=1');
+			const data = await response.json();
+
 			// Limit to 5 books
 			const results = data.results.slice(0, 5);
 			const books: BookDetails[] = results.map((b: any) => ({
 				title: b.title,
-				author: (b.authors && b.authors.length > 0) ? b.authors[0].name : "Unknown",
-				cover: b.formats['image/jpeg'] || "",
-				publisher: "Project Gutenberg",
-				language: (b.languages && b.languages[0]) || "en",
-				description: "No description available",
+				author: (b.authors && b.authors.length > 0) ? b.authors[0].name : 'Unknown',
+				cover: b.formats['image/jpeg'] || '',
+				publisher: 'Project Gutenberg',
+				language: (b.languages && b.languages[0]) || 'en',
+				description: 'No description available',
 				subjects: b.subjects || [],
-				publicationDate: "",
+				publicationDate: '',
 				identifier: `gutendex-${b.id}`,
-				source: "gutendex",
-				toc: [{ label: "Chapter 1", href: "#" }], // Dummy ToC data
-				pageProgression: "ltr"
+				source: 'gutendex',
+				toc: [{ label: 'Chapter 1', href: '#' }], // Dummy ToC data
+				pageProgression: 'ltr'
 			}));
+
 			localStorage.setItem(cacheKey, JSON.stringify(books));
 			return books;
 		} catch (error) {
@@ -53,11 +57,10 @@
 	// Switch data source by setting the source and updating bookDetails.
 	async function setDataSource(source: 'local' | 'public') {
 		dataSource = source;
-		if (dataSource === 'local') {
-			bookDetails = getStoredBooks();
-		} else {
-			bookDetails = await fetchPublicBooks();
-		}
+		bookDetails = dataSource === 'local'
+			? getStoredBooks()
+			: await fetchPublicBooks();
+
 		closeModal();
 	}
 
@@ -79,14 +82,18 @@
 	function addCoverToBookHandler(book: BookDetails, url: string) {
 		coverUrls[book.identifier] = '';
 		book.cover = url;
+
 		if (dataSource === 'local') {
 			addCoverToBook(book.identifier, url);
 			bookDetails = getStoredBooks();
 		} else {
-			bookDetails = bookDetails.map(b => b.identifier === book.identifier ? { ...b, cover: url } : b);
+			bookDetails = bookDetails.map(b =>
+				b.identifier === book.identifier ? { ...b, cover: url } : b
+			);
 		}
 	}
 
+	/*
 	function removeBookHandler(identifier: string) {
 		if (dataSource === 'local') {
 			removeBook(identifier);
@@ -94,8 +101,9 @@
 		} else {
 			bookDetails = bookDetails.filter(book => book.identifier !== identifier);
 		}
+
 		closeModal();
-	}
+	}*/
 </script>
 
 <div class="container">
@@ -161,12 +169,12 @@
 					<Button
 						color="primary"
 						on:click={() => {
-							const url = coverUrls[selectedBook.identifier];
-							if (url) {
-								addCoverToBookHandler(selectedBook, url);
-								selectedBook.cover = url;
-							}
-						}}
+              const url = coverUrls[selectedBook.identifier];
+              if (url) {
+                addCoverToBookHandler(selectedBook, url);
+                selectedBook.cover = url;
+              }
+            }}
 					>
 						Add Cover
 					</Button>
