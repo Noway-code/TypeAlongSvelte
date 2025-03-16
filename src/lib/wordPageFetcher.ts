@@ -1,6 +1,5 @@
 import { derived, get } from 'svelte/store';
 import { typingPages } from '../stores/typingStore';
-import type { Word } from '$lib/types';
 import { persistCurrentCfiForBook } from '$lib/epubtools';
 
 export const wordsData = derived(typingPages, ($typingPages) => ({

@@ -1,18 +1,17 @@
 <script lang="ts">
-	// Imports from $lib/storage
-	import { getStoredBooks, type BookDetails, addCoverToBook, getBookCfi } from '$lib/storage';
+	import { getStoredBooks, type BookDetails, addCoverToBook, getBookCfi, updateBookDetails } from '$lib/storage';
 	import { fade } from 'svelte/transition';
 	import { Button, Textarea } from 'flowbite-svelte';
-	import ePub, { type Book } from 'epubjs';
+	import ePub from 'epubjs';
 	import { book } from '$lib/epubtools';
 	import { goto } from '$app/navigation';
 	import { getLocationKey } from '$lib/epubtools';
 	import { get, writable } from 'svelte/store';
+	import { rendition } from '../../stores/typingStore';
 
 	// Data source: 'local' uses localStorage; 'public' uses Gutendex.
 	let dataSource: 'local' | 'public' = 'local';
 
-	let selectedFile: FileList | null = null;
 	// Reactive books list: updates based on the data source.
 	let bookDetails: BookDetails[] = getStoredBooks();
 
@@ -20,19 +19,19 @@
 	let coverUrls: Record<string, string> = {};
 	export let selectedBook: { identifier: string; downloadUrl: string } | null = null;
 
-	async function downloadAndLoadBook(gutenbergUrl: string, filename = "book.epub") {
+	async function downloadAndLoadBook(gutenbergUrl: string, filename = 'book.epub') {
 		try {
 			const proxyUrl = `http://localhost:8000/api/download?url=${encodeURIComponent(gutenbergUrl)}`;
 			const response = await fetch(proxyUrl);
 			if (!response.ok) {
-				throw new Error("Failed to download EPUB");
+				throw new Error('Failed to download EPUB');
 			}
 			const blob = await response.blob();
-			const file = new File([blob], filename, { type: "application/epub+zip" });
+			const file = new File([blob], filename, { type: 'application/epub+zip' });
 			uploadedFile.set(file);
 			await uploadEpub();
 		} catch (error) {
-			console.error("Error downloading or uploading book:", error);
+			console.error('Error downloading or uploading book:', error);
 		}
 	}
 
@@ -58,18 +57,18 @@
 			const results = data.results.slice(0, 5);
 			const books: BookDetails[] = results.map((b: any) => ({
 				title: b.title,
-				author: (b.authors && b.authors.length > 0) ? b.authors[0].name : "Unknown",
-				cover: b.formats['image/jpeg'] || "",
-				publisher: "Project Gutenberg",
-				language: (b.languages && b.languages[0]) || "en",
-				description: b.summaries[0] || "",
+				author: (b.authors && b.authors.length > 0) ? b.authors[0].name : 'Unknown',
+				cover: b.formats['image/jpeg'] || '',
+				publisher: 'Project Gutenberg',
+				language: (b.languages && b.languages[0]) || 'en',
+				description: b.summaries[0] || '',
 				subjects: b.subjects || [],
-				publicationDate: "",
+				publicationDate: '',
 				identifier: `gutendex-${b.id}`,
-				source: "gutendex",
-				toc: [{ label: "Chapter 1", href: "#" }], // Dummy ToC data
-				pageProgression: "ltr",
-				downloadUrl: b.formats['application/epub+zip'],
+				source: 'gutendex',
+				toc: [{ label: 'Chapter 1', href: '#' }], // Dummy ToC data
+				pageProgression: 'ltr',
+				downloadUrl: b.formats['application/epub+zip']
 			}));
 
 			localStorage.setItem(cacheKey, JSON.stringify(books));
@@ -110,7 +109,7 @@
 		book.cover = url;
 
 		if (dataSource === 'local') {
-			addCoverToBook(book.identifier, url);
+			updateBookDetails(book.identifier, { cover: url });
 			bookDetails = getStoredBooks();
 		} else {
 			bookDetails = bookDetails.map(b =>
@@ -122,13 +121,19 @@
 	function handleChange(event: Event) {
 		const target = event.target as HTMLInputElement;
 		if (target.files) {
-			selectedFile = target.files;
+			uploadedFile.set(target.files[0]);
 		}
 	}
 
 	async function uploadEpub() {
 		const file = get(uploadedFile);
 		if (!file) return;
+
+		// Destroy any existing book and rendition before loading the new one
+		if (get(book)) {
+			get(book)?.destroy();
+		}
+
 		const newBook = ePub(file);
 		book.set(newBook);
 
@@ -147,7 +152,6 @@
 
 		await goto('/view-book');
 	}
-
 
 </script>
 
@@ -209,24 +213,24 @@
 					{/each}
 				</ul>
 				<br>
-				{#if dataSource==='local'}
-				<section class="upload-section">
-					<input
-						type="file"
-						id="uploadedFile"
-						accept=".epub"
-						on:change={handleChange}
-					/>
-					<button class="upload-button" on:click={uploadEpub}>Upload EPUB</button>
-				</section>
-					{:else if selectedBook.downloadUrl}
+				{#if dataSource === 'local'}
+					<section class="upload-section">
+						<input
+							type="file"
+							id="uploadedFile"
+							accept=".epub"
+							on:change={handleChange}
+						/>
+						<button class="upload-button" on:click={uploadEpub}>Upload EPUB</button>
+					</section>
+				{:else if selectedBook.downloadUrl}
 					<p>{selectedBook.downloadUrl}</p>
 					<button on:click={() => downloadAndLoadBook(selectedBook.downloadUrl)}>
 						Download &amp; Open EPUB
 					</button>
 				{/if}
 
-				<br/>
+				<br />
 				{#if !selectedBook.cover}
 					<h3>Want to add a cover?</h3>
 					<Textarea
