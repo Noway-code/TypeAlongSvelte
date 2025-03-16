@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getStoredBooks, type BookDetails, addCoverToBook, getBookCfi } from '$lib/storage';
+	import { getStoredBooks, type BookDetails, addCoverToBook, getBookCfi, updateBookDetails } from '$lib/storage';
 	import { fade } from 'svelte/transition';
 	import { Button, Textarea } from 'flowbite-svelte';
 	import ePub from 'epubjs';
@@ -108,7 +108,7 @@
 		book.cover = url;
 
 		if (dataSource === 'local') {
-			addCoverToBook(book.identifier, url);
+			updateBookDetails(book.identifier, {cover: url});
 			bookDetails = getStoredBooks();
 		} else {
 			bookDetails = bookDetails.map(b =>
@@ -120,10 +120,9 @@
 	function handleChange(event: Event) {
 		const target = event.target as HTMLInputElement;
 		if (target.files) {
-			selectedFile = target.files;
+			uploadedFile.set(target.files[0]);
 		}
 	}
-
 	async function uploadEpub() {
 		const file = get(uploadedFile);
 		if (!file) return;

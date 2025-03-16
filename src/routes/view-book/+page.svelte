@@ -2,7 +2,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { get, writable } from 'svelte/store';
 	import { type Page } from '$lib/types';
-	import { book, getPageCFI, loadPage, savePage, storeCurrentLocation } from '$lib/epubtools';
+	import { book, getPageCFI, loadPage, storeCurrentLocation } from '$lib/epubtools';
 	import { rendition, typingPages } from '../../stores/typingStore';
 	import ePub, { type Book, type Rendition } from 'epubjs';
 	import { storeBook } from '$lib/storage';
