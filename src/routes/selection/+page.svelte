@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getStoredBooks, type BookDetails, addCoverToBook, getBookCfi, updateBookDetails } from '$lib/storage';
+	import { getStoredBooks, type BookDetails, getBookCfi, updateBookDetails } from '$lib/storage';
 	import { fade } from 'svelte/transition';
 	import { Button, Textarea } from 'flowbite-svelte';
 	import ePub from 'epubjs';
