@@ -60,9 +60,8 @@ export function getSavedCfi(storageKey: string): string | null {
 }
 
 //TODO: Update to rendition type
-//TODO: Make an openedBook set and get
 /*
- * Get the saved CFI from localStorage by name, set the rendition to that cfi
+ * Get the saved CFI from localStorage by name, **update** rendition to that cfi
  * @param {any} rendition - Display of book in set view type
  * @param {string} storageKey - LocalStorage key name
  * @example
@@ -87,13 +86,13 @@ export function getCurrentCfi(rendition: any): string | null {
 }
 
 /*
- * Make range CFI from rendition current location, set it as currentLocationCFI, and return the CFI
+ * Make range CFI from rendition current location, set it as currentLocationCFI LocalStorage, and return the CFI.
  * @param {any} rendtion - Display of book in set view type
  * @param {string} storageKey - LocalStorage key name (Default:CurrentLocationCFI)
  * @example
  * const rangeCfi = updateCurrentLocation(r);
  * if (rangeCfi) {
- *  ...
+ * ...
  * } */
 export function updateCurrentLocation(
 	rendition: any,

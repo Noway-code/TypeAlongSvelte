@@ -1,9 +1,8 @@
 <script lang="ts">
-	// Imports from $lib/storage
 	import { getStoredBooks, type BookDetails, addCoverToBook, getBookCfi } from '$lib/storage';
 	import { fade } from 'svelte/transition';
 	import { Button, Textarea } from 'flowbite-svelte';
-	import ePub, { type Book } from 'epubjs';
+	import ePub from 'epubjs';
 	import { book } from '$lib/epubtools';
 	import { goto } from '$app/navigation';
 	import { getLocationKey } from '$lib/epubtools';
@@ -12,7 +11,6 @@
 	// Data source: 'local' uses localStorage; 'public' uses Gutendex.
 	let dataSource: 'local' | 'public' = 'local';
 
-	let selectedFile: FileList | null = null;
 	// Reactive books list: updates based on the data source.
 	let bookDetails: BookDetails[] = getStoredBooks();
 

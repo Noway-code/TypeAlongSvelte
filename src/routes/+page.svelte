@@ -1,10 +1,5 @@
 <script lang="ts">
 	import '../styles/app.scss';
-	import { onMount } from 'svelte';
-	let mounted = false;
-	onMount(() => {
-		mounted = true;
-	});
 </script>
 
 <!-- Glassmorphism Background Wrapper -->

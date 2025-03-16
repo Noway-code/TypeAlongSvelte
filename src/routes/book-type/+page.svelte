@@ -7,7 +7,6 @@
 	import { type Word, type Game, type Pitch } from '$lib/types';
 	import { wordsData, updatePage } from '$lib/wordPageFetcher';
 	import { get } from 'svelte/store';
-	import { updateBookDetails } from '$lib/storage';
 	import { persistCurrentCfiForBook } from '$lib/epubtools';
 
 	export let words: Word[] = ["If", "you're", "seeing", "this", "you", "forgot", "to", "load", "the", "chapter"];
@@ -15,7 +14,6 @@
 	const INITIAL_SECONDS = 100;
 
 	let game: Game = 'waiting for input';
-	let seconds = INITIAL_SECONDS;
 	let typedLetter = '';
 
 	let wordIndex = 0;

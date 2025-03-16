@@ -3,9 +3,8 @@
 	import { get, writable } from 'svelte/store';
 	import { type Page } from '$lib/types';
 	import { book, getPageCFI, loadPage, savePage, storeCurrentLocation } from '$lib/epubtools';
-	import { currentLocationCFI, rendition, typingPages } from '../../stores/typingStore';
+	import { rendition, typingPages } from '../../stores/typingStore';
 	import ePub, { type Book, type Rendition } from 'epubjs';
-	import { Button } from 'flowbite-svelte';
 	import { storeBook } from '$lib/storage';
 	import { getLocationKey } from '$lib/epubtools';
 
@@ -286,7 +285,7 @@
 				<button class="control-button" on:click={() => $rendition?.display()}>Go to Start</button>
 				<!-- New Save and Load buttons -->
 
-				<button on:click={savePage}>Save Page</button>
+				<button on:click={storeCurrentLocation}>Save Page</button>
 				<button on:click={loadPage}>Load Page</button>
 				<button class="control-button">
 					<a href="/selection" style="text-decoration: none; color: var(--fg-100);">Books</a>

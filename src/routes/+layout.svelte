@@ -2,8 +2,6 @@
 	import '../styles/app.scss';
 	import { onMount } from 'svelte';
 	import Sidebar from '../components/Sidebar.svelte';
-	import ColorSettings from '../components/ColorSettings.svelte';
-
 	let scrolled = false;
 	let sidebarOpen = false;
 
