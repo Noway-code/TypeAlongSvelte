@@ -6,15 +6,14 @@ export const CURRENT_LOCATION_KEY = 'currentLocationCFI';
 
 // magic CFI library
 /**
- * Create a range CFI from two CFIs
- * @param {string} startCfi - Start CFI
- * @param {string} endCfi - End CFI
- * @returns {string} - Range CFI
+ * Creates a range CFI from two CFIs by determining the common path.
+ *
+ * @param {string} startCfi - The starting CFI.
+ * @param {string} endCfi - The ending CFI.
+ * @returns {string} The generated range CFI.
+ *
  * @example
- * const startCfi = "epubcfi(/6/14!/4/2/14/1:0)";
- * const endCfi = "epubcfi(/6/14!/4/2/14/1:1)";
- * const rangeCfi = createRangeCfi(startCfi, endCfi);
- * console.log(rangeCfi);
+ * const rangeCfi = createRangeCfi("epubcfi(/6/14!/4/2/14/1:0)", "epubcfi(/6/14!/4/2/14/1:1)");
  */
 export function createRangeCfi(startCfi: string, endCfi: string): string {
 	const cfiInstance = new CFI();

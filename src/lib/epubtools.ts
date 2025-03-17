@@ -22,8 +22,10 @@ export function getLocationKey(identifier: string): string {
 }
 
 /**
- * Set composite key and cfi to localStorage and update the associated book in Books
- * @param {String} cfi - cfi
+ * Saves the given CFI (Canonical Fragment Identifier) for the currently opened book.
+ * @param {string} cfi - The Canonical Fragment Identifier to save.
+ * @example
+ * persistCurrentCfiForBook("epubcfi(/6/14!/4/2/14/1:0)");
  */
 export function persistCurrentCfiForBook(cfi: string): void {
 	const identifier = getOpenedBookIdentifier();
