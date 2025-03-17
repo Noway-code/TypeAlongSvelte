@@ -6,14 +6,14 @@ import { updateBookDetails } from '$lib/storage';
 
 export const book = writable<Book | null>(null);
 
-/*
+/**
  * Get opened book identifier
  */
 function getOpenedBookIdentifier(): string | null {
 	return localStorage.getItem('openedBook');
 }
 
-/*
+/**
  * Append identifier to get composite key for localStorage
  * @param {string} identifier - stored EPUB identifier
  */
@@ -21,7 +21,7 @@ export function getLocationKey(identifier: string): string {
 	return `currentLocationCFI_${identifier}`;
 }
 
-/*
+/**
  * Set composite key and cfi to localStorage and update the associated book in Books
  * @param {String} cfi - cfi
  */
@@ -34,7 +34,7 @@ export function persistCurrentCfiForBook(cfi: string): void {
 	}
 }
 
-/*
+/**
  * Update currentLocationCFI to current rendition CFI, the associate composite key localstorage, and the book localStorage
  * @example
  * // Going to next chapter
@@ -55,7 +55,7 @@ export async function storeCurrentLocation(): Promise<void> {
 	}
 }
 
-/*
+/**
  * Set currentLocationCFI to current CFI, composite key, and books
  */
 // export function savePage(): void {
@@ -80,7 +80,7 @@ export async function storeCurrentLocation(): Promise<void> {
 // 	}
 // }
 
-/*
+/**
  * Grab the current page cfi extracted from range CFI of Rendition.
  * @example
  * const cfi = getPageCFI();
@@ -104,7 +104,7 @@ export function getPageCFI(): string | null {
 	return null;
 }
 
-/*
+/**
  * Load CFI from composite key and update the rendition to the stored cfi, else empty display.
  */
 export async function loadPage(): Promise<void> {

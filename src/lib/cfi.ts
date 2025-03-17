@@ -5,7 +5,7 @@ const { CFI } = pkg;
 export const CURRENT_LOCATION_KEY = 'currentLocationCFI';
 
 // magic CFI library
-/*
+/**
  * Create a range CFI from two CFIs
  * @param {string} startCfi - Start CFI
  * @param {string} endCfi - End CFI
@@ -37,7 +37,7 @@ export function createRangeCfi(startCfi: string, endCfi: string): string {
 	})},${cfiInstance.segmentString(uniqueStart)},${cfiInstance.segmentString(uniqueEnd)})`;
 }
 
-/*
+/**
  * Generic store cfi as key method
  * @param {string} storageKey - LocalStorage key name
  * @param {string} cfi - cfi
@@ -49,7 +49,7 @@ export function saveCfi(storageKey: string, cfi: string): void {
 	localStorage.setItem(storageKey, cfi);
 }
 
-/*
+/**
  * Generic get cfi from key method
  * @param {string} storageKey - LocalStorage key name
  * @example
@@ -60,7 +60,7 @@ export function getSavedCfi(storageKey: string): string | null {
 }
 
 //TODO: Update to rendition type
-/*
+/**
  * Get the saved CFI from localStorage by name, **update** rendition to that cfi
  * @param {any} rendition - Display of book in set view type
  * @param {string} storageKey - LocalStorage key name
@@ -77,17 +77,9 @@ export async function loadSavedPage(rendition: any, storageKey: string): Promise
 	}
 }
 
-export function getCurrentCfi(rendition: any): string | null {
-	if (rendition) {
-		const location = rendition.currentLocation();
-		return location?.start?.cfi || null;
-	}
-	return null;
-}
-
-/*
+/**
  * Make range CFI from rendition current location, set it as currentLocationCFI LocalStorage, and return the CFI.
- * @param {any} rendtion - Display of book in set view type
+ * @param {any} rendition - Display of book in set view type
  * @param {string} storageKey - LocalStorage key name (Default:CurrentLocationCFI)
  * @example
  * const rangeCfi = updateCurrentLocation(r);
