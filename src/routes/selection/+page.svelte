@@ -12,13 +12,14 @@
 	let dataSource: 'local' | 'public' = 'local';
 	let bookDetails: BookDetails[] = getStoredBooks();
 
+	let searchValue: string = '';
 	// Blob storage handling the inputted epub.
 	let uploadedFile = writable<File | null>(null);
 	// Temporary stash K-V Pair system for <identifier, URL> til user sets cover
 	let coverUrls: Record<string, string> = {};
 	// selectedBook contains only the identifier and downloadURl of a book, but using these types
 	// allow it to use Partial BookDetails directly
-	export let selectedBook: { identifier: string; downloadUrl: string } | null = null;
+	export let selectedBook: BookDetails | null = null;
 	let modalElement: HTMLElement;
 
 	// Waits for next DOM update then calls focus on the modal to ensure keydown's work
@@ -27,11 +28,17 @@
 			modalElement.focus();
 		});
 	}
-	/**
-	 * Use backend as proxy to fetch gutenberg EPUB file, set, and uploadEpub.
-	 * @param gutenbergUrl - URL to the EPUB3 link from Gutendex
-	 * @param filename - optional param to store file under unique name
-	 */
+
+	// Fixed searchUpdate: now accepts the event so it can update searchValue properly
+	function searchUpdate(event: Event) {
+		const target = event.target as HTMLInputElement;
+		searchValue = target.value;
+		console.log("Search updated:", searchValue);
+		if(dataSource === 'public') {
+
+		}
+	}
+
 	async function downloadAndLoadBook(gutenbergUrl: string, filename = 'book.epub') {
 		try {
 			const proxyUrl = `http://localhost:8000/api/download?url=${encodeURIComponent(gutenbergUrl)}`;
@@ -48,13 +55,14 @@
 		}
 	}
 
-
 	/**
 	 *  Fetch 5 books from Gutendex and cache them under "publicBooks" localStorage.
 	 */
-	async function fetchPublicBooks(): Promise<BookDetails[]> {
+	async function fetchPublicBooks(search: String = ""): Promise<BookDetails[]> {
 		const cacheKey = 'publicBooks';
 		const cached = localStorage.getItem(cacheKey);
+		const searchCleaned = search.replace(" ", "%20")
+		console.log(searchCleaned);
 
 		if (cached) {
 			try {
@@ -146,7 +154,6 @@
 		}
 	}
 
-
 	function handleChange(event: Event) {
 		const target = event.target as HTMLInputElement;
 		if (target.files) {
@@ -155,7 +162,7 @@
 	}
 
 	/**
-	 Clear the rendition and replace book, as well as setup book as OpenedBook
+	 * Clear the rendition and replace book, as well as setup book as OpenedBook
 	 */
 	async function uploadEpub() {
 		const file = get(uploadedFile);
@@ -184,13 +191,11 @@
 
 		await goto('/view-book');
 	}
-
 </script>
 
 <div class="container">
 	<h1 class="title">Book Selection</h1>
 	<p class="subtitle">Click a book to see more details</p>
-	<!-- Flipflop toggle between Local and Public data sources -->
 	<div class="flipflop">
 		<button class:active={dataSource === 'local'} on:click={() => setDataSource('local')}>
 			Local
@@ -199,6 +204,10 @@
 			Public
 		</button>
 	</div>
+	<div class="search-bar">
+		<input type="text" bind:value={searchValue} on:input={searchUpdate} placeholder="Search..." />
+	</div>
+
 	<div class="books-grid">
 		{#each bookDetails as book (book.identifier)}
 			<div
@@ -255,7 +264,8 @@
 							on:change={handleChange}
 						/>
 						<button class="upload-button" on:click={uploadEpub}>Upload EPUB</button>
-					</section><br />
+					</section>
+					<br />
 
 					<h3>Want to update the cover?</h3>
 					<Textarea
@@ -276,14 +286,12 @@
 					>
 						Add Cover
 					</Button>
-				{:else if selectedBook.downloadUrl}
+				{:else}
 					<p>{selectedBook.downloadUrl}</p>
 					<button on:click={() => downloadAndLoadBook(selectedBook.downloadUrl)}>
 						Download &amp; Open EPUB
 					</button>
 				{/if}
-
-
 			</div>
 		</div>
 	</div>
@@ -444,7 +452,20 @@
     font-size: 1.5rem;
     color: var(--fg-100);
   }
+  .search-bar input {
+    background-color: transparent;
+    border: none;
+    border-bottom: 2px solid #ffffff;
+    outline: none;
+    padding: 8px 4px;
+    font-size: 16px;
+    color: white;
+    margin-bottom: 12px;
+  }
 
+  .search-bar input:focus {
+    border-bottom-color: #007BFF;
+  }
   /* Cleaned-up Modal Styles */
   .modal-overlay {
     position: fixed;
@@ -486,9 +507,11 @@
 
   .modal-body {
     text-align: left;
+
     h2 {
       margin-bottom: 0.75rem;
     }
+
     p,
     h3,
     ul {
