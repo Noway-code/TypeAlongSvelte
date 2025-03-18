@@ -17,8 +17,12 @@ export interface BookDetails {
 	downloadUrl?: string;
 }
 
-/*
- * Fetch the books array and extract out interface to JSON
+/**
+ * Retrieves the list of stored books from localStorage.
+ *
+ * @returns {BookDetails[]} - An array of stored book details.
+ * @throws {SyntaxError} Throws an error if the stored data is not valid JSON.
+ *
  * @example
  * const books = getStoredBooks();
  */
@@ -33,7 +37,7 @@ export function getStoredBooks(): BookDetails[] {
 	}
 }
 
-/*
+/**
  * Fetch books, if it isn't already in the list then push it on to the end and re-store it
  * @param {BookDetails} newBook - book to be added to list
  */
@@ -44,7 +48,7 @@ export function storeBook(newBook: BookDetails): void {
 	localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
 }
 
-/*
+/**
  * Find book from books by identifier, update fields with new object if identifier matches otherwise return same array.
  * @param {string} identifier - book identifier
  * @param {Partial<BookDetails>} updatedFields - fields with values to change
@@ -64,7 +68,7 @@ export function updateBookDetails(identifier: string, updatedFields: Partial<Boo
 	localStorage.setItem(BOOKS_KEY, JSON.stringify(updatedBooks));
 }
 
-/*
+/**
  * Return book that matches the passed identifier
  * @param {string} identifier - identifier
  */
@@ -73,7 +77,7 @@ export function getBookByIdentifier(identifier: string): BookDetails | null {
 	return books.find((book) => book.identifier === identifier) || null;
 }
 
-/*
+/**
  * Return book that matches the passed identifier
  * @param {string} identifier - identifier
  */

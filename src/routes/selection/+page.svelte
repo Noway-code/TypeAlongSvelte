@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getStoredBooks, type BookDetails, addCoverToBook, getBookCfi, updateBookDetails } from '$lib/storage';
+	import { getStoredBooks, type BookDetails, getBookCfi, updateBookDetails } from '$lib/storage';
 	import { fade } from 'svelte/transition';
 	import { Button, Textarea } from 'flowbite-svelte';
 	import ePub from 'epubjs';
@@ -7,18 +7,31 @@
 	import { goto } from '$app/navigation';
 	import { getLocationKey } from '$lib/epubtools';
 	import { get, writable } from 'svelte/store';
-	import { rendition } from '../../stores/typingStore';
-
+	import { tick } from 'svelte';
 	// Data source: 'local' uses localStorage; 'public' uses Gutendex.
 	let dataSource: 'local' | 'public' = 'local';
-
-	// Reactive books list: updates based on the data source.
 	let bookDetails: BookDetails[] = getStoredBooks();
 
+	// Blob storage handling the inputted epub.
 	let uploadedFile = writable<File | null>(null);
+	// Temporary stash K-V Pair system for <identifier, URL> til user sets cover
 	let coverUrls: Record<string, string> = {};
+	// selectedBook contains only the identifier and downloadURl of a book, but using these types
+	// allow it to use Partial BookDetails directly
 	export let selectedBook: { identifier: string; downloadUrl: string } | null = null;
+	let modalElement: HTMLElement;
 
+	// Waits for next DOM update then calls focus on the modal to ensure keydown's work
+	$: if (selectedBook) {
+		tick().then(() => {
+			modalElement.focus();
+		});
+	}
+	/**
+	 * Use backend as proxy to fetch gutenberg EPUB file, set, and uploadEpub.
+	 * @param gutenbergUrl - URL to the EPUB3 link from Gutendex
+	 * @param filename - optional param to store file under unique name
+	 */
 	async function downloadAndLoadBook(gutenbergUrl: string, filename = 'book.epub') {
 		try {
 			const proxyUrl = `http://localhost:8000/api/download?url=${encodeURIComponent(gutenbergUrl)}`;
@@ -36,7 +49,9 @@
 	}
 
 
-	// Fetch 5 books from Gutendex and cache them under "publicBooks"
+	/**
+	 *  Fetch 5 books from Gutendex and cache them under "publicBooks" localStorage.
+	 */
 	async function fetchPublicBooks(): Promise<BookDetails[]> {
 		const cacheKey = 'publicBooks';
 		const cached = localStorage.getItem(cacheKey);
@@ -79,7 +94,10 @@
 		}
 	}
 
-	// Switch data source by setting the source and updating bookDetails.
+	/**
+	 * Function for the flip-flop data button. Resets visible books and calls for the new respective source instead.
+	 * @param source - locally sourced or public project Gutenberg books.
+	 */
 	async function setDataSource(source: 'local' | 'public') {
 		dataSource = source;
 		bookDetails = dataSource === 'local'
@@ -97,6 +115,11 @@
 		selectedBook = null;
 	}
 
+	/**
+	 * With book selected (tab), the enter key or space will open modal.
+	 * @param event
+	 * @param book
+	 */
 	function handleKeyDown(event: KeyboardEvent, book: BookDetails) {
 		if (event.key === 'Enter' || event.key === ' ') {
 			openModal(book);
@@ -104,6 +127,11 @@
 		}
 	}
 
+	/**
+	 * Clear coverUrl from map, then updates cover in LocalStorage books
+	 * @param book
+	 * @param url
+	 */
 	function addCoverToBookHandler(book: BookDetails, url: string) {
 		coverUrls[book.identifier] = '';
 		book.cover = url;
@@ -118,6 +146,7 @@
 		}
 	}
 
+
 	function handleChange(event: Event) {
 		const target = event.target as HTMLInputElement;
 		if (target.files) {
@@ -125,6 +154,9 @@
 		}
 	}
 
+	/**
+	 Clear the rendition and replace book, as well as setup book as OpenedBook
+	 */
 	async function uploadEpub() {
 		const file = get(uploadedFile);
 		if (!file) return;
@@ -194,9 +226,10 @@
 		class="modal-overlay"
 		role="button"
 		tabindex="0"
+		bind:this={modalElement}
 		on:click|self={closeModal}
 		on:keydown={(e) => {
-			if (e.key === 'Enter' || e.key === ' ') closeModal();
+			if (e.key === 'Escape' || e.key === ' ') closeModal();
 		}}
 		transition:fade
 	>
@@ -222,20 +255,13 @@
 							on:change={handleChange}
 						/>
 						<button class="upload-button" on:click={uploadEpub}>Upload EPUB</button>
-					</section>
-				{:else if selectedBook.downloadUrl}
-					<p>{selectedBook.downloadUrl}</p>
-					<button on:click={() => downloadAndLoadBook(selectedBook.downloadUrl)}>
-						Download &amp; Open EPUB
-					</button>
-				{/if}
+					</section><br />
 
-				<br />
-				{#if !selectedBook.cover}
-					<h3>Want to add a cover?</h3>
+					<h3>Want to update the cover?</h3>
 					<Textarea
 						placeholder="Enter URL of the cover image"
 						bind:value={coverUrls[selectedBook.identifier]}
+						style="width: 80%"
 						rows={1}
 					/>
 					<Button
@@ -250,7 +276,14 @@
 					>
 						Add Cover
 					</Button>
+				{:else if selectedBook.downloadUrl}
+					<p>{selectedBook.downloadUrl}</p>
+					<button on:click={() => downloadAndLoadBook(selectedBook.downloadUrl)}>
+						Download &amp; Open EPUB
+					</button>
 				{/if}
+
+
 			</div>
 		</div>
 	</div>
@@ -266,6 +299,9 @@
     justify-content: center;
     gap: 1rem;
     margin-bottom: 1rem;
+    background-color: var(--bg-100);
+    padding: 1.5rem;
+    border-radius: 20px;
 
     input[type="file"] {
       padding: 0.5rem;
@@ -409,6 +445,7 @@
     color: var(--fg-100);
   }
 
+  /* Cleaned-up Modal Styles */
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -427,33 +464,42 @@
     background-color: var(--bg-200);
     color: var(--fg-100);
     border-radius: 8px;
-    max-width: 600px;
-    width: 100%;
-    max-height: 90vh;
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
     overflow-y: auto;
-    padding: 2rem;
+    padding: 1.5rem;
     position: relative;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .close-button {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
+    top: 0.75rem;
+    right: 0.75rem;
     background: transparent;
     border: none;
-    font-size: 2rem;
+    font-size: 1.5rem;
     color: var(--fg-100);
     cursor: pointer;
   }
 
   .modal-body {
     text-align: left;
+    h2 {
+      margin-bottom: 0.75rem;
+    }
+    p,
+    h3,
+    ul {
+      margin-bottom: 1rem;
+    }
   }
 
   .toc-list {
     list-style-type: disc;
-    padding-left: 1.5rem;
+    padding-left: 1rem;
+    margin-bottom: 1rem;
 
     li {
       margin-bottom: 0.5rem;

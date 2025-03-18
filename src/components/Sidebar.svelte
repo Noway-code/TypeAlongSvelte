@@ -40,10 +40,20 @@
 				</li>
 			{/each}
 		</ul>
-		<!-- Always render ColorSettings, but wrap it in a container that slides out when closed -->
 		<div class="color-settings-wrapper {open ? 'visible' : 'hidden'}">
 			<ColorSettings />
 		</div>
+		<footer class="footer {open ? 'visible' : 'hidden'}">
+			<a href="https://www.nowaycode.com/projects/second-post" title="noway-code" target="_blank" rel="noopener noreferrer">
+				Blog Post
+			</a>
+			<a href="https://www.github.com/noway-code/TypeAlongSvelte" title="noway-code" target="_blank" rel="noopener noreferrer">
+				Source Code
+			</a>
+			<a href="https://www.flaticon.com/free-icons/rune" title="rune icons" target="_blank" rel="noopener noreferrer">
+				Rune icons created by Aranagraphics - Flaticon
+			</a>
+		</footer>
 	</nav>
 </aside>
 
@@ -83,6 +93,8 @@
     }
   }
   nav {
+    display: flex;
+    flex-direction: column;
     flex: 1;
     margin-top: 2rem;
     ul {
@@ -99,9 +111,6 @@
           &:hover {
             background: rgba(255, 255, 255, 0.1);
           }
-          .icon {
-            font-size: 1.2rem;
-          }
         }
       }
     }
@@ -109,7 +118,6 @@
   .color-settings-wrapper {
     transition: opacity 0.1s ease, transform 0.3s ease;
   }
-  /* Hide the ColorSettings when sidebar is collapsed */
   .color-settings-wrapper.hidden {
     opacity: 0;
     transform: translateX(-100%);
@@ -119,4 +127,36 @@
     opacity: 1;
     transform: translateX(0);
   }
+  .footer {
+    margin-top: auto;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    color: var(--fg-100);
+    background: transparent;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .footer.hidden {
+    opacity: 0;
+    transform: translateX(-100%);
+    pointer-events: none;
+  }
+  .footer.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .footer a {
+    color: var(--fg-100);
+    text-decoration: underline;
+    opacity: 50%;
+    transition: opacity 0.2s ease;
+  }
+  .footer a:hover {
+    opacity: 100%;
+  }
+  .sidebar.collapsed nav ul li a {
+    pointer-events: none;
+  }
+
 </style>

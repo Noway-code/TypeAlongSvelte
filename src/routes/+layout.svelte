@@ -49,18 +49,6 @@
 		<main>
 			<slot />
 		</main>
-
-		<footer class="footer">
-			<a href="https://www.nowaycode.com/projects/second-post" title="noway-code" target="_blank" rel="noopener noreferrer">
-				Blog Post
-			</a>
-			<a href="https://www.github.com/noway-code/TypeAlongSvelte" title="noway-code" target="_blank" rel="noopener noreferrer">
-				Source Code
-			</a>
-			<a href="https://www.flaticon.com/free-icons/rune" title="rune icons" target="_blank" rel="noopener noreferrer">
-				Rune icons created by Aranagraphics - Flaticon
-			</a>
-		</footer>
 	</div>
 </div>
 
@@ -134,23 +122,5 @@
     align-items: center;
   }
 
-  .footer {
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    color: var(--fg-100);
-    margin-top: 20px;
-    background: transparent;
-  }
 
-  .footer a {
-    color: var(--fg-100);
-    text-decoration: underline;
-    opacity: 50%;
-    transition: opacity 0.2s ease;
-    &:hover {
-      opacity: 100%;
-    }
-  }
 </style>
