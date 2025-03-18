@@ -251,15 +251,8 @@
 							on:change={handleChange}
 						/>
 						<button class="upload-button" on:click={uploadEpub}>Upload EPUB</button>
-					</section>
-				{:else if selectedBook.downloadUrl}
-					<p>{selectedBook.downloadUrl}</p>
-					<button on:click={() => downloadAndLoadBook(selectedBook.downloadUrl)}>
-						Download &amp; Open EPUB
-					</button>
-				{/if}
+					</section><br />
 
-				<br />
 					<h3>Want to update the cover?</h3>
 					<Textarea
 						placeholder="Enter URL of the cover image"
@@ -279,6 +272,14 @@
 					>
 						Add Cover
 					</Button>
+				{:else if selectedBook.downloadUrl}
+					<p>{selectedBook.downloadUrl}</p>
+					<button on:click={() => downloadAndLoadBook(selectedBook.downloadUrl)}>
+						Download &amp; Open EPUB
+					</button>
+				{/if}
+
+
 			</div>
 		</div>
 	</div>
@@ -294,9 +295,9 @@
     justify-content: center;
     gap: 1rem;
     margin-bottom: 1rem;
-		background-color: var(--bg-100);
-		padding: 1.5rem;
-		border-radius: 20px;
+    background-color: var(--bg-100);
+    padding: 1.5rem;
+    border-radius: 20px;
 
     input[type="file"] {
       padding: 0.5rem;
@@ -440,6 +441,7 @@
     color: var(--fg-100);
   }
 
+  /* Cleaned-up Modal Styles */
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -458,33 +460,42 @@
     background-color: var(--bg-200);
     color: var(--fg-100);
     border-radius: 8px;
-    max-width: 600px;
-    width: 100%;
-    max-height: 90vh;
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
     overflow-y: auto;
-    padding: 2rem;
+    padding: 1.5rem;
     position: relative;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .close-button {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
+    top: 0.75rem;
+    right: 0.75rem;
     background: transparent;
     border: none;
-    font-size: 2rem;
+    font-size: 1.5rem;
     color: var(--fg-100);
     cursor: pointer;
   }
 
   .modal-body {
     text-align: left;
+    h2 {
+      margin-bottom: 0.75rem;
+    }
+    p,
+    h3,
+    ul {
+      margin-bottom: 1rem;
+    }
   }
 
   .toc-list {
     list-style-type: disc;
-    padding-left: 1.5rem;
+    padding-left: 1rem;
+    margin-bottom: 1rem;
 
     li {
       margin-bottom: 0.5rem;
