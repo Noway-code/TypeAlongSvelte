@@ -2,6 +2,8 @@
 	import '../styles/app.scss';
 	import { onMount } from 'svelte';
 	import Sidebar from '../components/Sidebar.svelte';
+	import ColorSettings from '../components/ColorSettings.svelte';
+
 	let scrolled = false;
 	let sidebarOpen = false;
 	let isSmallScreen = false;
@@ -31,7 +33,7 @@
 	$: contentMargin = isSmallScreen ? '2rem' : (sidebarOpen ? '300px' : '60px');
 	$: navBarLeft = isSmallScreen ? '4rem' : (sidebarOpen ? 'calc(300px + 1rem)' : 'calc(60px + 1rem)');
 	$: navBarWidth = isSmallScreen ? 'calc(100% - 4.5rem)' : `calc(100% - ${(sidebarOpen ? 300 : 60)}px - 2rem)`;
-	$: navBarItemSize = isSmallScreen ? '1rem' : '1.1rem';
+	$: navBarItemSize = isSmallScreen ? '0.9rem' : '1.1rem';
 </script>
 
 <svelte:head>
@@ -42,7 +44,7 @@
 	<Sidebar bind:open={sidebarOpen} links={[
 		{ href: '/', text: 'Home' },
 		{ href: '/random-type', text: 'Random-Type' },
-		{ href: '/view-book', text: 'Select' },
+		{ href: '/view-book', text: 'View' },
 		{ href: '/selection', text: 'Selection' }
 	]} />
 
@@ -52,7 +54,7 @@
 			class:blurred={scrolled}
 			style="left: {navBarLeft}; width: {navBarWidth};"
 		>
-			<h1 class="logo">🔥 TypeAlong</h1>
+			<h1 class="logo">🖮 TypeAlong</h1>
 			<div class="nav-items" style="font-size: {navBarItemSize}">
 				<a class="nav-item" href="/">Home</a>
 				<a class="nav-item" href="/random-type">Random-Type</a>
@@ -136,5 +138,10 @@
     align-items: center;
   }
 
-
+  @media (max-width: 768px) {
+    .nav-items {
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+  }
 </style>
