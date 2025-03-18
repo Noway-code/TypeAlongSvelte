@@ -146,6 +146,7 @@
 		}
 	}
 
+
 	function handleChange(event: Event) {
 		const target = event.target as HTMLInputElement;
 		if (target.files) {
@@ -153,6 +154,9 @@
 		}
 	}
 
+	/**
+	 Clear the rendition and replace book, as well as setup book as OpenedBook
+	 */
 	async function uploadEpub() {
 		const file = get(uploadedFile);
 		if (!file) return;
