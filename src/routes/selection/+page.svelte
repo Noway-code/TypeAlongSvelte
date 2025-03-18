@@ -27,6 +27,7 @@
 			modalElement.focus();
 		});
 	}
+
 	/**
 	 * Use backend as proxy to fetch gutenberg EPUB file, set, and uploadEpub.
 	 * @param gutenbergUrl - URL to the EPUB3 link from Gutendex
@@ -255,7 +256,8 @@
 							on:change={handleChange}
 						/>
 						<button class="upload-button" on:click={uploadEpub}>Upload EPUB</button>
-					</section><br />
+					</section>
+					<br />
 
 					<h3>Want to update the cover?</h3>
 					<Textarea
@@ -486,9 +488,11 @@
 
   .modal-body {
     text-align: left;
+
     h2 {
       margin-bottom: 0.75rem;
     }
+
     p,
     h3,
     ul {

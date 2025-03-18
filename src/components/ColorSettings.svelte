@@ -157,7 +157,7 @@
 		}
 	};
 
-	let selectedTheme = "classic-dark";
+	let selectedTheme = 'classic-dark';
 
 	function updateColor(variable: string, value: string) {
 		document.documentElement.style.setProperty(`--${variable}`, value);
@@ -175,7 +175,7 @@
 
 	function handleThemeChange(e) {
 		selectedTheme = e.target.value;
-		localStorage.setItem("selectedTheme", selectedTheme);
+		localStorage.setItem('selectedTheme', selectedTheme);
 		applyTheme(selectedTheme);
 	}
 
@@ -203,11 +203,11 @@
 		});
 
 		// If there's a stored theme, update selectedTheme; otherwise, apply the default.
-		const storedTheme = localStorage.getItem("selectedTheme");
+		const storedTheme = localStorage.getItem('selectedTheme');
 		if (storedTheme) {
 			selectedTheme = storedTheme;
 		} else {
-			console.log("No stored colors found. Applying default theme.");
+			console.log('No stored colors found. Applying default theme.');
 			applyTheme(selectedTheme);
 		}
 	});
@@ -244,7 +244,7 @@
         border-radius: 8px;
         max-width: 400px;
         margin: 1rem;
-				padding: 1rem;
+        padding: 1rem;
     }
 
     .color-control {

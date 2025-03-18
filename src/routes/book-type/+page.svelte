@@ -9,7 +9,7 @@
 	import { get } from 'svelte/store';
 	import { persistCurrentCfiForBook } from '$lib/epubtools';
 
-	export let words: Word[] = ["If", "you're", "seeing", "this", "you", "forgot", "to", "load", "the", "chapter"];
+	export let words: Word[] = ['If', 'you\'re', 'seeing', 'this', 'you', 'forgot', 'to', 'load', 'the', 'chapter'];
 
 	const INITIAL_SECONDS = 100;
 
@@ -44,7 +44,9 @@
 	const wordTimestamps: number[] = [];
 	const WPM_WINDOW_MS = 60000;
 
-	$: { ({ words, pageWordCount } = $wordsData); }
+	$: {
+		({ words, pageWordCount } = $wordsData);
+	}
 
 	let wordsEl: HTMLDivElement;
 	let letterEl: HTMLSpanElement | null;
@@ -249,6 +251,7 @@
 			focusInput();
 			wpmWindow();
 		}
+
 		gameTimerInterval = setInterval(gameTimer, 1000);
 	}
 
@@ -414,19 +417,19 @@
 
 		{#if game !== 'game over'}
 			<div class="stats">
-			<div class="stat">
-				<span>Accuracy</span>
-				<span>{accuracy.current.toFixed(1)}%</span>
+				<div class="stat">
+					<span>Accuracy</span>
+					<span>{accuracy.current.toFixed(1)}%</span>
+				</div>
+				<div class="stat">
+					<span>WPM</span>
+					<span>{wpm.current.toFixed(1)}</span>
+				</div>
+				<div class="stat">
+					<span>Page</span>
+					<span>{pageNumber}</span>
+				</div>
 			</div>
-			<div class="stat">
-				<span>WPM</span>
-				<span>{wpm.current.toFixed(1)}</span>
-			</div>
-			<div class="stat">
-				<span>Page</span>
-				<span>{pageNumber}</span>
-			</div>
-		</div>
 		{/if}
 
 
@@ -510,7 +513,8 @@
 
 <style lang="scss">
   @use '../../styles/variables.scss';
-	.letter {
+
+  .letter {
     opacity: 0.4;
     transition: all 0.3s ease;
 

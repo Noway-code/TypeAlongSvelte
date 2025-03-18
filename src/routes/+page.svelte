@@ -28,7 +28,8 @@
 				<h2>Seamless Typing Experience</h2>
 				<p>
 					Experience a typing game that is both engaging and beautiful. Our interface features fluid animations,
-					responsive design, and an intuitive layout—perfect for improving your typing speed while enjoying your favorite ebooks.
+					responsive design, and an intuitive layout—perfect for improving your typing speed while enjoying your
+					favorite ebooks.
 				</p>
 			</div>
 			<div class="feature-image">
