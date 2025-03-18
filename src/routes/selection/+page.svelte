@@ -14,7 +14,7 @@
 
 	// Blob storage handling the inputted epub.
 	let uploadedFile = writable<File | null>(null);
-	// K-V Pair system for <identifier, URL>
+	// Temporary stash K-V Pair system for <identifier, URL> til user sets cover
 	let coverUrls: Record<string, string> = {};
 	// selectedBook contains only the identifier and downloadURl of a book, but using these types
 	// allow it to use Partial BookDetails directly
@@ -115,6 +115,11 @@
 		selectedBook = null;
 	}
 
+	/**
+	 * With book selected (tab), the enter key or space will open modal.
+	 * @param event
+	 * @param book
+	 */
 	function handleKeyDown(event: KeyboardEvent, book: BookDetails) {
 		if (event.key === 'Enter' || event.key === ' ') {
 			openModal(book);
@@ -122,6 +127,11 @@
 		}
 	}
 
+	/**
+	 * Clear coverUrl from map, then updates cover in LocalStorage books
+	 * @param book
+	 * @param url
+	 */
 	function addCoverToBookHandler(book: BookDetails, url: string) {
 		coverUrls[book.identifier] = '';
 		book.cover = url;
@@ -250,11 +260,11 @@
 				{/if}
 
 				<br />
-				{#if !selectedBook.cover}
-					<h3>Want to add a cover?</h3>
+					<h3>Want to update the cover?</h3>
 					<Textarea
 						placeholder="Enter URL of the cover image"
 						bind:value={coverUrls[selectedBook.identifier]}
+						style="width: 80%"
 						rows={1}
 					/>
 					<Button
@@ -269,7 +279,6 @@
 					>
 						Add Cover
 					</Button>
-				{/if}
 			</div>
 		</div>
 	</div>
@@ -285,6 +294,9 @@
     justify-content: center;
     gap: 1rem;
     margin-bottom: 1rem;
+		background-color: var(--bg-100);
+		padding: 1.5rem;
+		border-radius: 20px;
 
     input[type="file"] {
       padding: 0.5rem;
