@@ -4,6 +4,7 @@
 	import Sidebar from '../components/Sidebar.svelte';
 	let scrolled = false;
 	let sidebarOpen = false;
+	let isSmallScreen = false;
 
 	onMount(() => {
 		function handleScroll() {
@@ -13,10 +14,24 @@
 		window.addEventListener('scroll', handleScroll);
 		handleScroll();
 
+		// Set initial screen size and update on resize
+		isSmallScreen = window.innerWidth < 768;
+		const handleResize = () => {
+			isSmallScreen = window.innerWidth < 768;
+		};
+		window.addEventListener('resize', handleResize);
+
 		return () => {
 			window.removeEventListener('scroll', handleScroll);
+			window.removeEventListener('resize', handleResize);
 		};
 	});
+
+	// Compute styles based on screen size and sidebar state
+	$: contentMargin = isSmallScreen ? '2rem' : (sidebarOpen ? '300px' : '60px');
+	$: navBarLeft = isSmallScreen ? '4rem' : (sidebarOpen ? 'calc(300px + 1rem)' : 'calc(60px + 1rem)');
+	$: navBarWidth = isSmallScreen ? 'calc(100% - 4.5rem)' : `calc(100% - ${(sidebarOpen ? 300 : 60)}px - 2rem)`;
+	$: navBarItemSize = isSmallScreen ? '1rem' : '1.1rem';
 </script>
 
 <svelte:head>
@@ -31,14 +46,14 @@
 		{ href: '/selection', text: 'Selection' }
 	]} />
 
-	<div class="content" style="margin-left: {sidebarOpen ? '300px' : '60px'}">
+	<div class="content" style="margin-left: {contentMargin}">
 		<nav
 			class="nav-bar"
 			class:blurred={scrolled}
-			style="left: {sidebarOpen ? 'calc(300px + 2rem)' : 'calc(60px + 2rem)'}; width: calc(100% - {sidebarOpen ? '300px' : '60px'} - 4rem);"
+			style="left: {navBarLeft}; width: {navBarWidth};"
 		>
 			<h1 class="logo">🔥 TypeAlong</h1>
-			<div class="nav-items">
+			<div class="nav-items" style="font-size: {navBarItemSize}">
 				<a class="nav-item" href="/">Home</a>
 				<a class="nav-item" href="/random-type">Random-Type</a>
 				<a class="nav-item" href="/view-book">View</a>
@@ -73,12 +88,12 @@
     display: flex;
     align-items: center;
     background-color: var(--bg-300);
-    padding: 1rem 2rem;
+    padding: 1rem;
     backdrop-filter: blur(20px);
     position: fixed;
-    top: 2rem;
-    left: 2rem;
-    right: 2rem;
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     z-index: 1000;
@@ -100,13 +115,12 @@
 
   .nav-items {
     display: flex;
-    gap: 1.5rem;
+    gap: 1rem;
   }
 
   .nav-item {
     text-decoration: none;
     color: var(--fg-200);
-    font-size: 1.2rem;
     transition: color 0.3s ease;
     &:hover {
       color: var(--accent);

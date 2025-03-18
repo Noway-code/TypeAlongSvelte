@@ -130,16 +130,15 @@
         text-align: center;
         padding: 2rem;
         flex: 1;
-        margin-left: 250px; /* same as sidebar width */
     }
 
     header {
-        margin-bottom: 3rem;
+        margin-bottom: 2rem;
     }
 
     header h1 {
         font-family: 'Lexend Deca', sans-serif;
-        font-size: 3rem;
+        font-size: 2.5rem;
         color: var(--primary);
         margin-bottom: 0.5rem;
     }
@@ -152,8 +151,8 @@
     .navigation {
         display: flex;
         justify-content: center;
-        gap: 2rem;
-        margin-bottom: 3rem;
+        gap: 1rem;
+        margin-bottom: 2rem;
     }
 
     .nav-link {
@@ -186,7 +185,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin: 3rem auto;
+        margin: 2rem auto;
         max-width: 60%;
         padding: 1rem;
         background: color-mix(in srgb, var(--bg-300) 75%, transparent);

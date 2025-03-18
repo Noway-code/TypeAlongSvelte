@@ -68,7 +68,8 @@
     display: flex;
     flex-direction: column;
     transition: width 0.3s ease;
-    overflow: hidden;
+     overflow-y: auto;
+    overflow-x: hidden;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
     &.open {
       width: 300px;
@@ -93,15 +94,13 @@
     }
   }
   nav {
-    display: flex;
-    flex-direction: column;
     flex: 1;
-    margin-top: 2rem;
+    margin-top: 1rem;
     ul {
       list-style: none;
       padding: 0;
       li {
-        margin: 1rem 0;
+        margin: 0.75rem 0;
         a {
           display: block;
           padding: 0.75rem 1.5rem;
@@ -159,4 +158,16 @@
     pointer-events: none;
   }
 
+
+  @media (max-width: 768px) {
+    .sidebar {
+      &.open {
+        width: 100vw;
+        z-index: 1100;
+      }
+      &.collapsed {
+        width: 60px;
+      }
+    }
+  }
 </style>
