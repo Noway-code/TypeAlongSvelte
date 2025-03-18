@@ -7,16 +7,31 @@
 	import { goto } from '$app/navigation';
 	import { getLocationKey } from '$lib/epubtools';
 	import { get, writable } from 'svelte/store';
+	import { tick } from 'svelte';
 	// Data source: 'local' uses localStorage; 'public' uses Gutendex.
 	let dataSource: 'local' | 'public' = 'local';
-
-	// Reactive books list: updates based on the data source.
 	let bookDetails: BookDetails[] = getStoredBooks();
 
+	// Blob storage handling the inputted epub.
 	let uploadedFile = writable<File | null>(null);
+	// K-V Pair system for <identifier, URL>
 	let coverUrls: Record<string, string> = {};
+	// selectedBook contains only the identifier and downloadURl of a book, but using these types
+	// allow it to use Partial BookDetails directly
 	export let selectedBook: { identifier: string; downloadUrl: string } | null = null;
+	let modalElement: HTMLElement;
 
+	// Waits for next DOM update then calls focus on the modal to ensure keydown's work
+	$: if (selectedBook) {
+		tick().then(() => {
+			modalElement.focus();
+		});
+	}
+	/**
+	 * Use backend as proxy to fetch gutenberg EPUB file, set, and uploadEpub.
+	 * @param gutenbergUrl - URL to the EPUB3 link from Gutendex
+	 * @param filename - optional param to store file under unique name
+	 */
 	async function downloadAndLoadBook(gutenbergUrl: string, filename = 'book.epub') {
 		try {
 			const proxyUrl = `http://localhost:8000/api/download?url=${encodeURIComponent(gutenbergUrl)}`;
@@ -34,7 +49,9 @@
 	}
 
 
-	// Fetch 5 books from Gutendex and cache them under "publicBooks"
+	/**
+	 *  Fetch 5 books from Gutendex and cache them under "publicBooks" localStorage.
+	 */
 	async function fetchPublicBooks(): Promise<BookDetails[]> {
 		const cacheKey = 'publicBooks';
 		const cached = localStorage.getItem(cacheKey);
@@ -77,7 +94,10 @@
 		}
 	}
 
-	// Switch data source by setting the source and updating bookDetails.
+	/**
+	 * Function for the flip-flop data button. Resets visible books and calls for the new respective source instead.
+	 * @param source - locally sourced or public project Gutenberg books.
+	 */
 	async function setDataSource(source: 'local' | 'public') {
 		dataSource = source;
 		bookDetails = dataSource === 'local'
@@ -192,9 +212,10 @@
 		class="modal-overlay"
 		role="button"
 		tabindex="0"
+		bind:this={modalElement}
 		on:click|self={closeModal}
 		on:keydown={(e) => {
-			if (e.key === 'Enter' || e.key === ' ') closeModal();
+			if (e.key === 'Escape' || e.key === ' ') closeModal();
 		}}
 		transition:fade
 	>
