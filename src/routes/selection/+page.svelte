@@ -7,20 +7,23 @@
 	import { goto } from '$app/navigation';
 	import { getLocationKey } from '$lib/epubtools';
 	import { get, writable } from 'svelte/store';
-	import { tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	// Data source: 'local' uses localStorage; 'public' uses Gutendex.
 	let dataSource: 'local' | 'public' = 'local';
 	let bookDetails: BookDetails[] = getStoredBooks();
 
+	let searchValue: string = '';
 	// Blob storage handling the inputted epub.
 	let uploadedFile = writable<File | null>(null);
 	// Temporary stash K-V Pair system for <identifier, URL> til user sets cover
 	let coverUrls: Record<string, string> = {};
 	// selectedBook contains only the identifier and downloadURl of a book, but using these types
 	// allow it to use Partial BookDetails directly
-	export let selectedBook: { identifier: string; downloadUrl: string } | null = null;
+	export let selectedBook: BookDetails | null = null;
 	let modalElement: HTMLElement;
 
+	// Use false by default since main page is local
+	let isLoading: boolean = false;
 	// Waits for next DOM update then calls focus on the modal to ensure keydown's work
 	$: if (selectedBook) {
 		tick().then(() => {
@@ -28,11 +31,43 @@
 		});
 	}
 
+	let timer: number;
+
+	const debounceUpdate = (event: Event) => {
+		const value = (event.target as HTMLInputElement).value;
+		clearTimeout(timer);
+		timer = setTimeout(() => {
+			searchUpdate(value);
+		}, 300); // increased debounce delay for smoother UX
+	}
+
+	let searchToken = 0;
+
+	async function searchUpdate(searchValue: string) {
+		if (dataSource === 'public') {
+			isLoading = true;
+			searchToken += 1;
+			const currentToken = searchToken;
+			const cleanedSearch = searchValue.replaceAll(" ", "%20");
+			console.log(cleanedSearch);
+			const results = await fetchPublicBooks(cleanedSearch);
+			if (currentToken === searchToken) {
+				bookDetails = results;
+				isLoading = false;
+			}
+		} else {
+			console.log("No local function complete yet");
+		}
+	}
+
+
+
 	/**
 	 * Use backend as proxy to fetch gutenberg EPUB file, set, and uploadEpub.
 	 * @param gutenbergUrl - URL to the EPUB3 link from Gutendex
 	 * @param filename - optional param to store file under unique name
 	 */
+
 	async function downloadAndLoadBook(gutenbergUrl: string, filename = 'book.epub') {
 		try {
 			const proxyUrl = `http://localhost:8000/api/download?url=${encodeURIComponent(gutenbergUrl)}`;
@@ -49,14 +84,8 @@
 		}
 	}
 
-
-	/**
-	 *  Fetch 5 books from Gutendex and cache them under "publicBooks" localStorage.
-	 */
-	async function fetchPublicBooks(): Promise<BookDetails[]> {
-		const cacheKey = 'publicBooks';
+	async function fetchDefaultBooks(cacheKey: string = "publicBooks") {
 		const cached = localStorage.getItem(cacheKey);
-
 		if (cached) {
 			try {
 				return JSON.parse(cached) as BookDetails[];
@@ -64,11 +93,9 @@
 				console.error('Error parsing cached public books:', error);
 			}
 		}
-
 		try {
 			const response = await fetch('https://gutendex.com/books/?page=1');
 			const data = await response.json();
-
 			// Limit to 5 books
 			const results = data.results.slice(0, 5);
 			const books: BookDetails[] = results.map((b: any) => ({
@@ -86,7 +113,37 @@
 				pageProgression: 'ltr',
 				downloadUrl: b.formats['application/epub+zip']
 			}));
+			localStorage.setItem(cacheKey, JSON.stringify(books));
+			return books;
+		} catch (error) {
+			console.error('Error fetching public books:', error);
+			return [];
+		}
+	}
 
+	async function fetchSearchedBooks(cacheKey: string = "publicBooks", cleanedSearch: string) {
+		try {
+			const url = `https://gutendex.com/books?search=${cleanedSearch}`;
+			console.log(url);
+			const response = await fetch(url);
+			const data = await response.json();
+			// Limit to 5 books
+			const results = data.results.slice(0, 5);
+			const books: BookDetails[] = results.map((b: any) => ({
+				title: b.title,
+				author: (b.authors && b.authors.length > 0) ? b.authors[0].name : 'Unknown',
+				cover: b.formats['image/jpeg'] || '',
+				publisher: 'Project Gutenberg',
+				language: (b.languages && b.languages[0]) || 'en',
+				description: b.summaries[0] || '',
+				subjects: b.subjects || [],
+				publicationDate: '',
+				identifier: `gutendex-${b.id}`,
+				source: 'gutendex',
+				toc: [{ label: 'Chapter 1', href: '#' }], // Dummy ToC data
+				pageProgression: 'ltr',
+				downloadUrl: b.formats['application/epub+zip']
+			}));
 			localStorage.setItem(cacheKey, JSON.stringify(books));
 			return books;
 		} catch (error) {
@@ -96,15 +153,32 @@
 	}
 
 	/**
-	 * Function for the flip-flop data button. Resets visible books and calls for the new respective source instead.
-	 * @param source - locally sourced or public project Gutenberg books.
+	 *  Fetch public books. If no search term, load default books (from cache/API),
+	 *  otherwise perform a search.
+	 */
+	async function fetchPublicBooks(cleanedSearch: string = ""): Promise<BookDetails[]> {
+		const cacheKey = 'publicBooks';
+		if (cleanedSearch === "") {
+			return await fetchDefaultBooks(cacheKey);
+		} else {
+			return await fetchSearchedBooks(cacheKey, cleanedSearch);
+		}
+	}
+
+	/**
+	 * Function for the flip-flop data button.
+	 * If switching to public, fetch and show public books (with loading state).
+	 * Otherwise, show local books.
 	 */
 	async function setDataSource(source: 'local' | 'public') {
 		dataSource = source;
-		bookDetails = dataSource === 'local'
-			? getStoredBooks()
-			: await fetchPublicBooks();
-
+		if (dataSource === 'public') {
+			isLoading = true;
+			bookDetails = await fetchPublicBooks();
+			isLoading = false;
+		} else {
+			bookDetails = getStoredBooks();
+		}
 		closeModal();
 	}
 
@@ -118,8 +192,6 @@
 
 	/**
 	 * With book selected (tab), the enter key or space will open modal.
-	 * @param event
-	 * @param book
 	 */
 	function handleKeyDown(event: KeyboardEvent, book: BookDetails) {
 		if (event.key === 'Enter' || event.key === ' ') {
@@ -129,14 +201,11 @@
 	}
 
 	/**
-	 * Clear coverUrl from map, then updates cover in LocalStorage books
-	 * @param book
-	 * @param url
+	 * Clear coverUrl from map, then update cover in LocalStorage books.
 	 */
 	function addCoverToBookHandler(book: BookDetails, url: string) {
 		coverUrls[book.identifier] = '';
 		book.cover = url;
-
 		if (dataSource === 'local') {
 			updateBookDetails(book.identifier, { cover: url });
 			bookDetails = getStoredBooks();
@@ -147,7 +216,6 @@
 		}
 	}
 
-
 	function handleChange(event: Event) {
 		const target = event.target as HTMLInputElement;
 		if (target.files) {
@@ -156,20 +224,18 @@
 	}
 
 	/**
-	 Clear the rendition and replace book, as well as setup book as OpenedBook
+	 * Clear the rendition and replace the book,
+	 * as well as set it as the OpenedBook.
 	 */
 	async function uploadEpub() {
 		const file = get(uploadedFile);
 		if (!file) return;
-
 		// Destroy any existing book and rendition before loading the new one
 		if (get(book)) {
 			get(book)?.destroy();
 		}
-
 		const newBook = ePub(file);
 		book.set(newBook);
-
 		const openedBookId = selectedBook?.identifier;
 		if (openedBookId) {
 			localStorage.setItem('openedBook', openedBookId);
@@ -182,16 +248,24 @@
 		} else {
 			console.error('No book selected for upload');
 		}
-
 		await goto('/view-book');
 	}
 
+	onMount(async () => {
+		// Since main page is local, load local books on mount.
+		if (dataSource === 'local') {
+			bookDetails = getStoredBooks();
+		} else {
+			isLoading = true;
+			bookDetails = await fetchDefaultBooks();
+			isLoading = false;
+		}
+	});
 </script>
 
 <div class="container">
 	<h1 class="title">Book Selection</h1>
 	<p class="subtitle">Click a book to see more details</p>
-	<!-- Flipflop toggle between Local and Public data sources -->
 	<div class="flipflop">
 		<button class:active={dataSource === 'local'} on:click={() => setDataSource('local')}>
 			Local
@@ -200,10 +274,14 @@
 			Public
 		</button>
 	</div>
+	<div class="search-bar">
+		<input type="text" bind:value={searchValue} on:input={debounceUpdate} placeholder="Search..." />
+	</div>
+
 	<div class="books-grid">
 		{#each bookDetails as book (book.identifier)}
 			<div
-				class="book-card"
+				class="book-card {isLoading ? 'loading' : 'not-loading'}"
 				role="button"
 				tabindex="0"
 				on:click={() => openModal(book)}
@@ -278,14 +356,12 @@
 					>
 						Add Cover
 					</Button>
-				{:else if selectedBook.downloadUrl}
+				{:else}
 					<p>{selectedBook.downloadUrl}</p>
 					<button on:click={() => downloadAndLoadBook(selectedBook.downloadUrl)}>
 						Download &amp; Open EPUB
 					</button>
 				{/if}
-
-
 			</div>
 		</div>
 	</div>
@@ -406,13 +482,21 @@
     overflow: hidden;
     background-color: var(--bg-100);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease-in-out;
     width: 280px;
     height: 420px;
 
     &:hover {
       transform: translateY(-5px);
       box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+    }
+    &.loading {
+      opacity: 0.8;
+      filter: blur(1rem);
+      pointer-events: none;
+    }
+    &.not-loading {
+      opacity: 1;
     }
   }
 
@@ -445,6 +529,21 @@
     margin: 0;
     font-size: 1.5rem;
     color: var(--fg-100);
+  }
+
+  .search-bar input {
+    background-color: transparent;
+    border: none;
+    border-bottom: 2px solid #ffffff;
+    outline: none;
+    padding: 8px 6px;
+    font-size: 18px;
+    color: white;
+    margin-bottom: 24px;
+  }
+
+  .search-bar input:focus {
+    border-bottom-color: #007BFF;
   }
 
   /* Cleaned-up Modal Styles */

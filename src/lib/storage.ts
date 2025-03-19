@@ -27,6 +27,7 @@ export interface BookDetails {
  * const books = getStoredBooks();
  */
 export function getStoredBooks(): BookDetails[] {
+	if (typeof window === 'undefined') return [];
 	const booksStr = localStorage.getItem(BOOKS_KEY);
 	if (!booksStr) return [];
 	try {
