@@ -30,6 +30,7 @@
 			modalElement.focus();
 		});
 	}
+
 	let timer: number;
 
 	const debounceUpdate = (event: Event) => {
@@ -58,6 +59,14 @@
 			console.log("No local function complete yet");
 		}
 	}
+
+
+
+	/**
+	 * Use backend as proxy to fetch gutenberg EPUB file, set, and uploadEpub.
+	 * @param gutenbergUrl - URL to the EPUB3 link from Gutendex
+	 * @param filename - optional param to store file under unique name
+	 */
 
 	async function downloadAndLoadBook(gutenbergUrl: string, filename = 'book.epub') {
 		try {
@@ -327,6 +336,7 @@
 						<button class="upload-button" on:click={uploadEpub}>Upload EPUB</button>
 					</section>
 					<br />
+
 					<h3>Want to update the cover?</h3>
 					<Textarea
 						placeholder="Enter URL of the cover image"

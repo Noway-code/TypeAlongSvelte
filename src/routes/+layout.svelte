@@ -2,7 +2,6 @@
 	import '../styles/app.scss';
 	import { onMount } from 'svelte';
 	import Sidebar from '../components/Sidebar.svelte';
-	import ColorSettings from '../components/ColorSettings.svelte';
 
 	let scrolled = false;
 	let sidebarOpen = false;
@@ -23,6 +22,7 @@
 		};
 		window.addEventListener('resize', handleResize);
 
+		// When component is destroyed, remove event listeners
 		return () => {
 			window.removeEventListener('scroll', handleScroll);
 			window.removeEventListener('resize', handleResize);
@@ -124,6 +124,7 @@
     text-decoration: none;
     color: var(--fg-200);
     transition: color 0.3s ease;
+
     &:hover {
       color: var(--accent);
     }
@@ -138,6 +139,7 @@
     align-items: center;
   }
 
+  // Media queries the current width of the screen and adjusts the layout accordingly
   @media (max-width: 768px) {
     .nav-items {
       gap: 0.5rem;
