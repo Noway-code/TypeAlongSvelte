@@ -28,14 +28,23 @@
 			modalElement.focus();
 		});
 	}
+	let timer:number;
 
+	const debounceUpdate = (event:Event) => {
+		const value = (event.target as HTMLInputElement).value;
+		clearTimeout(timer);
+		timer = setTimeout(() => {
+				searchUpdate(value)
+		},500);
+	}
 	// Fixed searchUpdate: now accepts the event so it can update searchValue properly
-	function searchUpdate(event: Event) {
-		const target = event.target as HTMLInputElement;
-		searchValue = target.value;
-		console.log("Search updated:", searchValue);
+	function searchUpdate(searchValue:string) {
 		if(dataSource === 'public') {
-
+			const cleanedSearch = searchValue.replaceAll(" ", "%20")
+			console.log(cleanedSearch)
+		}
+		else{
+			console.log("No local function complete yet")
 		}
 	}
 
@@ -205,7 +214,7 @@
 		</button>
 	</div>
 	<div class="search-bar">
-		<input type="text" bind:value={searchValue} on:input={searchUpdate} placeholder="Search..." />
+		<input type="text" bind:value={searchValue} on:input={debounceUpdate} placeholder="Search..." />
 	</div>
 
 	<div class="books-grid">
