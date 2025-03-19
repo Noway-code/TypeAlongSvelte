@@ -39,18 +39,25 @@
 		},100);
 	}
 
-	async function searchUpdate(searchValue:string) {
-		if(dataSource === 'public') {
-			isLoading = true
-			const cleanedSearch = searchValue.replaceAll(" ", "%20")
-			console.log(cleanedSearch)
-			bookDetails = await fetchPublicBooks(cleanedSearch);
-			isLoading = false
-		}
-		else{
-			console.log("No local function complete yet")
+	let searchToken = 0;
+
+	async function searchUpdate(searchValue: string) {
+		if (dataSource === 'public') {
+			isLoading = true;
+			searchToken += 1;
+			const currentToken = searchToken;
+			const cleanedSearch = searchValue.replaceAll(" ", "%20");
+			console.log(cleanedSearch);
+			const results = await fetchPublicBooks(cleanedSearch);
+			if (currentToken === searchToken) {
+				bookDetails = results;
+				isLoading = false;
+			}
+		} else {
+			console.log("No local function complete yet");
 		}
 	}
+
 
 
 	async function downloadAndLoadBook(gutenbergUrl: string, filename = 'book.epub') {
@@ -461,7 +468,7 @@
     overflow: hidden;
     background-color: var(--bg-100);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease-in-out;
     width: 280px;
     height: 420px;
 
@@ -472,9 +479,11 @@
 		&.loading {
 			opacity: .8;
 			filter: blur(1rem);
+			pointer-events: none;
      }
     &.not-loading{
 				opacity: 1;
+
     }
   }
 
