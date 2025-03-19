@@ -22,6 +22,7 @@
 	export let selectedBook: BookDetails | null = null;
 	let modalElement: HTMLElement;
 
+	let isLoading:boolean = true;
 	// Waits for next DOM update then calls focus on the modal to ensure keydown's work
 	$: if (selectedBook) {
 		tick().then(() => {
@@ -40,9 +41,11 @@
 
 	async function searchUpdate(searchValue:string) {
 		if(dataSource === 'public') {
+			isLoading = true
 			const cleanedSearch = searchValue.replaceAll(" ", "%20")
 			console.log(cleanedSearch)
 			bookDetails = await fetchPublicBooks(cleanedSearch);
+			isLoading = false
 		}
 		else{
 			console.log("No local function complete yet")
@@ -257,7 +260,7 @@
 	<div class="books-grid">
 		{#each bookDetails as book (book.identifier)}
 			<div
-				class="book-card"
+				class="book-card {isLoading ? 'loading' : 'not-loading'}"
 				role="button"
 				tabindex="0"
 				on:click={() => openModal(book)}
@@ -466,7 +469,15 @@
       transform: translateY(-5px);
       box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
     }
+		&.loading {
+			opacity: .8;
+			filter: blur(1rem);
+     }
+    &.not-loading{
+				opacity: 1;
+    }
   }
+
 
   .cover-image {
     width: 100%;
