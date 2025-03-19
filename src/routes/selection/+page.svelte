@@ -7,7 +7,7 @@
 	import { goto } from '$app/navigation';
 	import { getLocationKey } from '$lib/epubtools';
 	import { get, writable } from 'svelte/store';
-	import { tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	// Data source: 'local' uses localStorage; 'public' uses Gutendex.
 	let dataSource: 'local' | 'public' = 'local';
 	let bookDetails: BookDetails[] = getStoredBooks();
@@ -35,18 +35,20 @@
 		clearTimeout(timer);
 		timer = setTimeout(() => {
 				searchUpdate(value)
-		},500);
+		},100);
 	}
-	// Fixed searchUpdate: now accepts the event so it can update searchValue properly
-	function searchUpdate(searchValue:string) {
+
+	async function searchUpdate(searchValue:string) {
 		if(dataSource === 'public') {
 			const cleanedSearch = searchValue.replaceAll(" ", "%20")
 			console.log(cleanedSearch)
+			bookDetails = await fetchPublicBooks(cleanedSearch);
 		}
 		else{
 			console.log("No local function complete yet")
 		}
 	}
+
 
 	async function downloadAndLoadBook(gutenbergUrl: string, filename = 'book.epub') {
 		try {
@@ -64,23 +66,7 @@
 		}
 	}
 
-	/**
-	 *  Fetch 5 books from Gutendex and cache them under "publicBooks" localStorage.
-	 */
-	async function fetchPublicBooks(search: String = ""): Promise<BookDetails[]> {
-		const cacheKey = 'publicBooks';
-		const cached = localStorage.getItem(cacheKey);
-		const searchCleaned = search.replace(" ", "%20")
-		console.log(searchCleaned);
-
-		if (cached) {
-			try {
-				return JSON.parse(cached) as BookDetails[];
-			} catch (error) {
-				console.error('Error parsing cached public books:', error);
-			}
-		}
-
+	async function fetchDefaultBooks(cacheKey: string = "publicBooks") {
 		try {
 			const response = await fetch('https://gutendex.com/books/?page=1');
 			const data = await response.json();
@@ -109,6 +95,54 @@
 			console.error('Error fetching public books:', error);
 			return [];
 		}
+	}
+
+	async function fetchSearchedBooks(cacheKey: string = "publicBooks", cleanedSearch:string) {
+		try {
+			const url = `https://gutendex.com/books?search=${cleanedSearch}`
+			console.log(url)
+			const response = await fetch(url);
+			const data = await response.json();
+
+			// Limit to 5 books
+			const results = data.results.slice(0, 5);
+			const books: BookDetails[] = results.map((b: any) => ({
+				title: b.title,
+				author: (b.authors && b.authors.length > 0) ? b.authors[0].name : 'Unknown',
+				cover: b.formats['image/jpeg'] || '',
+				publisher: 'Project Gutenberg',
+				language: (b.languages && b.languages[0]) || 'en',
+				description: b.summaries[0] || '',
+				subjects: b.subjects || [],
+				publicationDate: '',
+				identifier: `gutendex-${b.id}`,
+				source: 'gutendex',
+				toc: [{ label: 'Chapter 1', href: '#' }], // Dummy ToC data
+				pageProgression: 'ltr',
+				downloadUrl: b.formats['application/epub+zip']
+			}));
+
+			localStorage.setItem(cacheKey, JSON.stringify(books));
+			return books;
+		} catch (error) {
+			console.error('Error fetching public books:', error);
+			return [];
+		}
+	}
+	/**
+	 *  Fetch 5 books from Gutendex and cache them under "publicBooks" localStorage.
+	 */
+	async function fetchPublicBooks(cleanedSearch: string = ""): Promise<BookDetails[]> {
+		const cacheKey = 'publicBooks';
+
+		/*if (cached) {
+			try {
+				return JSON.parse(cached) as BookDetails[];
+			} catch (error) {
+				console.error('Error parsing cached public books:', error);
+			}
+		}*/
+			return await fetchSearchedBooks(cacheKey, cleanedSearch)
 	}
 
 	/**
@@ -200,6 +234,9 @@
 
 		await goto('/view-book');
 	}
+	onMount(()=>{
+		fetchDefaultBooks()
+	})
 </script>
 
 <div class="container">
