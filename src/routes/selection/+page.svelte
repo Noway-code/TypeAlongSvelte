@@ -526,10 +526,10 @@
     border: none;
     border-bottom: 2px solid #ffffff;
     outline: none;
-    padding: 8px 4px;
-    font-size: 16px;
+    padding: 8px 6px;
+    font-size: 18px;
     color: white;
-    margin-bottom: 12px;
+    margin-bottom: 24px;
   }
 
   .search-bar input:focus {
