@@ -22,21 +22,22 @@
 	export let selectedBook: BookDetails | null = null;
 	let modalElement: HTMLElement;
 
-	let isLoading:boolean = true;
+	// Use false by default since main page is local
+	let isLoading: boolean = false;
 	// Waits for next DOM update then calls focus on the modal to ensure keydown's work
 	$: if (selectedBook) {
 		tick().then(() => {
 			modalElement.focus();
 		});
 	}
-	let timer:number;
+	let timer: number;
 
-	const debounceUpdate = (event:Event) => {
+	const debounceUpdate = (event: Event) => {
 		const value = (event.target as HTMLInputElement).value;
 		clearTimeout(timer);
 		timer = setTimeout(() => {
-				searchUpdate(value)
-		},100);
+			searchUpdate(value);
+		}, 300); // increased debounce delay for smoother UX
 	}
 
 	let searchToken = 0;
@@ -58,8 +59,6 @@
 		}
 	}
 
-
-
 	async function downloadAndLoadBook(gutenbergUrl: string, filename = 'book.epub') {
 		try {
 			const proxyUrl = `http://localhost:8000/api/download?url=${encodeURIComponent(gutenbergUrl)}`;
@@ -77,94 +76,100 @@
 	}
 
 	async function fetchDefaultBooks(cacheKey: string = "publicBooks") {
-		try {
-			const response = await fetch('https://gutendex.com/books/?page=1');
-			const data = await response.json();
-
-			// Limit to 5 books
-			const results = data.results.slice(0, 5);
-			const books: BookDetails[] = results.map((b: any) => ({
-				title: b.title,
-				author: (b.authors && b.authors.length > 0) ? b.authors[0].name : 'Unknown',
-				cover: b.formats['image/jpeg'] || '',
-				publisher: 'Project Gutenberg',
-				language: (b.languages && b.languages[0]) || 'en',
-				description: b.summaries[0] || '',
-				subjects: b.subjects || [],
-				publicationDate: '',
-				identifier: `gutendex-${b.id}`,
-				source: 'gutendex',
-				toc: [{ label: 'Chapter 1', href: '#' }], // Dummy ToC data
-				pageProgression: 'ltr',
-				downloadUrl: b.formats['application/epub+zip']
-			}));
-
-			localStorage.setItem(cacheKey, JSON.stringify(books));
-			return books;
-		} catch (error) {
-			console.error('Error fetching public books:', error);
-			return [];
-		}
-	}
-
-	async function fetchSearchedBooks(cacheKey: string = "publicBooks", cleanedSearch:string) {
-		try {
-			const url = `https://gutendex.com/books?search=${cleanedSearch}`
-			console.log(url)
-			const response = await fetch(url);
-			const data = await response.json();
-
-			// Limit to 5 books
-			const results = data.results.slice(0, 5);
-			const books: BookDetails[] = results.map((b: any) => ({
-				title: b.title,
-				author: (b.authors && b.authors.length > 0) ? b.authors[0].name : 'Unknown',
-				cover: b.formats['image/jpeg'] || '',
-				publisher: 'Project Gutenberg',
-				language: (b.languages && b.languages[0]) || 'en',
-				description: b.summaries[0] || '',
-				subjects: b.subjects || [],
-				publicationDate: '',
-				identifier: `gutendex-${b.id}`,
-				source: 'gutendex',
-				toc: [{ label: 'Chapter 1', href: '#' }], // Dummy ToC data
-				pageProgression: 'ltr',
-				downloadUrl: b.formats['application/epub+zip']
-			}));
-
-			localStorage.setItem(cacheKey, JSON.stringify(books));
-			return books;
-		} catch (error) {
-			console.error('Error fetching public books:', error);
-			return [];
-		}
-	}
-	/**
-	 *  Fetch 5 books from Gutendex and cache them under "publicBooks" localStorage.
-	 */
-	async function fetchPublicBooks(cleanedSearch: string = ""): Promise<BookDetails[]> {
-		const cacheKey = 'publicBooks';
-
-		/*if (cached) {
+		const cached = localStorage.getItem(cacheKey);
+		if (cached) {
 			try {
 				return JSON.parse(cached) as BookDetails[];
 			} catch (error) {
 				console.error('Error parsing cached public books:', error);
 			}
-		}*/
-			return await fetchSearchedBooks(cacheKey, cleanedSearch)
+		}
+		try {
+			const response = await fetch('https://gutendex.com/books/?page=1');
+			const data = await response.json();
+			// Limit to 5 books
+			const results = data.results.slice(0, 5);
+			const books: BookDetails[] = results.map((b: any) => ({
+				title: b.title,
+				author: (b.authors && b.authors.length > 0) ? b.authors[0].name : 'Unknown',
+				cover: b.formats['image/jpeg'] || '',
+				publisher: 'Project Gutenberg',
+				language: (b.languages && b.languages[0]) || 'en',
+				description: b.summaries[0] || '',
+				subjects: b.subjects || [],
+				publicationDate: '',
+				identifier: `gutendex-${b.id}`,
+				source: 'gutendex',
+				toc: [{ label: 'Chapter 1', href: '#' }], // Dummy ToC data
+				pageProgression: 'ltr',
+				downloadUrl: b.formats['application/epub+zip']
+			}));
+			localStorage.setItem(cacheKey, JSON.stringify(books));
+			return books;
+		} catch (error) {
+			console.error('Error fetching public books:', error);
+			return [];
+		}
+	}
+
+	async function fetchSearchedBooks(cacheKey: string = "publicBooks", cleanedSearch: string) {
+		try {
+			const url = `https://gutendex.com/books?search=${cleanedSearch}`;
+			console.log(url);
+			const response = await fetch(url);
+			const data = await response.json();
+			// Limit to 5 books
+			const results = data.results.slice(0, 5);
+			const books: BookDetails[] = results.map((b: any) => ({
+				title: b.title,
+				author: (b.authors && b.authors.length > 0) ? b.authors[0].name : 'Unknown',
+				cover: b.formats['image/jpeg'] || '',
+				publisher: 'Project Gutenberg',
+				language: (b.languages && b.languages[0]) || 'en',
+				description: b.summaries[0] || '',
+				subjects: b.subjects || [],
+				publicationDate: '',
+				identifier: `gutendex-${b.id}`,
+				source: 'gutendex',
+				toc: [{ label: 'Chapter 1', href: '#' }], // Dummy ToC data
+				pageProgression: 'ltr',
+				downloadUrl: b.formats['application/epub+zip']
+			}));
+			localStorage.setItem(cacheKey, JSON.stringify(books));
+			return books;
+		} catch (error) {
+			console.error('Error fetching public books:', error);
+			return [];
+		}
 	}
 
 	/**
-	 * Function for the flip-flop data button. Resets visible books and calls for the new respective source instead.
-	 * @param source - locally sourced or public project Gutenberg books.
+	 *  Fetch public books. If no search term, load default books (from cache/API),
+	 *  otherwise perform a search.
+	 */
+	async function fetchPublicBooks(cleanedSearch: string = ""): Promise<BookDetails[]> {
+		const cacheKey = 'publicBooks';
+		if (cleanedSearch === "") {
+			return await fetchDefaultBooks(cacheKey);
+		} else {
+			return await fetchSearchedBooks(cacheKey, cleanedSearch);
+		}
+	}
+
+	/**
+	 * Function for the flip-flop data button.
+	 * If switching to public, fetch and show public books (with loading state).
+	 * Otherwise, show local books.
 	 */
 	async function setDataSource(source: 'local' | 'public') {
 		dataSource = source;
-		bookDetails = dataSource === 'local'
-			? getStoredBooks()
-			: await fetchPublicBooks();
-
+		if (dataSource === 'public') {
+			isLoading = true;
+			bookDetails = await fetchPublicBooks();
+			isLoading = false;
+		} else {
+			bookDetails = getStoredBooks();
+		}
 		closeModal();
 	}
 
@@ -178,8 +183,6 @@
 
 	/**
 	 * With book selected (tab), the enter key or space will open modal.
-	 * @param event
-	 * @param book
 	 */
 	function handleKeyDown(event: KeyboardEvent, book: BookDetails) {
 		if (event.key === 'Enter' || event.key === ' ') {
@@ -189,14 +192,11 @@
 	}
 
 	/**
-	 * Clear coverUrl from map, then updates cover in LocalStorage books
-	 * @param book
-	 * @param url
+	 * Clear coverUrl from map, then update cover in LocalStorage books.
 	 */
 	function addCoverToBookHandler(book: BookDetails, url: string) {
 		coverUrls[book.identifier] = '';
 		book.cover = url;
-
 		if (dataSource === 'local') {
 			updateBookDetails(book.identifier, { cover: url });
 			bookDetails = getStoredBooks();
@@ -215,20 +215,18 @@
 	}
 
 	/**
-	 * Clear the rendition and replace book, as well as setup book as OpenedBook
+	 * Clear the rendition and replace the book,
+	 * as well as set it as the OpenedBook.
 	 */
 	async function uploadEpub() {
 		const file = get(uploadedFile);
 		if (!file) return;
-
 		// Destroy any existing book and rendition before loading the new one
 		if (get(book)) {
 			get(book)?.destroy();
 		}
-
 		const newBook = ePub(file);
 		book.set(newBook);
-
 		const openedBookId = selectedBook?.identifier;
 		if (openedBookId) {
 			localStorage.setItem('openedBook', openedBookId);
@@ -241,12 +239,19 @@
 		} else {
 			console.error('No book selected for upload');
 		}
-
 		await goto('/view-book');
 	}
-	onMount(()=>{
-		fetchDefaultBooks()
-	})
+
+	onMount(async () => {
+		// Since main page is local, load local books on mount.
+		if (dataSource === 'local') {
+			bookDetails = getStoredBooks();
+		} else {
+			isLoading = true;
+			bookDetails = await fetchDefaultBooks();
+			isLoading = false;
+		}
+	});
 </script>
 
 <div class="container">
@@ -322,7 +327,6 @@
 						<button class="upload-button" on:click={uploadEpub}>Upload EPUB</button>
 					</section>
 					<br />
-
 					<h3>Want to update the cover?</h3>
 					<Textarea
 						placeholder="Enter URL of the cover image"
@@ -476,17 +480,15 @@
       transform: translateY(-5px);
       box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
     }
-		&.loading {
-			opacity: .8;
-			filter: blur(1rem);
-			pointer-events: none;
-     }
-    &.not-loading{
-				opacity: 1;
-
+    &.loading {
+      opacity: 0.8;
+      filter: blur(1rem);
+      pointer-events: none;
+    }
+    &.not-loading {
+      opacity: 1;
     }
   }
-
 
   .cover-image {
     width: 100%;
@@ -518,6 +520,7 @@
     font-size: 1.5rem;
     color: var(--fg-100);
   }
+
   .search-bar input {
     background-color: transparent;
     border: none;
@@ -532,6 +535,7 @@
   .search-bar input:focus {
     border-bottom-color: #007BFF;
   }
+
   /* Cleaned-up Modal Styles */
   .modal-overlay {
     position: fixed;
