@@ -610,5 +610,14 @@
     li {
       margin-bottom: 0.5rem;
     }
+  } a {
+      color: var(--fg-100);
+      text-decoration: underline;
+      opacity: 50%;
+      transition: opacity 0.2s ease;
+    }
+
+   a:hover {
+    opacity: 100%;
   }
 </style>
