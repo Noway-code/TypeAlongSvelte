@@ -361,6 +361,9 @@
 					<button on:click={() => downloadAndLoadBook(selectedBook.downloadUrl)}>
 						Download &amp; Open EPUB
 					</button>
+					<p class="attribution-note">
+						This ebook is provided by <a href="https://www.gutenberg.org" target="_blank" rel="noopener noreferrer">Project Gutenberg</a>.
+					</p>
 				{/if}
 			</div>
 		</div>
