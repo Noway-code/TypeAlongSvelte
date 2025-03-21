@@ -33,22 +33,30 @@
 
 	let timer: number;
 
+	/**
+	 * Reset's a 300ms timer on every typing event to debounce the search API call.
+	 * @param event
+	 */
 	const debounceUpdate = (event: Event) => {
 		const value = (event.target as HTMLInputElement).value;
 		clearTimeout(timer);
 		timer = setTimeout(() => {
 			searchUpdate(value);
-		}, 300); // increased debounce delay for smoother UX
-	}
+		}, 300);
+	};
 
 	let searchToken = 0;
 
+	/**
+	 * Fetch the searched books, show blur til ready.
+	 * @param searchValue
+	 */
 	async function searchUpdate(searchValue: string) {
 		if (dataSource === 'public') {
 			isLoading = true;
 			searchToken += 1;
 			const currentToken = searchToken;
-			const cleanedSearch = searchValue.replaceAll(" ", "%20");
+			const cleanedSearch = searchValue.replaceAll(' ', '%20');
 			console.log(cleanedSearch);
 			const results = await fetchPublicBooks(cleanedSearch);
 			if (currentToken === searchToken) {
@@ -56,7 +64,7 @@
 				isLoading = false;
 			}
 		} else {
-			console.log("No local function complete yet");
+			console.log('No local function complete yet');
 		}
 	}
 
@@ -84,7 +92,11 @@
 		}
 	}
 
-	async function fetchDefaultBooks(cacheKey: string = "publicBooks") {
+	/**
+	 * Empty or default search returning simply the top listed books
+	 * @param cacheKey
+	 */
+	async function fetchDefaultBooks(cacheKey: string = 'publicBooks') {
 		const cached = localStorage.getItem(cacheKey);
 		if (cached) {
 			try {
@@ -97,7 +109,7 @@
 			const response = await fetch('https://gutendex.com/books/?page=1');
 			const data = await response.json();
 			// Limit to 5 books
-			const results = data.results.slice(0, 5);
+			const results = data.results.slice(0, 10);
 			const books: BookDetails[] = results.map((b: any) => ({
 				title: b.title,
 				author: (b.authors && b.authors.length > 0) ? b.authors[0].name : 'Unknown',
@@ -121,14 +133,19 @@
 		}
 	}
 
-	async function fetchSearchedBooks(cacheKey: string = "publicBooks", cleanedSearch: string) {
+	/**
+	 * API Call returning 10 books using Gutendex search
+	 * @param cacheKey
+	 * @param cleanedSearch
+	 */
+	async function fetchSearchedBooks(cacheKey: string = 'publicBooks', cleanedSearch: string) {
 		try {
 			const url = `https://gutendex.com/books?search=${cleanedSearch}`;
 			console.log(url);
 			const response = await fetch(url);
 			const data = await response.json();
 			// Limit to 5 books
-			const results = data.results.slice(0, 5);
+			const results = data.results.slice(0, 10);
 			const books: BookDetails[] = results.map((b: any) => ({
 				title: b.title,
 				author: (b.authors && b.authors.length > 0) ? b.authors[0].name : 'Unknown',
@@ -156,9 +173,9 @@
 	 *  Fetch public books. If no search term, load default books (from cache/API),
 	 *  otherwise perform a search.
 	 */
-	async function fetchPublicBooks(cleanedSearch: string = ""): Promise<BookDetails[]> {
+	async function fetchPublicBooks(cleanedSearch: string = ''): Promise<BookDetails[]> {
 		const cacheKey = 'publicBooks';
-		if (cleanedSearch === "") {
+		if (cleanedSearch === '') {
 			return await fetchDefaultBooks(cacheKey);
 		} else {
 			return await fetchSearchedBooks(cacheKey, cleanedSearch);
