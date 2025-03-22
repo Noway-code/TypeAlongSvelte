@@ -16,7 +16,7 @@ TypeAlong isn’t just another typing game. It’s an innovative platform that l
 - **Spot Saving:** Your progress is saved automatically so you can pick up right where you left off.
 - **Real-time Metrics:** Monitor your current page, words per minute (WPM), and accuracy as you type.
 - **Typing Mode:** Enjoy a traditional typing game mode when you need a break from reading.
-- **Customization:** Popular themes and color customization options to match your style.
+- **Customization:** Popular themes and color customization options to match your style including: Dracula, Nord, Monokai, Cattpuccin, and more!
 - **Audio Effects:** Choose between two sets of typewriter noises to enhance your typing experience.
 - **Responsive Design:** Optimized for desktops, tablets, and mobile devices.
 
